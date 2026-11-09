@@ -1,3 +1,88 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import AppHeader from '@/components/AppHeader.vue'
+import InputPanel from '@/components/inputs/InputPanel.vue'
+import PlanCard from '@/components/plan/PlanCard.vue'
+import AssumptionsPanel from '@/components/results/AssumptionsPanel.vue'
+import BalanceChart from '@/components/results/BalanceChart.vue'
+import ComparePanel from '@/components/results/ComparePanel.vue'
+import DeadlinesPanel from '@/components/results/DeadlinesPanel.vue'
+import IncomeChart from '@/components/results/IncomeChart.vue'
+import IssuesPanel from '@/components/results/IssuesPanel.vue'
+import KpiCards from '@/components/results/KpiCards.vue'
+import LongTermPanel from '@/components/results/LongTermPanel.vue'
+import MonthlyTable from '@/components/results/MonthlyTable.vue'
+import VacationPanel from '@/components/results/VacationPanel.vue'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { useScenarios } from '@/stores/scenarios'
+
+const { result, deadlines } = useScenarios()
+const openIssues = computed(() => result.value.issues.filter((i) => i.severity === 'error' || i.severity === 'warning').length)
+const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === 'soon' || d.status === 'missed').length)
+</script>
+
 <template>
-  <h1>Elternzeit-Planer</h1>
+  <TooltipProvider :delay-duration="150">
+    <div class="bg-muted/30 min-h-screen">
+      <AppHeader />
+      <div class="grid lg:grid-cols-[25rem_minmax(0,1fr)]">
+        <aside class="bg-card border-r lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto">
+          <InputPanel />
+        </aside>
+        <main class="grid min-w-0 content-start gap-5 p-5">
+          <KpiCards />
+          <PlanCard />
+          <Card>
+            <CardHeader>
+              <CardTitle>Monatsplan</CardTitle>
+              <CardDescription>Einnahmen, Ausgaben und Betreuung für jeden Lebensmonat des Kindes.</CardDescription>
+            </CardHeader>
+            <CardContent><MonthlyTable /></CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Haushaltseinkommen pro Monat</CardTitle>
+              <CardDescription>Einnahmen nach Quelle. Gestrichelt: euer gemeinsames Netto vor der Geburt. Rot: Ausgaben.</CardDescription>
+            </CardHeader>
+            <CardContent><IncomeChart /></CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Kontostand</CardTitle>
+              <CardDescription>Guthaben zur Geburt plus Einnahmen minus Ausgaben, Monat für Monat.</CardDescription>
+            </CardHeader>
+            <CardContent><BalanceChart /></CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Tabs default-value="issues">
+                <TabsList class="flex-wrap">
+                  <TabsTrigger value="issues">
+                    Hinweise &amp; Tipps
+                    <span v-if="openIssues" class="bg-destructive/10 text-destructive ml-1 rounded-full px-1.5 text-[0.65rem]">{{ openIssues }}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="deadlines">
+                    Fristen
+                    <span v-if="dueDeadlines" class="ml-1 rounded-full bg-amber-100 px-1.5 text-[0.65rem] text-amber-800">{{ dueDeadlines }}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="vacation">Urlaub</TabsTrigger>
+                  <TabsTrigger value="longterm">Rente &amp; Vermögen</TabsTrigger>
+                  <TabsTrigger value="compare">Vergleich</TabsTrigger>
+                  <TabsTrigger value="assumptions">Rechtsstand</TabsTrigger>
+                </TabsList>
+                <TabsContent value="issues" class="pt-4"><IssuesPanel /></TabsContent>
+                <TabsContent value="deadlines" class="pt-4"><DeadlinesPanel /></TabsContent>
+                <TabsContent value="vacation" class="pt-4"><VacationPanel /></TabsContent>
+                <TabsContent value="longterm" class="pt-4"><LongTermPanel /></TabsContent>
+                <TabsContent value="compare" class="pt-4"><ComparePanel /></TabsContent>
+                <TabsContent value="assumptions" class="pt-4"><AssumptionsPanel /></TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    </div>
+  </TooltipProvider>
 </template>
