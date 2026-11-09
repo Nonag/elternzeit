@@ -1,0 +1,40 @@
+{
+  "name": "elternzeit",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Local planning tool for German parental allowance (Elterngeld) and parental leave (Elternzeit).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "vue-tsc -b"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.71.0",
+    "@tanstack/vue-table": "^8.21.3",
+    "@unovis/ts": "^1.8.0",
+    "@unovis/vue": "^1.8.0",
+    "@vueuse/core": "^15.0.0",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.5.2",
+    "lohnsteuerrechner": "^1.0.7",
+    "reka-ui": "^2.11.0",
+    "shadcn-vue": "^2.9.0",
+    "tw-animate-css": "^1.4.0",
+    "vue": "^3.5.45"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^24.0.0",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.7",
+    "vite-plugin-singlefile": "^2.3.4",
+    "vitest": "^5.1.0",
+    "vue-tsc": "^3.3.14"
+  }
+}
