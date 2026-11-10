@@ -104,7 +104,7 @@ const markers = computed(() => {
 })
 
 const gridStyle = computed(() => ({
-  gridTemplateColumns: `6.5rem repeat(${horizon.value}, minmax(1.6rem, 1fr))`,
+  gridTemplateColumns: `6rem repeat(${horizon.value}, minmax(1.2rem, 1fr))`,
 }))
 
 function rangeLabel(segment: Segment): string {
@@ -122,7 +122,7 @@ function onClick(parent: ParentKey | null, segment: Segment) {
 <template>
   <div class="grid gap-3">
     <div class="overflow-x-auto pb-1">
-      <div class="relative grid min-w-[56rem] gap-y-1.5" :style="gridStyle">
+      <div class="relative grid gap-y-1.5" :style="gridStyle">
         <div class="text-muted-foreground sticky left-0 z-10 bg-card text-[0.65rem]">Lebensmonat</div>
         <div
           v-for="row in months"
@@ -135,7 +135,7 @@ function onClick(parent: ParentKey | null, segment: Segment) {
 
         <template v-for="lane in lanes" :key="lane.id">
           <div class="sticky left-0 z-10 flex items-center truncate bg-card pr-2 text-xs font-medium">{{ lane.title }}</div>
-          <div class="relative grid h-7" :style="{ gridColumn: '2 / -1', gridTemplateColumns: `repeat(${horizon}, minmax(1.6rem, 1fr))` }">
+          <div class="relative grid h-7" :style="{ gridColumn: '2 / -1', gridTemplateColumns: `repeat(${horizon}, minmax(1.2rem, 1fr))` }">
             <div class="bg-muted/40 row-start-1 rounded" :style="{ gridColumn: `1 / ${horizon + 1}` }" />
             <Tooltip v-for="segment in lane.segments" :key="segment.key">
               <TooltipTrigger as-child>
@@ -170,7 +170,7 @@ function onClick(parent: ParentKey | null, segment: Segment) {
           :key="`m-${marker.month}-${marker.label}`"
           class="pointer-events-none absolute top-4 bottom-0 border-l"
           :class="marker.className"
-          :style="{ left: `calc(6.5rem + (100% - 6.5rem) * ${(marker.month - 1) / horizon})` }"
+          :style="{ left: `calc(6rem + (100% - 6rem) * ${(marker.month - 1) / horizon})` }"
           :title="marker.label"
         />
       </div>
