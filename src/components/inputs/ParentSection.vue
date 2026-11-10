@@ -57,7 +57,7 @@ const churchRateOptions = [
       <div class="grid grid-cols-2 gap-4">
         <FormField
           label="Brutto pro Monat"
-          hint="Monatsgehalt laut Gehaltsabrechnung, ohne Einmalzahlungen wie Weihnachtsgeld. Zahlst du über den Job in eine Betriebsrente ein, zieh diesen Betrag ab."
+          hint="Auf der Gehaltsabrechnung meist „Steuerbrutto“ – aus einem Monat ohne Weihnachts- oder Urlaubsgeld. Beispiel: 4.200 € Bruttogehalt, davon 200 € für die Betriebsrente → 4.000 €."
         >
           <NumberInput v-model="parent.grossMonthly" unit="€" :step="100" />
         </FormField>
