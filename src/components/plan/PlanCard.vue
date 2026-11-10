@@ -52,7 +52,10 @@ function applyPreset(preset: PlanPreset) {
           </strong>
           <InfoTip text="Basiselterngeld zählt voll, ElterngeldPlus halb. Zusammen gibt es 14 Monate, wenn beide Elterngeld beziehen." />
         </span>
-        <span>Partnerschaftsbonus <strong class="text-foreground">{{ result.parents.a.counts.bonus }}/4</strong></span>
+        <span class="flex items-center gap-1">
+          Partnerschaftsbonus <strong class="text-foreground">{{ result.parents.a.counts.bonus }}/4</strong>
+          <InfoTip text="Bis zu 4 zusätzliche Monate ElterngeldPlus für jeden Elternteil – wenn ihr beide 2 bis 4 Monate am Stück gleichzeitig 24 bis 32 Stunden pro Woche arbeitet." />
+        </span>
         <span>
           Elternzeit
           <strong class="text-foreground">{{ result.activeParents.map((k) => `${result.parents[k].name} ${result.parents[k].counts.leaveMonths}`).join(' · ') }}</strong>
