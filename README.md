@@ -31,6 +31,8 @@ docker build -t elternzeit .                                                  # 
   tariff), Elterngeld-Netto and
   Elterngeld (§§ 2–4 BEEG incl. income averaging, Plus cap, Mutterschaftsgeld offset per day), Kindergeld,
   Cologne Kita fees, health insurance costs during leave and a simulated account balance.
+- **One-time payments** from the employer (bonus, premium) per parent and calendar month: wage tax with the annual
+  table, social contributions per § 23a SGB IV incl. März-Klausel; Elterngeld stays unchanged (§ 2c BEEG).
 - **Checks** Elterngeld and Elternzeit rules (parallel Basis, LM 14/32 limits, continuity, Partnerschaftsbonus,
   sections, part-time claims, income limit) plus care gaps and reserve warnings.
 - **Shows** tips with an estimated euro effect, deadlines (with checklist), vacation reduction (§ 17 BEEG),
@@ -45,6 +47,7 @@ src/engine/        pure TypeScript calculation core (no Vue), unit-tested
   dates.ts         ISO date helpers, Lebensmonate
   payroll.ts       gross → net (wage tax, Soli, church tax, social contributions, Midijob)
   parentalAllowance.ts, maternity.ts, plan.ts, childcare.ts
+  oneTimePayments.ts  bonus and other sonstige Bezüge (wage tax, social contributions, rough tax-return effect)
   simulate.ts      config → monthly rows, summaries, issues
   rules.ts, tips.ts, deadlines.ts, vacation.ts, pension.ts
 src/stores/        scenario store (localStorage, autosave)

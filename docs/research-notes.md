@@ -172,12 +172,27 @@ Cologne Elternbeiträge (Satzung 2025-04-17, EUR/month):
 - Official Elterngeld engine + test cases (Excel): gitlab.opencode.de/digitalservicebund/elterngeldrechner (`src/elterngeldrechner`, `src/monatsplaner`, `src/lebensmonatrechner`).
 - PrimeVue 5 is no longer MIT (PrimeUI licence); 4.5.5 MIT but maintenance only. Element Plus 2.14 (MIT), ECharts 6 (Apache-2.0), vite-plugin-singlefile 2.3 (MIT).
 
+## 14. One-time employer payments (bonus, premium)
+- **Elterngeld:** payments treated as sonstige Bezüge in payroll neither raise the Elterngeld (Bemessungszeitraum) nor
+  reduce it during receipt (§ 2c Abs. 1 Satz 2 BEEG; BSG 14.12.2017 – B 10 EG 7/17 R, 08.03.2018 – B 10 EG 8/16 R).
+  Components paid monthly with the salary are laufender Arbeitslohn and count.
+- **Social insurance (§ 23a SGB IV):** booked in the payout month, during Ruhen (Elternzeit) in the last payroll period
+  of the current year. Contributions only up to the pro-rata ceiling, which counts only days with contributory salary;
+  Mutterschutz, Elterngeld and Elternzeit do not count → no contributions in a year without salary so far.
+  März-Klausel: a payout from January to March above this year's pro-rata ceiling belongs to the previous year (for
+  compulsory KV members only the KV ceiling decides, Abs. 5); free as well if the previous year had no salary (DRV GRA).
+- **Wage tax:** sonstiger Bezug with the annual table (§ 39b Abs. 3 EStG, PAP inputs JRE4/SONSTB). Final tax via the
+  assessment; Elterngeld and Mutterschaftsleistungen raise the rate (§ 32b EStG), an unused Arbeitnehmer-Pauschbetrag
+  reduces them (§ 32b Abs. 2 Nr. 1 EStG).
+- **Cologne Kita fee:** counts as positive income in the payout year.
+
 ## Sources (selection)
 - BEEG: https://www.gesetze-im-internet.de/beeg/ (§§ 1–4c, 7, 15–18, 27, 28)
 - BEEG Richtlinien 07/2026: https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf
 - Reform draft: https://www.bmbfsfj.bund.de/bmbfsfj/ministerium/gesetze/entwurf-eines-gesetzes-zur-aenderung-des-bundeselterngeld-und-elternzeitgesetzes-zur-weiterentwicklung-und-vereinfachung-des-elterngeldes-sowie-des-mutterschutzgesetzes-298792
 - Familienportal FAQ: https://familienportal.de/familienportal/familienleistungen/elterngeld/faq
 - MuSchG: https://www.gesetze-im-internet.de/muschg_2018/
+- § 23a SGB IV: https://www.gesetze-im-internet.de/sgb_4/__23a.html · DRV GRA: https://rvrecht.deutsche-rentenversicherung.de/SharedDocs/rvRecht/01_GRA_SGB/04_SGB_IV/pp_0001_25/gra_sgb004_p_0023a.html
 - EStG / SolZG / AO: https://www.gesetze-im-internet.de/estg/ · /solzg_1995/ · /ao_1977/
 - EStReformG 2027: https://dserver.bundestag.de/btd/21/082/2108235.pdf
 - SV-Rechengrößen 2027: https://www.bmas.de/DE/Service/Gesetze-und-Gesetzesvorhaben/sozialversicherungs-rechengroessenverordnung-2027.html
