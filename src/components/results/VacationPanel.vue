@@ -50,7 +50,7 @@ const { result, config } = useScenarios()
             Elternzeit {{ formatDate(range.start) }} – {{ formatDate(range.end) }}: {{ range.lifeMonths }} Monate,
             davon {{ range.fullCalendarMonths }} volle Kalendermonate
           </span>
-          <span v-if="result.vacation[key].savedByAlignment > 0" class="text-emerald-700">
+          <span v-if="result.vacation[key].savedByAlignment > 0" class="text-emerald-700 dark:text-emerald-400">
             Weil die Elternzeit nicht am Monatsersten beginnt, werden {{ num(result.vacation[key].savedByAlignment) }} Tage
             weniger gekürzt als bei Elternzeit in ganzen Kalendermonaten.
           </span>

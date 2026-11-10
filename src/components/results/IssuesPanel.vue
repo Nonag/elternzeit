@@ -12,9 +12,9 @@ const { result } = useScenarios()
 const ORDER: IssueSeverity[] = ['error', 'warning', 'info', 'success']
 const META: Record<IssueSeverity, { icon: typeof InfoIcon; className: string }> = {
   error: { icon: CircleAlertIcon, className: 'text-destructive' },
-  warning: { icon: TriangleAlertIcon, className: 'text-amber-600' },
+  warning: { icon: TriangleAlertIcon, className: 'text-amber-600 dark:text-amber-400' },
   info: { icon: InfoIcon, className: 'text-sky-600' },
-  success: { icon: CircleCheckIcon, className: 'text-emerald-600' },
+  success: { icon: CircleCheckIcon, className: 'text-emerald-600 dark:text-emerald-400' },
 }
 const CATEGORY_LABELS: Record<string, string> = {
   allowance: 'Elterngeld',
@@ -44,7 +44,7 @@ const issues = computed(() =>
             v-if="issue.impact && Math.abs(issue.impact) >= 1"
             variant="outline"
             class="font-medium"
-            :class="issue.impact > 0 ? 'border-emerald-300 text-emerald-700' : 'border-red-300 text-destructive'"
+            :class="issue.impact > 0 ? 'border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400' : 'border-red-300 text-destructive dark:border-red-900'"
           >
             {{ issue.impact > 0 ? 'bis zu ' : '' }}{{ signedEuro(issue.impact) }}
           </Badge>

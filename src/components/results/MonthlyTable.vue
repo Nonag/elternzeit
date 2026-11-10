@@ -211,7 +211,7 @@ const columns = computed<ColumnDef<MonthRow, unknown>[]>(() => [
       }),
       moneyColumn('delta', 'Differenz', (row) => row.delta, {
         signed: true,
-        className: (row) => (row.delta < -0.5 ? 'text-destructive' : row.delta > 0.5 ? 'text-emerald-700' : ''),
+        className: (row) => (row.delta < -0.5 ? 'text-destructive' : row.delta > 0.5 ? 'text-emerald-700 dark:text-emerald-400' : ''),
       }),
       moneyColumn('expenses', 'Ausgaben', (row) => row.expenses),
       moneyColumn('saldo', 'Saldo', (row) => row.balanceChange, {
@@ -220,7 +220,7 @@ const columns = computed<ColumnDef<MonthRow, unknown>[]>(() => [
       }),
       moneyColumn('balance', 'Kontostand', (row) => row.balance, {
         footer: false,
-        className: (row) => (row.balance < 0 ? 'font-medium text-destructive' : row.balance < config.value.minReserve ? 'text-amber-700' : ''),
+        className: (row) => (row.balance < 0 ? 'font-medium text-destructive' : row.balance < config.value.minReserve ? 'text-amber-700 dark:text-amber-400' : ''),
       }),
     ],
   }),

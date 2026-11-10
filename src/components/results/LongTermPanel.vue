@@ -55,7 +55,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
                 <td class="text-right tabular-nums">{{ points(longTerm.pension[key].pointsSalary) }}</td>
                 <td class="text-muted-foreground text-right tabular-nums">{{ points(longTerm.pension[key].pointsReference) }}</td>
                 <td class="text-right tabular-nums">{{ points(longTerm.pension[key].pointsChildRaising) }}</td>
-                <td class="text-right font-medium tabular-nums" :class="longTerm.pension[key].pointsBalance < 0 ? 'text-destructive' : 'text-emerald-700'">
+                <td class="text-right font-medium tabular-nums" :class="longTerm.pension[key].pointsBalance < 0 ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400'">
                   {{ longTerm.pension[key].pointsBalance > 0 ? '+' : '' }}{{ points(longTerm.pension[key].pointsBalance) }}
                 </td>
                 <td class="text-right tabular-nums">{{ signedEuro(longTerm.pension[key].monthlyPensionBalance) }}</td>

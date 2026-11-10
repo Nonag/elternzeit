@@ -39,7 +39,7 @@ const allowanceSplit = computed(() =>
           <span class="truncate">Einkommen vs. vorher</span>
           <InfoTip text="Alle Einnahmen (Gehalt, Elterngeld, Mutterschaftsgeld, Kindergeld) minus euer gemeinsames Netto vor der Geburt." />
         </div>
-        <div class="text-2xl font-semibold tabular-nums" :class="totals.delta < 0 ? 'text-destructive' : 'text-emerald-700'">
+        <div class="text-2xl font-semibold tabular-nums" :class="totals.delta < 0 ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400'">
           {{ signedEuro(totals.delta) }}
         </div>
         <div class="text-muted-foreground truncate text-xs">zusammen über {{ result.horizon }} Monate</div>
@@ -63,13 +63,13 @@ const allowanceSplit = computed(() =>
     <Card class="py-4">
       <CardContent class="grid gap-1 px-5">
         <div class="text-muted-foreground flex items-center gap-1.5 truncate text-xs"><ShieldCheckIcon class="size-3.5 shrink-0" /> Prüfung</div>
-        <div class="text-2xl font-semibold" :class="errors ? 'text-destructive' : warnings ? 'text-amber-600' : 'text-emerald-600'">
+        <div class="text-2xl font-semibold" :class="errors ? 'text-destructive' : warnings ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'">
           {{ errors ? `${errors} Fehler` : warnings ? `${warnings} Warnungen` : 'Alles ok' }}
         </div>
         <div class="text-muted-foreground truncate text-xs">{{ errors }} Fehler · {{ warnings }} Warnungen</div>
         <div class="text-muted-foreground truncate text-xs" :title="nextDeadline?.title">
           <template v-if="nextDeadline">
-            nächste Frist: <span :class="nextDeadline.status === 'soon' ? 'font-medium text-amber-700' : ''">{{ formatDate(nextDeadline.date) }}</span>
+            nächste Frist: <span :class="nextDeadline.status === 'soon' ? 'font-medium text-amber-700 dark:text-amber-400' : ''">{{ formatDate(nextDeadline.date) }}</span>
           </template>
           <template v-else>keine offenen Fristen</template>
         </div>

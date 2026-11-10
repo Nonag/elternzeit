@@ -104,6 +104,7 @@ function tooltip(d: Datum | undefined): string {
         label-text="Mutterschutz"
         label-position="top-left-inside"
         :label-size="10"
+        label-color="var(--muted-foreground)"
       />
       <VisStackedBar :x="(d: Datum) => d.x" :y="accessors" :color="colors" :bar-padding="0.15" :rounded-corners="2" />
       <VisLine :x="(d: Datum) => d.x" :y="(d: Datum) => d.reference" color="var(--line-reference)" :line-width="1.5" :line-dash-array="[5, 4]" />
@@ -118,6 +119,7 @@ function tooltip(d: Datum | undefined): string {
         label-text="Kita-Start"
         label-position="top-right"
         :label-size="10"
+        label-color="var(--muted-foreground)"
       />
       <VisAxis type="x" label="Lebensmonat" :tick-values="tickValues" :tick-format="(v: number) => String(v)" :grid-line="false" :domain-line="false" :tick-line="false" />
       <VisAxis type="y" :tick-format="(v: number) => compactEuro.format(v)" :domain-line="false" :tick-line="false" :num-ticks="5" />

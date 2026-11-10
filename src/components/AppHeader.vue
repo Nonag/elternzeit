@@ -4,10 +4,13 @@ import {
   DownloadIcon,
   EllipsisVerticalIcon,
   FilePlusIcon,
+  MoonIcon,
   RotateCcwIcon,
+  SunIcon,
   Trash2Icon,
   UploadIcon,
 } from '@lucide/vue'
+import { useDark, useToggle } from '@vueuse/core'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +27,8 @@ import { useScenarios } from '@/stores/scenarios'
 const store = useScenarios()
 const { state, current } = store
 const fileInput = ref<HTMLInputElement | null>(null)
+const isDark = useDark()
+const toggleDark = useToggle(isDark)
 
 function download() {
   const blob = new Blob([store.exportJson()], { type: 'application/json' })
@@ -89,6 +94,17 @@ function resetCurrent() {
         </DropdownMenu>
         <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="upload" />
       </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        class="ml-auto"
+        :aria-label="isDark ? 'Helles Design' : 'Dunkles Design'"
+        :title="isDark ? 'Helles Design' : 'Dunkles Design'"
+        @click="toggleDark()"
+      >
+        <SunIcon v-if="isDark" />
+        <MoonIcon v-else />
+      </Button>
     </div>
   </header>
 </template>

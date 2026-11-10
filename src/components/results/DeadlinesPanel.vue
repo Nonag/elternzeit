@@ -13,9 +13,9 @@ const hidePast = ref(false)
 
 const STATUS: Record<DeadlineStatus, { label: string; className: string; icon: typeof ClockIcon }> = {
   missed: { label: 'Frist vorbei', className: 'bg-destructive/10 text-destructive', icon: CircleAlertIcon },
-  soon: { label: 'bald fällig', className: 'bg-amber-100 text-amber-800', icon: ClockIcon },
+  soon: { label: 'bald fällig', className: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300', icon: ClockIcon },
   upcoming: { label: 'offen', className: 'bg-secondary text-secondary-foreground', icon: ClockIcon },
-  done: { label: 'erledigt', className: 'bg-emerald-100 text-emerald-800', icon: CircleCheckIcon },
+  done: { label: 'erledigt', className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300', icon: CircleCheckIcon },
   event: { label: 'Termin', className: 'bg-sky-100 text-sky-800', icon: FlagIcon },
   'past-event': { label: 'vergangen', className: 'bg-muted text-muted-foreground', icon: FlagIcon },
 }
@@ -67,7 +67,7 @@ function toggle(deadline: Deadline, done: boolean) {
         <component
           :is="STATUS[deadline.status].icon"
           class="bg-card absolute top-3.5 -left-[1.4rem] size-4 rounded-full"
-          :class="deadline.status === 'missed' ? 'text-destructive' : deadline.status === 'done' ? 'text-emerald-600' : 'text-muted-foreground'"
+          :class="deadline.status === 'missed' ? 'text-destructive' : deadline.status === 'done' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'"
         />
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-sm font-semibold tabular-nums">{{ formatDate(deadline.date) }}</span>

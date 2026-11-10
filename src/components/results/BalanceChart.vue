@@ -64,6 +64,7 @@ function tooltip(d: Datum | undefined): string {
         :label-text="`Mindestreserve ${euro(config.minReserve)}`"
         label-position="top-left"
         :label-size="10"
+        label-color="var(--muted-foreground)"
       />
       <VisAxis type="x" :tick-values="tickValues" label="Lebensmonat" :tick-format="(v: number) => (v === 0 ? 'Geburt' : String(v))" :grid-line="false" :domain-line="false" :tick-line="false" />
       <VisAxis type="y" :tick-format="(v: number) => compactEuro.format(v)" :domain-line="false" :tick-line="false" :num-ticks="4" />

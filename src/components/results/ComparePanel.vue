@@ -142,7 +142,7 @@ function tooltip(d: Datum | undefined): string {
               v-for="c in compared"
               :key="c.id"
               class="text-right tabular-nums"
-              :class="isBest(metric, c.result) ? 'font-semibold text-emerald-700' : ''"
+              :class="isBest(metric, c.result) ? 'font-semibold text-emerald-700 dark:text-emerald-400' : ''"
             >
               {{ metric.value(c.result) }}
             </td>

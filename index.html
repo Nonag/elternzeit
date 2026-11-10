@@ -5,6 +5,13 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%B6%3C/text%3E%3C/svg%3E" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Elternzeit-Planer</title>
+    <script>
+      // Apply the stored colour scheme before the first paint (same key as useDark from @vueuse/core).
+      const scheme = localStorage.getItem('vueuse-color-scheme') || 'auto'
+      if (scheme === 'dark' || (scheme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>
