@@ -28,7 +28,7 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
     <div class="bg-muted/30 min-h-screen">
       <AppHeader />
       <div class="grid lg:grid-cols-[25rem_minmax(0,1fr)]">
-        <aside class="bg-card border-r lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto">
+        <aside class="bg-card border-r lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto lg:overscroll-contain">
           <InputPanel />
         </aside>
         <main class="grid min-w-0 content-start gap-5 p-5">
