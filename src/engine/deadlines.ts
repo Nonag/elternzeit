@@ -167,7 +167,6 @@ export function computeDeadlines(config: ScenarioConfig, result: SimulationResul
             ? `Dabei verbindlich alle Elternzeiten der nächsten zwei Jahre angeben (${within}) – spätere Änderungen gehen nur mit Zustimmung des Arbeitgebers. `
             : '') +
           `Ab der Anmeldung (frühestens ${weeks === 7 ? 8 : 14} Wochen vor Beginn) gilt Kündigungsschutz.` +
-          (key === 'b' && section[0] === 1 ? ' Formulierung „ab Geburt (errechneter Termin …)“; kommt das Kind früher, gilt eine kürzere Frist.' : '') +
           (partTime.length ? ' Die geplante Teilzeit gleich mit beantragen – lehnt der Arbeitgeber nicht innerhalb von 4 Wochen schriftlich ab, gilt sie als genehmigt.' : ''),
         category: 'leave',
         parent: key,
