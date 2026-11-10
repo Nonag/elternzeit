@@ -214,7 +214,7 @@ export function evaluateTips(
         parent: payment.parent,
         impact: payment.betterMonth.saving,
         title: `${name}: ${payment.label} lieber im ${better}`,
-        detail: `Im ${better} statt im ${month} ausgezahlt spart etwa ${euro(payment.betterMonth.saving)} Sozialabgaben. Die fallen auf Einmalzahlungen nur an, soweit im selben Jahr schon Gehalt gezahlt wurde – bei Zahlung von Januar bis März zählt auch das Vorjahr. Fragt beim Arbeitgeber nach, er spart dabei seinen Anteil ebenfalls.`,
+        detail: `Kommt die Zahlung im ${better} statt im ${month}, spart das etwa ${euro(payment.betterMonth.saving)} Sozialabgaben. Auf Einmalzahlungen fallen Sozialabgaben nur an, soweit im selben Jahr schon Gehalt geflossen ist; Zahlungen im Januar bis März können zum Vorjahr zählen. Fragt beim Arbeitgeber nach, er spart seinen Anteil ebenfalls.`,
       })
     }
 

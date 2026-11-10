@@ -34,20 +34,24 @@ function addPayment() {
 
 function paymentNote(payment: OneTimePaymentResult): string {
   const year = Number(payment.month.slice(0, 4))
-  const lines = [`Steuern ${euro(payment.tax)}, Sozialabgaben ${euro(payment.contributions)}.`]
+  const lines = [`Abzüge: ${euro(payment.tax)} Steuern, ${euro(payment.contributions)} Sozialabgaben.`]
   const insured = parent.value.pensionInsured || parent.value.healthInsurance !== 'private'
   if (payment.contributionYear < year) {
     const free = payment.contributions === 0 && payment.insuredMonths === 0
-    lines.push(`Gezahlt von Januar bis März, deshalb zählt sie für die Sozialabgaben zu ${payment.contributionYear}${free ? ' – damals gab es kein Gehalt.' : '.'}`)
+    lines.push(
+      'Zahlungen im Januar bis März zählen für die Sozialabgaben zum Vorjahr, wenn im selben Jahr bis dahin kein oder wenig Gehalt geflossen ist. ' +
+        `Diese Zahlung zählt deshalb zu ${payment.contributionYear}.` +
+        (free ? ' Da gab es kein Gehalt, also fallen keine Sozialabgaben an.' : ''),
+    )
   } else if (insured && payment.contributions === 0) {
     lines.push(
       payment.insuredMonths === 0
-        ? `Keine Sozialabgaben, weil ${year} bis dahin kein Gehalt gezahlt wurde.`
+        ? `Keine Sozialabgaben, weil ${year} bis zur Auszahlung kein Gehalt geflossen ist.`
         : 'Keine Sozialabgaben, weil die Beitragsgrenze schon erreicht ist.',
     )
   }
-  if (payment.lifeMonth === 0) lines.push('Vor der Geburt gezahlt: wird zum Kontostand zur Geburt addiert.')
-  else if (payment.lifeMonth > result.value.horizon) lines.push('Liegt nach dem Planungszeitraum.')
+  if (payment.lifeMonth === 0) lines.push('Die Zahlung kommt vor der Geburt und wird zum Kontostand zur Geburt addiert.')
+  else if (payment.lifeMonth > result.value.horizon) lines.push('Die Zahlung liegt nach dem Planungszeitraum.')
   return lines.join('\n')
 }
 
