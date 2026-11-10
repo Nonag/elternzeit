@@ -18,6 +18,10 @@ export interface ParentMonth {
   netSalary: number
   maternityBenefit: number
   parentalAllowance: number
+  /** Net amount of one-time employer payments booked in this month. */
+  oneTimePayments: number
+  /** Part of these payments subject to pension contributions. */
+  oneTimePensionBase: number
   /** Elterngeld-Netto of the income in this month (basis for the income average). */
   allowanceNetAfter: number
   allowanceNote: string
@@ -27,6 +31,34 @@ export interface ParentMonth {
   fullTimeNet: number
   total: number
   blockId: string | null
+}
+
+export interface OneTimePaymentResult {
+  id: string
+  parent: ParentKey
+  label: string
+  /** Calendar month of the payout ('YYYY-MM'). */
+  month: string
+  /** Life month that books the payout: 0 = before the birth, above the horizon = after the planning period. */
+  lifeMonth: number
+  gross: number
+  /** Wage tax, Soli and church tax withheld at the payout. */
+  tax: number
+  /** Employee social contributions. */
+  contributions: number
+  net: number
+  /** Part of the payment subject to pension contributions. */
+  pensionBase: number
+  /** Year whose contribution ceiling applies (the previous year for some payouts from January to March). */
+  contributionYear: number
+  /** Months with contributory salary in that year up to the payout. */
+  insuredMonths: number
+  /** Nearby payout month with lower social contributions. */
+  betterMonth: { month: string; saving: number } | null
+  /** Rough result of the tax return for this payment: final income tax minus the tax withheld (positive = back payment). */
+  taxReturnEffect: number
+  /** Elterngeld or Mutterschaftsleistungen in the same tax year (raise the tax rate). */
+  benefitsInTaxYear: boolean
 }
 
 export interface CareCoverage {
@@ -140,6 +172,7 @@ export interface SimulationResult {
     annualIncomeByYear: Record<number, number>
   }
   estimatedTaxableIncome: number
+  oneTimePayments: OneTimePaymentResult[]
   vacation: Record<ParentKey, VacationSummary>
   longTerm: LongTermResult
   totals: {

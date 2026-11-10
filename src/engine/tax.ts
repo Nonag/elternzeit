@@ -55,12 +55,18 @@ export interface WageTaxAdjustmentInput {
  * (annual wage minus lump sums and Vorsorgepauschale) and only the tariff change is applied.
  */
 export function wageTaxYearAdjustment(input: WageTaxAdjustmentInput): number {
-  if (input.year <= 2026 || input.gross <= 0) return 0
+  const { gross, ...rest } = input
+  return annualWageTaxAdjustment({ ...rest, annualGross: gross * 12 }) / 12
+}
+
+/** Annual variant of `wageTaxYearAdjustment` for an annual wage (also used for sonstige Bezüge). */
+export function annualWageTaxAdjustment(input: Omit<WageTaxAdjustmentInput, 'gross'> & { annualGross: number }): number {
+  if (input.year <= 2026 || input.annualGross <= 0) return 0
   const base = yearParameters(2026)
   const target = yearParameters(input.year)
-  const annual = input.gross * 12
-  const pensionBase = Math.min(input.gross, base.pensionCeilingMonthly) * 12
-  const healthBase = Math.min(input.gross, base.healthCeilingMonthly) * 12
+  const annual = input.annualGross
+  const pensionBase = Math.min(annual, base.pensionCeilingMonthly * 12)
+  const healthBase = Math.min(annual, base.healthCeilingMonthly * 12)
   const pension = input.pensionInsured ? pensionBase * 0.093 : 0
   const unemployment = input.pensionInsured ? pensionBase * 0.013 : 0
   const healthCare =
@@ -75,5 +81,5 @@ export function wageTaxYearAdjustment(input: WageTaxAdjustmentInput): number {
   const taxable = (lumpSum: number) => annual - lumpSum - specialLumpSum - provision - singleParentRelief
   const before = incomeTaxForClass(taxable(base.employeeLumpSum), 2026, input.taxClass)
   const after = incomeTaxForClass(taxable(target.employeeLumpSum), input.year, input.taxClass)
-  return Math.max(0, (before - after) / 12)
+  return Math.max(0, before - after)
 }

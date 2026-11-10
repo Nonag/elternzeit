@@ -1,4 +1,4 @@
-import { formatDate } from './dates'
+import { formatDate, formatMonthKey } from './dates'
 import { PARENTAL_ALLOWANCE as PA } from './params'
 import { basicWithIncome, computeAllowanceNet, plusWithIncome } from './parentalAllowance'
 import { computePayroll } from './payroll'
@@ -200,6 +200,43 @@ export function evaluateTips(
       title: `Kein Kinderlosenzuschlag mehr: +${euro(surchargeGain)} Netto pro Monat`,
       detail: 'Mit dem ersten Kind entfällt für beide der Pflege-Zuschlag für Kinderlose – ab dem Geburtsmonat, wenn der Arbeitgeber die Geburtsurkunde bekommt.',
     })
+  }
+
+  for (const payment of result.oneTimePayments) {
+    const name = parents[payment.parent].name
+    const month = formatMonthKey(payment.month, true)
+    if (payment.betterMonth) {
+      const better = formatMonthKey(payment.betterMonth.month, true)
+      tips.push({
+        id: `tip-one-time-month-${payment.id}`,
+        severity: 'info',
+        category: 'finance',
+        parent: payment.parent,
+        impact: payment.betterMonth.saving,
+        title: `${name}: ${payment.label} lieber im ${better}`,
+        detail: `Im ${better} statt im ${month} ausgezahlt spart etwa ${euro(payment.betterMonth.saving)} Sozialabgaben. Die fallen auf Einmalzahlungen nur an, soweit im selben Jahr schon Gehalt gezahlt wurde – bei Zahlung von Januar bis März zählt auch das Vorjahr. Fragt beim Arbeitgeber nach, er spart dabei seinen Anteil ebenfalls.`,
+      })
+    }
+
+    const estimate = Math.round(Math.abs(payment.taxReturnEffect) / 50) * 50
+    if (estimate >= 100) {
+      const backPayment = payment.taxReturnEffect > 0
+      tips.push({
+        id: `tip-one-time-tax-${payment.id}`,
+        severity: 'info',
+        category: 'finance',
+        parent: payment.parent,
+        impact: backPayment ? -estimate : estimate,
+        title: `${name}: ${payment.label} – grob ${euro(estimate)} Steuer-${backPayment ? 'Nachzahlung' : 'Erstattung'} möglich`,
+        detail:
+          (payment.tax < 1
+            ? `Bei der Auszahlung im ${month} wird keine Lohnsteuer einbehalten. `
+            : `Bei der Auszahlung im ${month} werden etwa ${euro(payment.tax)} Steuern einbehalten. `) +
+          `Abgerechnet wird mit der Steuererklärung ${payment.month.slice(0, 4)}: Dort kommt der Betrag zum übrigen Einkommen dazu` +
+          (payment.benefitsInTaxYear ? ', und Elterngeld oder Mutterschaftsgeld erhöhen den Steuersatz. ' : '. ') +
+          'Grob geschätzt, ohne Werbungskosten und andere Abzüge.',
+      })
+    }
   }
 
   return tips

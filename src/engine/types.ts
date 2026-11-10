@@ -30,6 +30,16 @@ export interface ParentConfig {
   vacationDaysPerYear: number
   employerOver15: boolean
   employedOver6Months: boolean
+  /** One-time payments from the employer (bonus, premium), taxed as sonstige Bezüge. */
+  oneTimePayments: OneTimePayment[]
+}
+
+export interface OneTimePayment {
+  id: string
+  label: string
+  gross: number
+  /** Calendar month of the payout ('YYYY-MM'). */
+  month: string
 }
 
 export interface PlanBlock {

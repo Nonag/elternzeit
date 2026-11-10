@@ -19,6 +19,7 @@ export function defaultParent(name: string, grossMonthly: number): ParentConfig 
     vacationDaysPerYear: 30,
     employerOver15: true,
     employedOver6Months: true,
+    oneTimePayments: [],
   }
 }
 

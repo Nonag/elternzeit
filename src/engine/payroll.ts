@@ -33,7 +33,7 @@ export interface PayrollResult {
 }
 
 /** Wage tax is calculated with the PAP 2026 until the final PAP 2027 is published. */
-const PAP_YEAR = 2026
+export const PAP_YEAR = 2026
 
 export function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100

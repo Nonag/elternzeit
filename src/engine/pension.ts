@@ -70,7 +70,7 @@ export function computeLongTerm(
         const p = yearParameters(parseIso(`${row.calendarMonth}-01`).year)
         const cap = p.pensionCeilingMonthly / p.averageEarnings
         const salary = Math.min(row[key].grossSalary, p.pensionCeilingMonthly) / p.averageEarnings
-        pointsSalary += salary
+        pointsSalary += salary + row[key].oneTimePensionBase / p.averageEarnings
         pointsReference += Math.min(parent.grossMonthly, p.pensionCeilingMonthly) / p.averageEarnings
         if (key === creditParent && row.calendarMonth >= creditFrom && row.calendarMonth <= creditTo) {
           pointsChildRaising += Math.max(0, Math.min(1 / 12, cap - salary))

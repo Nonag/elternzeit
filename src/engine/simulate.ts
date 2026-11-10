@@ -10,6 +10,7 @@ import {
   primaryCalendarMonth,
 } from './dates'
 import { computeMaternityPeriod, maternityBenefitRate } from './maternity'
+import { computeOneTimePayments } from './oneTimePayments'
 import { PARENTAL_ALLOWANCE as PA, yearParameters } from './params'
 import {
   basicWithIncome,
@@ -49,6 +50,8 @@ const EMPTY_MONTH: ParentMonth = {
   netSalary: 0,
   maternityBenefit: 0,
   parentalAllowance: 0,
+  oneTimePayments: 0,
+  oneTimePensionBase: 0,
   allowanceNetAfter: 0,
   allowanceNote: '',
   healthCosts: 0,
@@ -232,6 +235,8 @@ export function simulate(config: ScenarioConfig): SimulationResult {
         netSalary,
         maternityBenefit,
         parentalAllowance: 0,
+        oneTimePayments: 0,
+        oneTimePensionBase: 0,
         allowanceNetAfter: 0,
         allowanceNote: '',
         healthCosts: round2(healthCosts),
@@ -302,9 +307,30 @@ export function simulate(config: ScenarioConfig): SimulationResult {
     })
   }
 
+  // One-time employer payments (no effect on Elterngeld)
+  const oneTimePayments = computeOneTimePayments({
+    config,
+    birth,
+    maternity,
+    maternityDaily: maternityRate.totalDaily,
+    lms,
+    parentMonths,
+    activeParents,
+    childAllowances: {
+      a: childAllowanceCount(config.relationship, config.parents.a.taxClassAfterBirth ?? config.parents.a.taxClass, children),
+      b: childAllowanceCount(config.relationship, config.parents.b.taxClassAfterBirth ?? config.parents.b.taxClass, children),
+    },
+  })
+  for (const payment of oneTimePayments) {
+    if (payment.lifeMonth < 1 || payment.lifeMonth > horizon) continue
+    const month = parentMonths[payment.parent][payment.lifeMonth - 1]
+    month.oneTimePayments = round2(month.oneTimePayments + payment.net)
+    month.oneTimePensionBase = round2(month.oneTimePensionBase + payment.pensionBase)
+  }
+
   for (const key of PARENT_KEYS) {
     for (const month of parentMonths[key]) {
-      month.total = round2(month.netSalary + month.maternityBenefit + month.parentalAllowance)
+      month.total = round2(month.netSalary + month.maternityBenefit + month.parentalAllowance + month.oneTimePayments)
     }
   }
 
@@ -336,6 +362,15 @@ export function simulate(config: ScenarioConfig): SimulationResult {
     const lumpSums = entry.earners.size * yearParameters(year).employeeLumpSum
     annualIncomeByYear[year] = Math.max(0, Math.round((entry.sum * 12) / entry.months - lumpSums))
   }
+  // One-time payments count in the year of the payout, without annualising.
+  for (const payment of oneTimePayments) {
+    const year = Number(payment.month.slice(0, 4))
+    const entry = incomeByYear.get(year)
+    if (!entry) continue
+    const lumpSum = entry.earners.has(payment.parent) ? 0 : Math.min(payment.gross, yearParameters(year).employeeLumpSum)
+    entry.earners.add(payment.parent)
+    annualIncomeByYear[year] = Math.max(0, Math.round(annualIncomeByYear[year] + payment.gross - lumpSum))
+  }
 
   // Childcare fees and start
   const childcareFee = new Array<number>(horizon).fill(0)
@@ -363,7 +398,9 @@ export function simulate(config: ScenarioConfig): SimulationResult {
 
   // Household rows
   const initialBalance = round2(
-    config.startBalance - config.oneTimeCosts.filter((c) => c.month <= 0).reduce((sum, c) => sum + c.amount, 0),
+    config.startBalance -
+      config.oneTimeCosts.filter((c) => c.month <= 0).reduce((sum, c) => sum + c.amount, 0) +
+      oneTimePayments.filter((p) => p.lifeMonth === 0).reduce((sum, p) => sum + p.net, 0),
   )
   let balance = initialBalance
   const preBirthIncome = round2(activeParents.reduce((sum, key) => sum + setup[key].realNetBefore, 0))
@@ -503,6 +540,7 @@ export function simulate(config: ScenarioConfig): SimulationResult {
     entitlement,
     childcare: { startMonthIndex: childcareStartIndex, annualIncomeByYear },
     estimatedTaxableIncome,
+    oneTimePayments,
     vacation: computeVacation(config, months, activeParents),
     longTerm: computeLongTerm(config, months, parents, activeParents, birth),
     totals: {
