@@ -29,14 +29,14 @@ function addOneTime() {
 <template>
   <div class="grid gap-6">
     <FieldGroup title="Haushalt">
-      <FormField label="Fixkosten pro Monat" hint="Alle regelmäßigen Ausgaben ohne Kind: Miete, Lebensmittel, Versicherungen, Auto, Abos …">
+      <FormField label="Fixkosten pro Monat" hint="Alle regelmäßigen Ausgaben ohne Kind, z. B. Miete, Lebensmittel, Versicherungen.">
         <NumberInput v-model="config.fixedCostsBefore" unit="€" :step="50" />
       </FormField>
       <div class="grid grid-cols-2 gap-4">
-        <FormField label="Guthaben zur Geburt" hint="So viel Geld habt ihr voraussichtlich zur Geburt auf dem Konto. Davon geht die Kontostand-Grafik aus.">
+        <FormField label="Kontostand zur Geburt" hint="Startwert für die Kontostand-Grafik.">
           <NumberInput v-model="config.startBalance" unit="€" :step="500" />
         </FormField>
-        <FormField label="Mindestreserve" hint="Fällt der Kontostand darunter, gibt es einen Hinweis.">
+        <FormField label="Mindestreserve" hint="Fällt der Kontostand darunter, gibt es eine Warnung.">
           <NumberInput v-model="config.minReserve" unit="€" :step="500" />
         </FormField>
       </div>
@@ -44,7 +44,7 @@ function addOneTime() {
 
     <FieldGroup title="Laufende Kosten fürs Kind">
       <p class="text-muted-foreground -mt-1 text-xs leading-relaxed">
-        Zum Beispiel Windeln, Nahrung oder Kleidung. Monat 1 ist der erste Lebensmonat. Die Kita wird extra berechnet.
+        Zum Beispiel Windeln, Nahrung oder Kleidung, ohne Kita. Monat 1 ist der erste Lebensmonat.
       </p>
       <div v-for="(item, i) in config.childCosts" :key="item.id" class="grid gap-3 rounded-lg border p-3">
         <div class="flex items-center gap-2">
@@ -67,7 +67,7 @@ function addOneTime() {
     </FieldGroup>
 
     <FieldGroup title="Einmalige Kosten">
-      <p class="text-muted-foreground -mt-1 text-xs leading-relaxed">Zum Beispiel Kinderwagen, Babybett oder Autositz.</p>
+      <p class="text-muted-foreground -mt-1 text-xs leading-relaxed">Zum Beispiel Kinderwagen, Babybett, Autositz.</p>
       <div v-for="(item, i) in config.oneTimeCosts" :key="item.id" class="grid gap-3 rounded-lg border p-3">
         <div class="flex items-center gap-2">
           <Input v-model="item.label" class="h-9 flex-1" aria-label="Bezeichnung" />

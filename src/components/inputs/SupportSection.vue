@@ -27,8 +27,7 @@ function addSupport() {
 <template>
   <div class="grid gap-5">
     <p class="text-muted-foreground text-xs leading-relaxed">
-      Zeiten, in denen Großeltern oder Freunde das Kind betreuen, damit ihr beide arbeiten könnt. Sie füllen Lücken, in
-      denen sonst niemand für das Kind da wäre.
+      Zeiten, in denen Großeltern oder Freunde das Kind betreuen, während ihr beide arbeitet.
     </p>
     <div v-for="(period, i) in config.support" :key="period.id" class="grid gap-3 rounded-lg border p-3">
       <div class="flex items-center gap-2">

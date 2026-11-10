@@ -34,21 +34,18 @@ function onRelationshipChange(value: RelationshipStatus) {
 <template>
   <div class="grid gap-6">
     <FieldGroup title="Familie">
-      <FormField
-        label="Beziehungsstatus"
-        hint="Beeinflusst die möglichen Steuerklassen und einige Hinweise, zum Beispiel zum Sorgerecht oder zur Krankenversicherung des Kindes."
-      >
+      <FormField label="Beziehungsstatus" hint="Bestimmt unter anderem, welche Steuerklassen möglich sind.">
         <ChoiceToggle :model-value="config.relationship" :options="relationshipOptions" @update:model-value="onRelationshipChange" />
       </FormField>
       <div class="grid grid-cols-2 gap-4">
-        <FormField label="Kinder bei dieser Geburt" hint="Mehr als 1 bei Zwillingen oder Drillingen – dann gibt es mehr Elterngeld und Kindergeld.">
+        <FormField label="Anzahl Kinder" hint="Bei Zwillingen 2.">
           <NumberInput v-model="config.children" :min="1" :max="4" />
         </FormField>
       </div>
       <SwitchField
         v-model="config.siblingBonus"
         label="Geschwister unter 3 Jahren"
-        hint="Lebt schon ein Kind unter 3 Jahren (oder zwei unter 6) bei euch, gibt es 10 % mehr Elterngeld, mindestens 75 € im Monat."
+        hint="Lebt schon ein Kind unter 3 Jahren (oder zwei unter 6) bei euch, gibt es 10 % mehr Elterngeld, mindestens 75 €."
       />
     </FieldGroup>
 
@@ -57,19 +54,19 @@ function onRelationshipChange(value: RelationshipStatus) {
         <FormField label="Errechneter Termin">
           <DateInput :model-value="config.dueDate" @update:model-value="(v) => v && (config.dueDate = v)" />
         </FormField>
-        <FormField label="Tatsächliche Geburt" hint="Sobald das Kind da ist, hier eintragen – alle Daten und Fristen passen sich dann an.">
+        <FormField label="Tatsächliche Geburt" hint="Nach der Geburt eintragen. Termine und Fristen werden dann neu berechnet.">
           <DateInput v-model="config.birthDate" placeholder="noch offen" clearable />
         </FormField>
       </div>
       <SwitchField
         v-model="config.extendedMaternity"
         label="12 statt 8 Wochen Mutterschutz"
-        hint="Nach einer Frühgeburt, bei Mehrlingen oder wenn beim Kind eine Behinderung festgestellt wird, dauert der Mutterschutz nach der Geburt 12 Wochen. Bei Mehrlingen wird das automatisch berücksichtigt."
+        hint="Bei Frühgeburt, Mehrlingen oder Behinderung des Kindes."
       />
     </FieldGroup>
 
     <FieldGroup title="Darstellung">
-      <FormField label="Planungszeitraum" hint="So viele Monate ab der Geburt zeigen Tabelle und Grafiken. 36 Monate reichen bis zum 3. Geburtstag.">
+      <FormField label="Planungszeitraum" hint="So viele Monate ab der Geburt zeigen Tabelle und Grafiken.">
         <NumberInput v-model="config.horizonMonths" :min="12" :max="72" :step="6" unit="Monate" />
       </FormField>
     </FieldGroup>

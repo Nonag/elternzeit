@@ -39,7 +39,7 @@ export function evaluateTips(
           months: basicWithWork.map((m) => m.index),
           impact: gain,
           title: `${name}: in Teilzeit lieber ElterngeldPlus`,
-          detail: `Wer nebenbei arbeitet, bekommt deutlich weniger Basiselterngeld (hier ${euro(basic)} im Monat). ElterngeldPlus wird kaum gekürzt (${euro(plus)}) und läuft doppelt so lange. Insgesamt wären das bis zu ${euro(gain)} mehr.`,
+          detail: `Mit Teilzeitjob wird Basiselterngeld stark gekürzt (hier ${euro(basic)} im Monat), ElterngeldPlus kaum (${euro(plus)}) – und es läuft doppelt so lange. Zusammen bis zu ${euro(gain)} mehr.`,
         })
       }
     }
@@ -53,7 +53,7 @@ export function evaluateTips(
         category: 'leave',
         parent: key,
         title: `${name}: ${saved.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Urlaubstage gespart`,
-        detail: `Der Arbeitgeber darf den Urlaub nur für jeden vollen Kalendermonat Elternzeit kürzen. Weil die Elternzeit am ${formatDate(first.start).slice(0, 6)} beginnt statt am Monatsersten, fallen weniger volle Kalendermonate an.`,
+        detail: `Der Urlaub darf nur für volle Kalendermonate Elternzeit gekürzt werden. Weil die Elternzeit am ${formatDate(first.start).slice(0, 6)} beginnt und nicht am Monatsersten, sind es weniger volle Monate.`,
       })
     }
 
@@ -69,7 +69,7 @@ export function evaluateTips(
         months: regularPartTime.map((m) => m.index),
         title: `${name}: Teilzeit besser als Elternzeit anmelden`,
         detail:
-          'Bis zum 3. Geburtstag kannst du in Elternzeit bis zu 32 Stunden pro Woche arbeiten. Vorteile: Danach gilt automatisch wieder die alte Stundenzahl, du hast Kündigungsschutz und der Urlaub wird nicht gekürzt.',
+          'Bis zum 3. Geburtstag sind in Elternzeit bis zu 32 Stunden möglich. Vorteile: danach automatisch zurück zur alten Stundenzahl, Kündigungsschutz, keine Urlaubskürzung.',
       })
     }
 
@@ -122,7 +122,7 @@ export function evaluateTips(
       category: 'allowance',
       impact: potential,
       title: `Partnerschaftsbonus ungenutzt: bis zu ${euro(potential)}`,
-      detail: `Arbeitet ihr beide 2 bis 4 Monate gleichzeitig ${PA.bonusMinHours} bis ${PA.bonusMaxHours} Stunden pro Woche, gibt es für jeden zusätzlich ElterngeldPlus. Die Schätzung gilt für 4 Monate mit je ${hours} Stunden. Die Betreuung in dieser Zeit mitplanen.`,
+      detail: `Arbeitet ihr beide 2 bis 4 Monate gleichzeitig ${PA.bonusMinHours} bis ${PA.bonusMaxHours} Stunden pro Woche, gibt es für jeden zusätzlich ElterngeldPlus. Geschätzt für 4 Monate mit je ${hours} Stunden.`,
     })
   }
 
@@ -157,7 +157,7 @@ export function evaluateTips(
           parent: key,
           months: leaveMonths.map((m) => m.index),
           title: `${parents[key].name}: Steuerklasse III, solange ${parents[other].name} kein Gehalt hat`,
-          detail: `Bringt etwa ${euro(gain)} mehr Netto pro Monat (${formatMonthList(leaveMonths.map((m) => m.index))}). Die Steuer fürs ganze Jahr bleibt gleich – zu wenig gezahlte Steuer wird mit der Steuererklärung nachgezahlt. Aufs Elterngeld hat der Wechsel keinen Einfluss.`,
+          detail: `Etwa ${euro(gain)} mehr Netto pro Monat (${formatMonthList(leaveMonths.map((m) => m.index))}). Übers Jahr ändert sich die Steuer nicht – zu wenig gezahlte Steuer wird mit der Steuererklärung nachgezahlt.`,
         })
       }
     }
@@ -170,7 +170,7 @@ export function evaluateTips(
       category: 'finance',
       title: 'Arbeitgeber nach einem Kita-Zuschuss fragen',
       detail:
-        'Ein Zuschuss zu den Kita-Kosten ist steuer- und abgabenfrei, wenn er zusätzlich zum Gehalt gezahlt wird – 100 € Zuschuss kommen komplett an. Außerdem lassen sich Kita-Beiträge (ohne Essen) zu 80 % von der Steuer absetzen, höchstens 4.800 € im Jahr.',
+        'Ein Kita-Zuschuss zusätzlich zum Gehalt ist steuer- und abgabenfrei, kommt also komplett an. Kita-Beiträge (ohne Essen) lassen sich außerdem zu 80 % absetzen, bis 4.800 € im Jahr.',
     })
   }
 
@@ -198,8 +198,7 @@ export function evaluateTips(
       severity: 'success',
       category: 'finance',
       title: `Kein Kinderlosenzuschlag mehr: +${euro(surchargeGain)} Netto pro Monat`,
-      detail:
-        'Kinderlose zahlen einen Zuschlag zur Pflegeversicherung. Mit dem ersten Kind fällt er für beide Eltern weg – ab dem Geburtsmonat, wenn ihr dem Arbeitgeber die Geburtsurkunde rechtzeitig zeigt.',
+      detail: 'Mit dem ersten Kind entfällt für beide der Pflege-Zuschlag für Kinderlose – ab dem Geburtsmonat, wenn der Arbeitgeber die Geburtsurkunde bekommt.',
     })
   }
 

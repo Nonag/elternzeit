@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import ChoiceToggle from '@/components/fields/ChoiceToggle.vue'
 import FormField from '@/components/fields/FormField.vue'
+import InfoTip from '@/components/fields/InfoTip.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import type { ParentKey } from '@/engine/types'
 import { euro, num, signedEuro } from '@/lib/format'
@@ -18,7 +19,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
 <template>
   <div class="grid gap-5">
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <FormField label="Rentenpunkte fürs Kind bekommt" hint="Für die ersten drei Lebensjahre schreibt die Rentenversicherung einem Elternteil zusätzliche Rentenpunkte gut – etwa einen pro Jahr. Ohne Erklärung bekommt sie die Mutter. Wollt ihr das ändern, gebt ihr gemeinsam eine Erklärung ab; rückwirkend geht das nur für zwei Monate.">
+      <FormField label="Kindererziehungszeiten für" hint="Für die ersten drei Lebensjahre bekommt ein Elternteil zusätzliche Rentenpunkte, etwa einen pro Jahr – ohne Antrag die Mutter. Eine andere Aufteilung geht per gemeinsamer Erklärung, höchstens zwei Monate rückwirkend.">
         <ChoiceToggle v-model="config.pensionCreditTo" :options="parentOptions" />
       </FormField>
       <FormField label="Rendite Ersparnisse p. a.">
@@ -41,7 +42,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
               <th class="py-1 text-left font-medium">Elternteil</th>
               <th class="py-1 text-right font-medium">Punkte aus Gehalt (Plan)</th>
               <th class="py-1 text-right font-medium">bei 100 %</th>
-              <th class="py-1 text-right font-medium">+ Punkte fürs Kind</th>
+              <th class="py-1 text-right font-medium">+ Kindererziehung</th>
               <th class="py-1 text-right font-medium">Saldo</th>
               <th class="py-1 text-right font-medium">Rente/Monat</th>
               <th class="py-1 text-right font-medium">über {{ config.assumptions.retirementYears }} Jahre</th>
@@ -75,18 +76,21 @@ const name = (key: ParentKey) => result.value.parents[key].name
 
     <div class="grid gap-3 md:grid-cols-2">
       <div class="grid content-start gap-1 rounded-lg border p-3">
-        <span class="text-muted-foreground text-xs">Weniger Netto als bei Vollzeit (inklusive Elterngeld)</span>
+        <span class="text-muted-foreground flex items-center gap-1 text-xs">
+          Einkommensverlust gegenüber Vollzeit
+          <InfoTip text="Was beide in Vollzeit netto verdient hätten, minus die tatsächlichen Einnahmen inklusive Elterngeld und Mutterschaftsgeld." />
+        </span>
         <span class="text-xl font-semibold tabular-nums">{{ euro(longTerm.lostIncome) }}</span>
         <span class="text-muted-foreground text-xs">
-          Als Ersparnis angelegt wären daraus bei {{ num(config.assumptions.returnRate) }} % Rendite bis zur Rente etwa
-          <strong class="text-foreground">{{ euro(longTerm.lostIncomeAtRetirement) }}</strong> geworden.
+          Angelegt mit {{ num(config.assumptions.returnRate) }} % Rendite wären das zur Rente etwa
+          <strong class="text-foreground">{{ euro(longTerm.lostIncomeAtRetirement) }}</strong>.
         </span>
         <span class="text-muted-foreground mt-1 text-xs">
           Persönlich: <span v-for="key in result.activeParents" :key="key" class="mr-2">{{ name(key) }} {{ euro(longTerm.personalLoss[key]) }}</span>
         </span>
       </div>
       <div class="grid content-start gap-1 rounded-lg border p-3">
-        <span class="text-muted-foreground text-xs">Fairer Ausgleich (Einbußen halbe-halbe teilen)</span>
+        <span class="text-muted-foreground text-xs">Ausgleich, wenn ihr die Einbußen 50 : 50 teilt</span>
         <template v-if="longTerm.compensation">
           <span class="text-sm">
             {{ name(longTerm.compensation.from) }} gleicht {{ name(longTerm.compensation.to) }} aus:
