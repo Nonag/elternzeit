@@ -1,12 +1,19 @@
 <script setup lang="ts">
+import { PlusIcon, Trash2Icon } from '@lucide/vue'
 import { computed } from 'vue'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import ChoiceToggle from '@/components/fields/ChoiceToggle.vue'
 import FieldGroup from '@/components/fields/FieldGroup.vue'
 import FormField from '@/components/fields/FormField.vue'
+import InfoTip from '@/components/fields/InfoTip.vue'
+import MonthInput from '@/components/fields/MonthInput.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SelectField from '@/components/fields/SelectField.vue'
 import SwitchField from '@/components/fields/SwitchField.vue'
+import { monthKey } from '@/engine/dates'
+import { createId } from '@/engine/plan'
+import type { OneTimePaymentResult } from '@/engine/result'
 import type { HealthInsurance, ParentKey, TaxClass } from '@/engine/types'
 import { euro, percent } from '@/lib/format'
 import { useScenarios } from '@/stores/scenarios'
@@ -16,6 +23,33 @@ const { config, result } = useScenarios()
 
 const parent = computed(() => config.value.parents[props.parentKey])
 const summary = computed(() => result.value.parents[props.parentKey])
+const payments = computed(() => new Map(result.value.oneTimePayments.map((p) => [p.id, p])))
+
+const PAYMENT_HINT =
+  'Boni, Prämien oder andere einmalige Zahlungen vom Arbeitgeber – brutto, im Monat der Auszahlung. Beispiel: 3.000 € Elternzeit-Bonus im Mai 2027.\nDas Elterngeld ändert sich dadurch nicht. Steuern und Sozialabgaben hängen vom Monat ab.'
+
+function addPayment() {
+  parent.value.oneTimePayments.push({ id: createId('payment'), label: 'Bonus', gross: 1000, month: monthKey(result.value.birth) })
+}
+
+function paymentNote(payment: OneTimePaymentResult): string {
+  const year = Number(payment.month.slice(0, 4))
+  const lines = [`Steuern ${euro(payment.tax)}, Sozialabgaben ${euro(payment.contributions)}.`]
+  const insured = parent.value.pensionInsured || parent.value.healthInsurance !== 'private'
+  if (payment.contributionYear < year) {
+    const free = payment.contributions === 0 && payment.insuredMonths === 0
+    lines.push(`Gezahlt von Januar bis März, deshalb zählt sie für die Sozialabgaben zu ${payment.contributionYear}${free ? ' – damals gab es kein Gehalt.' : '.'}`)
+  } else if (insured && payment.contributions === 0) {
+    lines.push(
+      payment.insuredMonths === 0
+        ? `Keine Sozialabgaben, weil ${year} bis dahin kein Gehalt gezahlt wurde.`
+        : 'Keine Sozialabgaben, weil die Beitragsgrenze schon erreicht ist.',
+    )
+  }
+  if (payment.lifeMonth === 0) lines.push('Vor der Geburt gezahlt: wird zum Kontostand zur Geburt addiert.')
+  else if (payment.lifeMonth > result.value.horizon) lines.push('Liegt nach dem Planungszeitraum.')
+  return lines.join('\n')
+}
 
 const taxClassOptions = computed(() => {
   const all: { value: TaxClass; label: string }[] = [
@@ -65,6 +99,30 @@ const churchRateOptions = [
           <NumberInput v-model="parent.weeklyHours" :min="1" :max="60" :step="0.5" :decimals="2" unit="h" />
         </FormField>
       </div>
+    </FieldGroup>
+
+    <FieldGroup title="Einmalzahlungen" :hint="PAYMENT_HINT">
+      <div v-for="(item, i) in parent.oneTimePayments" :key="item.id" class="grid gap-3 rounded-lg border p-3">
+        <div class="flex items-center gap-2">
+          <Input v-model="item.label" class="h-9 flex-1" aria-label="Bezeichnung" />
+          <Button variant="ghost" size="icon" aria-label="Einmalzahlung entfernen" @click="parent.oneTimePayments.splice(i, 1)">
+            <Trash2Icon />
+          </Button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <FormField label="Brutto">
+            <NumberInput v-model="item.gross" :min="0" unit="€" :step="100" />
+          </FormField>
+          <FormField label="Monat">
+            <MonthInput v-model="item.month" />
+          </FormField>
+        </div>
+        <p v-if="payments.get(item.id)" class="text-muted-foreground flex items-center gap-1 text-xs">
+          Netto etwa {{ euro(payments.get(item.id)!.net) }}
+          <InfoTip :text="paymentNote(payments.get(item.id)!)" />
+        </p>
+      </div>
+      <Button variant="outline" class="h-9 w-full" @click="addPayment"><PlusIcon /> Einmalzahlung hinzufügen</Button>
     </FieldGroup>
 
     <FieldGroup title="Steuern">

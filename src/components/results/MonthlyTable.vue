@@ -83,6 +83,19 @@ function modelCell(month: ParentMonth) {
   })
 }
 
+function oneTimeCell(row: MonthRow, key: ParentKey) {
+  const payments = result.value.oneTimePayments.filter((p) => p.parent === key && p.lifeMonth === row.index)
+  if (!payments.length) return money(0)
+  return h(Tooltip, null, {
+    default: () => [
+      h(TooltipTrigger, { asChild: true }, () => money(row[key].oneTimePayments, 'cursor-default underline decoration-dotted underline-offset-2')),
+      h(TooltipContent, { class: 'max-w-sm whitespace-pre-line' }, () =>
+        payments.map((p) => `${p.label}: ${euro(p.gross)} brutto, ${euro(p.net)} netto`).join('\n'),
+      ),
+    ],
+  })
+}
+
 function parentColumns(key: ParentKey): ColumnDef<MonthRow, unknown>[] {
   const name = result.value.parents[key].name
   const cols: ColumnDef<MonthRow, unknown>[] = [
@@ -99,6 +112,10 @@ function parentColumns(key: ParentKey): ColumnDef<MonthRow, unknown>[] {
       meta: { align: 'right', csv: (row: MonthRow) => num(row[key].hours), csvHeader: `${name} Stunden` } satisfies ColumnMeta,
     }),
     moneyColumn(`${key}-net`, 'Netto-Lohn', (row) => row[key].netSalary, { csvHeader: `${name} Netto-Lohn` }),
+    {
+      ...moneyColumn(`${key}-once`, 'Einmal&shy;zahlung', (row) => row[key].oneTimePayments, { csvHeader: `${name} Einmalzahlung (netto)` }),
+      cell: ({ row }) => oneTimeCell(row.original, key),
+    },
   ]
   if (key === 'a') {
     cols.push(moneyColumn('a-maternity', 'Mutter&shy;schaftsl.', (row) => row.a.maternityBenefit, { csvHeader: `${name} Mutterschaftsleistungen` }))
@@ -221,6 +238,12 @@ const columnVisibility = computed<VisibilityState>(() => {
   for (const id of DETAIL_COLUMNS) visibility[id] = view.value === 'details'
   for (const id of CARE_COLUMNS) visibility[id] = showCare.value
   for (const id of EXPENSE_COLUMNS) visibility[id] = showExpenses.value
+  // One-time payments only in the full view and only for parents who have some in the planning period.
+  for (const key of ['a', 'b'] as ParentKey[]) {
+    visibility[`${key}-once`] =
+      view.value === 'details' &&
+      result.value.oneTimePayments.some((p) => p.parent === key && p.lifeMonth >= 1 && p.lifeMonth <= result.value.horizon)
+  }
   return visibility
 })
 
