@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PlusIcon, Trash2Icon } from '@lucide/vue'
+import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import DateRangeInput from '@/components/fields/DateRangeInput.vue'
@@ -10,6 +11,10 @@ import { createId } from '@/engine/plan'
 import { useScenarios } from '@/stores/scenarios'
 
 const { config, result } = useScenarios()
+
+// The calendar is limited to the planning period and marks where each life month starts.
+const lifeMonthStarts = computed(() => result.value.months.map((m) => m.start))
+const planEnd = computed(() => result.value.months[result.value.months.length - 1].end)
 
 function addSupport() {
   const birth = result.value.birth
@@ -35,7 +40,13 @@ function addSupport() {
         <Button variant="ghost" size="icon" aria-label="Zeitraum entfernen" @click="config.support.splice(i, 1)"><Trash2Icon /></Button>
       </div>
       <FormField label="Zeitraum">
-        <DateRangeInput v-model:from="period.from" v-model:to="period.to" />
+        <DateRangeInput
+          v-model:from="period.from"
+          v-model:to="period.to"
+          :min="result.birth"
+          :max="planEnd"
+          :marked-dates="lifeMonthStarts"
+        />
       </FormField>
       <div class="grid grid-cols-2 gap-3">
         <FormField label="Tage pro Woche">

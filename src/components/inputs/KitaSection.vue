@@ -17,7 +17,7 @@ const childcare = computed(() => config.value.childcare)
     <template v-if="childcare.enabled">
       <div class="grid grid-cols-2 gap-4">
         <FormField label="Start" hint="Plätze gibt es meist ab 1. August. Ab dem 1. Geburtstag besteht ein Rechtsanspruch.">
-          <MonthInput v-model="childcare.startMonth" />
+          <MonthInput v-model="childcare.startMonth" :min="result.months[0].calendarMonth" :max="result.months[result.months.length - 1].calendarMonth" />
         </FormField>
         <FormField label="Stunden pro Woche">
           <ChoiceToggle
@@ -50,7 +50,7 @@ const childcare = computed(() => config.value.childcare)
           <NumberInput v-model="childcare.mealDaysPerWeek" :min="0" :max="5" unit="Tage/Woche" />
         </FormField>
       </div>
-      <p v-if="!result.childcare.startMonthIndex" class="text-xs text-amber-700">
+      <p v-if="!result.childcare.startMonthIndex" class="text-xs text-amber-700 dark:text-amber-400">
         Der Kita-Start liegt nach dem Ende des Planungszeitraums.
       </p>
     </template>

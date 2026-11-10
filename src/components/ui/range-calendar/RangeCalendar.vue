@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { DateValue } from '@internationalized/date'
 import type { RangeCalendarRootEmits, RangeCalendarRootProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
 import { reactiveOmit } from '@vueuse/core'
@@ -6,11 +7,12 @@ import { cn } from 'cn'
 import { RangeCalendarRoot, useForwardPropsEmits } from 'reka-ui'
 import { RangeCalendarCell, RangeCalendarCellTrigger, RangeCalendarGrid, RangeCalendarGridBody, RangeCalendarGridHead, RangeCalendarGridRow, RangeCalendarHeadCell, RangeCalendarHeader, RangeCalendarHeading, RangeCalendarNextButton, RangeCalendarPrevButton } from '.'
 
-const props = defineProps<RangeCalendarRootProps & { class?: HTMLAttributes['class'] }>()
+// isDateMarked: optional highlight for single days (e.g. the start of each life month).
+const props = defineProps<RangeCalendarRootProps & { class?: HTMLAttributes['class']; isDateMarked?: (date: DateValue) => boolean }>()
 
 const emits = defineEmits<RangeCalendarRootEmits>()
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class', 'isDateMarked')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
@@ -52,6 +54,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
               <RangeCalendarCellTrigger
                 :day="weekDate"
                 :month="month.value"
+                :class="props.isDateMarked?.(weekDate) ? 'ring-primary/50 ring-1 ring-inset' : ''"
               />
             </RangeCalendarCell>
           </RangeCalendarGridRow>

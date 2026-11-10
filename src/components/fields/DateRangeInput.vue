@@ -2,7 +2,7 @@
 import { parseDate } from '@internationalized/date'
 import { CalendarRangeIcon } from '@lucide/vue'
 import type { DateRange } from 'reka-ui'
-import { ref, shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RangeCalendar } from '@/components/ui/range-calendar'
@@ -10,6 +10,11 @@ import { formatDate } from '@/engine/dates'
 
 const from = defineModel<string>('from', { required: true })
 const to = defineModel<string>('to', { required: true })
+const props = defineProps<{ min?: string; max?: string; markedDates?: string[] }>()
+
+const minValue = computed(() => (props.min ? parseDate(props.min) : undefined))
+const maxValue = computed(() => (props.max ? parseDate(props.max) : undefined))
+const marked = computed(() => new Set(props.markedDates ?? []))
 
 const open = ref(false)
 // The calendar works on a local draft; the range is only saved once start and end are picked.
@@ -46,13 +51,19 @@ function update(range: DateRange) {
     <PopoverContent class="w-auto p-0" align="start">
       <RangeCalendar
         :model-value="draft"
-        :default-placeholder="draft.start"
+        :default-placeholder="draft.start ?? minValue"
+        :min-value="minValue"
+        :max-value="maxValue"
+        :is-date-marked="(date) => marked.has(date.toString())"
         locale="de-DE"
         :week-starts-on="1"
         :number-of-months="2"
         @update:model-value="update"
       />
-      <p class="text-muted-foreground border-t px-3 py-2 text-xs">Ersten und letzten Tag anklicken. Zum Schließen daneben klicken.</p>
+      <p class="text-muted-foreground border-t px-3 py-2 text-xs">
+        Ersten und letzten Tag anklicken. Zum Schließen daneben klicken.
+        <template v-if="markedDates?.length"><br />Umrandet: Beginn eines Lebensmonats.</template>
+      </p>
     </PopoverContent>
   </Popover>
 </template>

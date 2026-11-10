@@ -11,7 +11,7 @@ import MonthInput from '@/components/fields/MonthInput.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SelectField from '@/components/fields/SelectField.vue'
 import SwitchField from '@/components/fields/SwitchField.vue'
-import { monthKey } from '@/engine/dates'
+import { addMonthsToKey, monthKey } from '@/engine/dates'
 import { createId } from '@/engine/plan'
 import type { OneTimePaymentResult } from '@/engine/result'
 import type { HealthInsurance, ParentKey, TaxClass } from '@/engine/types'
@@ -24,6 +24,11 @@ const { config, result } = useScenarios()
 const parent = computed(() => config.value.parents[props.parentKey])
 const summary = computed(() => result.value.parents[props.parentKey])
 const payments = computed(() => new Map(result.value.oneTimePayments.map((p) => [p.id, p])))
+// Payouts up to a year before the birth still change the balance at the birth.
+const paymentMonths = computed(() => ({
+  min: addMonthsToKey(monthKey(result.value.birth), -12),
+  max: result.value.months[result.value.months.length - 1].calendarMonth,
+}))
 
 const PAYMENT_HINT =
   'Boni, Prämien oder andere einmalige Zahlungen vom Arbeitgeber – brutto, im Monat der Auszahlung. Beispiel: 3.000 € Elternzeit-Bonus im Mai 2027.\nDas Elterngeld ändert sich dadurch nicht. Steuern und Sozialabgaben hängen vom Monat ab.'
@@ -118,7 +123,7 @@ const churchRateOptions = [
             <NumberInput v-model="item.gross" :min="0" unit="€" :step="100" />
           </FormField>
           <FormField label="Monat">
-            <MonthInput v-model="item.month" />
+            <MonthInput v-model="item.month" :min="paymentMonths.min" :max="paymentMonths.max" />
           </FormField>
         </div>
         <p v-if="payments.get(item.id)" class="text-muted-foreground flex items-center gap-1 text-xs">
