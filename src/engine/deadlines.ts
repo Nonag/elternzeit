@@ -150,9 +150,10 @@ export function computeDeadlines(config: ScenarioConfig, result: SimulationResul
       const afterMaternity = key === 'a' && months[section[0] - 2]?.a.maternityLocked === true
       const start = afterMaternity ? addDays(maternity.end, 1) : firstRow.start
       const weeks = start >= thirdBirthday ? PARENTAL_LEAVE.noticeWeeksAfterThirdBirthday : PARENTAL_LEAVE.noticeWeeksUntilThirdBirthday
-      const twoYears = addMonths(start, 24).date
+      // After Mutterschutz the protection period counts towards the two years (§ 16 Abs. 1 Satz 4 BEEG).
+      const twoYears = addMonths(afterMaternity ? birth : start, 24).date
       const within = sections
-        .filter((s) => months[s[0] - 1].start <= twoYears)
+        .filter((s) => months[s[0] - 1].start < twoYears)
         .map((s) => `${fmt(months[s[0] - 1].start)} – ${fmt(months[s[s.length - 1] - 1].end)}`)
         .join(', ')
       const partTime = section.filter((m) => months[m - 1][key].hours > 0)

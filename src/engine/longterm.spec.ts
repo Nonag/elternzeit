@@ -47,4 +47,14 @@ describe('deadlines', () => {
     expect(byId['allowance-application'].date).toBe('2027-05-27')
     expect(byId['child-benefit'].date).toBe('2027-07-31')
   })
+
+  it('counts the mother’s two binding years from the birth when Elternzeit follows Mutterschutz', () => {
+    const config = defaultScenario()
+    config.blocks.a = [...config.blocks.a, { id: 'a-late', from: 25, to: 26, leave: true, hours: 0, allowance: 'none' }]
+    const result = simulate(config)
+    const first = computeDeadlines(config, result, '2026-11-09').find((d) => d.id === 'leave-a-3')!
+    expect(first.detail).toContain('26.03.2027 – 27.01.2028')
+    // LM 25 starts on the second birthday, outside the two binding years (§ 16 Abs. 1 Satz 4 BEEG).
+    expect(first.detail).not.toContain('28.01.2029')
+  })
 })
