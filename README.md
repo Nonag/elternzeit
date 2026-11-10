@@ -1,7 +1,7 @@
 # Elternzeit-Planer
 
 Local planning tool for German parental allowance (Elterngeld) and parental leave (Elternzeit) for a child due on
-2027-01-28. All data stays in the browser (localStorage); there is no backend and no deployment.
+2027-01-28. All data stays in the browser (localStorage); there is no backend.
 
 ## Usage
 
@@ -11,6 +11,16 @@ npm run dev          # http://localhost:5173 with live reload
 npm run build        # dist/index.html – single self-contained file, open it by double-click
 npm test             # engine unit tests (Vitest)
 npm run typecheck
+```
+
+## Docker
+
+Every push to `main` builds a multi-arch image (amd64, arm64) and pushes it to the GitHub Container Registry, tagged
+`latest` and `sha-<commit>` (`.github/workflows/docker.yml`). nginx serves the single `index.html`:
+
+```bash
+docker run -d --name elternzeit -p 8080:80 ghcr.io/nonag/elternzeit:latest   # http://localhost:8080
+docker build -t elternzeit .                                                  # local build incl. tests
 ```
 
 ## What it does
