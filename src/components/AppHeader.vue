@@ -89,7 +89,6 @@ function resetCurrent() {
         </DropdownMenu>
         <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="upload" />
       </div>
-      <p class="text-muted-foreground ml-auto hidden text-xs lg:block">Alle Daten bleiben lokal in diesem Browser.</p>
     </div>
   </header>
 </template>
