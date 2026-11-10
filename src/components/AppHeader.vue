@@ -19,11 +19,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import SelectField from '@/components/fields/SelectField.vue'
-import { formatDate } from '@/engine/dates'
 import { useScenarios } from '@/stores/scenarios'
 
 const store = useScenarios()
-const { state, current, result } = store
+const { state, current } = store
 const fileInput = ref<HTMLInputElement | null>(null)
 
 function download() {
@@ -60,13 +59,7 @@ function resetCurrent() {
 <template>
   <header class="bg-card sticky top-0 z-40 border-b">
     <div class="flex flex-wrap items-center gap-3 px-4 py-2.5">
-      <div class="mr-2">
-        <h1 class="text-base leading-tight font-semibold">Elternzeit-Planer</h1>
-        <p class="text-muted-foreground text-xs">
-          {{ result.birth === result.dueDate ? 'Errechneter Termin' : 'Geburt' }} {{ formatDate(result.birth) }} ·
-          Rechtsstand 10.11.2026
-        </p>
-      </div>
+      <h1 class="mr-2 text-base leading-tight font-semibold">Elternzeit-Planer</h1>
       <div class="flex items-center gap-2">
         <div class="w-44">
           <SelectField
