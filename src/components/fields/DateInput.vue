@@ -19,7 +19,7 @@ function update(date: DateValue | undefined) {
 
 <template>
   <div class="flex items-center gap-1">
-    <Popover v-slot="{ close }">
+    <Popover>
       <PopoverTrigger as-child>
         <Button variant="outline" class="h-9 flex-1 justify-start font-normal">
           <CalendarIcon class="text-muted-foreground" />
@@ -33,7 +33,7 @@ function update(date: DateValue | undefined) {
           locale="de-DE"
           :week-starts-on="1"
           layout="month-and-year"
-          @update:model-value="(d) => { update(d as DateValue | undefined); close() }"
+          @update:model-value="(d) => update(d as DateValue | undefined)"
         />
       </PopoverContent>
     </Popover>

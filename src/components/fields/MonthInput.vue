@@ -13,14 +13,13 @@ watch(model, (value) => {
   if (value) year.value = Number(value.slice(0, 4))
 })
 
-function pick(month: number, close: () => void) {
+function pick(month: number) {
   model.value = `${year.value}-${String(month).padStart(2, '0')}`
-  close()
 }
 </script>
 
 <template>
-  <Popover v-slot="{ close }">
+  <Popover>
     <PopoverTrigger as-child>
       <Button variant="outline" class="h-9 w-full justify-start font-normal">
         <CalendarRangeIcon class="text-muted-foreground" />
@@ -39,7 +38,7 @@ function pick(month: number, close: () => void) {
           :key="name"
           size="sm"
           :variant="model === `${year}-${String(i + 1).padStart(2, '0')}` ? 'default' : 'ghost'"
-          @click="pick(i + 1, close)"
+          @click="pick(i + 1)"
         >
           {{ name }}
         </Button>

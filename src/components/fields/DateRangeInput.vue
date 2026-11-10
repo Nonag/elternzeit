@@ -24,12 +24,12 @@ watch(open, (isOpen) => {
   }
 })
 
+// Saves every complete range; the popover stays open until the user clicks outside.
 function update(range: DateRange) {
   draft.value = range
   if (range.start && range.end) {
     from.value = range.start.toString()
     to.value = range.end.toString()
-    open.value = false
   }
 }
 </script>
@@ -52,7 +52,7 @@ function update(range: DateRange) {
         :number-of-months="2"
         @update:model-value="update"
       />
-      <p class="text-muted-foreground border-t px-3 py-2 text-xs">Erst den ersten, dann den letzten Tag anklicken.</p>
+      <p class="text-muted-foreground border-t px-3 py-2 text-xs">Ersten und letzten Tag anklicken. Zum Schließen daneben klicken.</p>
     </PopoverContent>
   </Popover>
 </template>
