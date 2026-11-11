@@ -4,7 +4,7 @@ Planning tool for German parental allowance (Elterngeld) and parental leave (Elt
 The browser keeps the working copy (localStorage). An optional small server stores plannings so several
 people can open and save them; without it the app runs as a single offline file.
 
-Wording: a **Plan** is the leave periods in the plan card, a **Variante** is one complete set of inputs including its
+Wording: a **Plan** is the periods in the plan card, a **Variante** is one complete set of inputs including its
 plan, and a **Planung** is all variants together. A Planung is what gets exported or saved on the server.
 
 ## Usage
@@ -46,8 +46,8 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
 
 ## What it does
 
-- **Plan** parental leave per parent as periods (life months, Elternzeit yes/no, weekly hours,
-  Basis/Plus/Partnerschaftsbonus) directly in the plan card; presets for common models.
+- **Plan** per parent as periods in the plan card (life months; Elternzeit, work or paid vacation; weekly hours and
+  working days; Basis/Plus/Partnerschaftsbonus); presets for common models.
 - **Calculates** real net pay (BMF Programmablaufplan 2026 via `lohnsteuerrechner`, plus the draft 2027/2028
   tariff), Elterngeld-Netto and
   Elterngeld (§§ 2–4 BEEG incl. income averaging, Plus cap, Mutterschaftsgeld offset per day), Kindergeld,
@@ -56,7 +56,8 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
   table, social contributions per § 23a SGB IV incl. März-Klausel; Elterngeld stays unchanged (§ 2c BEEG).
 - **Checks** Elterngeld and Elternzeit rules (parallel Basis, LM 14/32 limits, continuity, Partnerschaftsbonus,
   sections, part-time claims, income limit) plus care gaps and reserve warnings.
-- **Shows** tips with an estimated euro effect, deadlines (with checklist), vacation reduction (§ 17 BEEG),
+- **Shows** tips with an estimated euro effect, deadlines (with checklist), vacation per calendar year (reduction
+  per § 17 BEEG, planned vacation, fewer working days in part-time),
   pension points incl. Kindererziehungszeiten, lost savings and a 50/50 compensation proposal.
 - **Variants** can be copied, compared and exported/imported as a JSON planning, or saved on the server.
 

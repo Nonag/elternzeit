@@ -58,7 +58,8 @@ docs/research-notes.md legal research with sources
 | Plan (periods in the plan card) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline` |
 | Vorlage | `PLAN_PRESETS[].outline` (`PlanOutline`), `periodsFromOutline()` |
 | Basiselterngeld / ElterngeldPlus / Partnerschaftsbonus | `allowance: AllowanceType` = `basic` / `plus` / `bonus` |
-| Elternzeit | `leave` |
+| Art: Elternzeit / Arbeit / Urlaub | `PlanPeriod.kind` = `leave` / `work` / `vacation` |
+| Tage (working days per week) / Urlaubstage | `workDays` / `vacationDays`; per calendar year in `vacation.ts` |
 | Mutter / Vater (renamable) | parents `a` / `b`; `a` has the Mutterschutz |
 | Lebensmonat | `lifeMonth()`, 1-based month index |
 | Beispielwerte | `exampleConfig()` |
