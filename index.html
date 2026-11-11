@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Elternzeit-Planer</title>
     <script>
-      // Apply the stored colour scheme before the first paint (same key as useDark from @vueuse/core).
-      const scheme = localStorage.getItem('vueuse-color-scheme') || 'auto'
-      if (scheme === 'dark' || (scheme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark')
-      }
+      // Apply the stored colour mode before the first paint (same key and classes as useColorMode from @vueuse/core).
+      const mode = localStorage.getItem('vueuse-color-scheme') || 'auto'
+      const dark = mode === 'dark' || (mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.classList.add(dark ? 'dark' : 'light')
     </script>
   </head>
   <body>

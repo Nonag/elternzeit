@@ -8,12 +8,14 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
+    "server": "node --disable-warning=ExperimentalWarning server/main.ts",
+    "docker": "docker compose --env-file .env.docker up --build",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "vue-tsc -b"
   },
   "dependencies": {
-    "@lucide/vue": "^1.71.0",
+    "@lucide/vue": "^1.72.0",
     "@tanstack/vue-table": "^8.21.3",
     "@unovis/ts": "^1.8.0",
     "@unovis/vue": "^1.8.0",

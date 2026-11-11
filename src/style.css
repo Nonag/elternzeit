@@ -127,6 +127,15 @@
     @apply bg-background text-foreground;
     @apply font-sans;
     }
+  html {
+    color-scheme: light dark;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  html.light {
+    color-scheme: light;
+  }
 }
 /* Domain colors: plan variants and income sources */
 :root {

@@ -5,7 +5,9 @@ import { defaultParent, defaultScenario } from '@/engine/defaults'
 import { createId, generateQuickPlan } from '@/engine/plan'
 import { simulate } from '@/engine/simulate'
 import type { QuickPlan, ScenarioConfig } from '@/engine/types'
+import { stableStringify } from '@/lib/json'
 
+/** One complete set of inputs, shown as "Variante" in the UI. All variants together form the "Planung". */
 export interface StoredScenario {
   id: string
   name: string
@@ -13,9 +15,26 @@ export interface StoredScenario {
   config: ScenarioConfig
 }
 
+/** The planning on the sync server this browser works on (name null = not saved there yet). */
+export interface PlanningMeta {
+  name: string | null
+  version: number | null
+  savedAt: string | null
+  /** Variants as last loaded from or saved to the server, to detect unsaved changes. */
+  snapshot: string | null
+}
+
 interface StoreState {
   scenarios: StoredScenario[]
   currentId: string
+  planning: PlanningMeta
+}
+
+/** Export file and server format of a planning. */
+export interface PlanningData {
+  app: 'elternzeit-planer'
+  version: 1
+  scenarios: StoredScenario[]
 }
 
 const STORAGE_KEY = 'elternzeit-planer:v1'
@@ -52,22 +71,44 @@ function newScenario(name: string, config: ScenarioConfig = defaultScenario()): 
   return { id: createId('scenario'), name, updatedAt: new Date().toISOString(), config }
 }
 
+const NO_PLANNING: PlanningMeta = { name: null, version: null, savedAt: null, snapshot: null }
+
 function loadState(): StoreState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
-      const parsed = JSON.parse(raw) as StoreState
+      const parsed = JSON.parse(raw) as Partial<StoreState>
       if (Array.isArray(parsed.scenarios) && parsed.scenarios.length) {
         const scenarios = parsed.scenarios.map((s) => ({ ...s, config: migrateConfig(s.config as StoredConfig) }))
-        const currentId = scenarios.some((s) => s.id === parsed.currentId) ? parsed.currentId : scenarios[0].id
-        return { scenarios, currentId }
+        const currentId = scenarios.some((s) => s.id === parsed.currentId) ? parsed.currentId! : scenarios[0].id
+        return { scenarios, currentId, planning: { ...NO_PLANNING, ...parsed.planning } }
       }
     }
   } catch {
     // Corrupt storage: start fresh.
   }
-  const first = newScenario('Plan A')
-  return { scenarios: [first], currentId: first.id }
+  const first = newScenario('Variante A')
+  return { scenarios: [first], currentId: first.id, planning: { ...NO_PLANNING } }
+}
+
+/** Reads the variants of an export file or server planning; throws if there are none. */
+export function parsePlanning(data: unknown): StoredScenario[] {
+  const value = data as { scenarios?: StoredScenario[] } | StoredScenario | null
+  const list = value && 'scenarios' in value && Array.isArray(value.scenarios) ? value.scenarios : [value as StoredScenario]
+  const scenarios = list
+    .filter((item) => item?.config)
+    .map((item) => ({
+      id: item.id || createId('scenario'),
+      name: item.name || 'Variante',
+      updatedAt: item.updatedAt || new Date().toISOString(),
+      config: migrateConfig(item.config as StoredConfig),
+    }))
+  if (!scenarios.length) throw new Error('No variants found')
+  return scenarios
+}
+
+function snapshotOf(scenarios: StoredScenario[]): string {
+  return stableStringify(scenarios.map(({ id, name, config }) => ({ id, name, config })))
 }
 
 const state = reactive<StoreState>(loadState())
@@ -83,6 +124,7 @@ watch(
 )
 
 const current = computed(() => state.scenarios.find((s) => s.id === state.currentId) ?? state.scenarios[0])
+const dirty = computed(() => state.planning.name !== null && state.planning.snapshot !== snapshotOf(state.scenarios))
 const config = computed(() => current.value.config)
 const result = computed(() => simulate(config.value))
 const today = todayIso()
@@ -100,6 +142,7 @@ export function useScenarios() {
   return {
     state,
     current,
+    dirty,
     config,
     result,
     deadlines,
@@ -108,7 +151,7 @@ export function useScenarios() {
       state.currentId = id
     },
     create() {
-      const scenario = newScenario(uniqueName(`Plan ${String.fromCharCode(65 + state.scenarios.length)}`))
+      const scenario = newScenario(uniqueName(`Variante ${String.fromCharCode(65 + state.scenarios.length)}`))
       state.scenarios.push(scenario)
       state.currentId = scenario.id
     },
@@ -128,21 +171,18 @@ export function useScenarios() {
     resetCurrent() {
       current.value.config = defaultScenario()
     },
-    exportJson(): string {
-      return JSON.stringify({ app: 'elternzeit-planer', version: 1, scenarios: state.scenarios }, null, 2)
+    planningData(): PlanningData {
+      return { app: 'elternzeit-planer', version: 1, scenarios: state.scenarios }
     },
-    importJson(text: string): number {
-      const parsed = JSON.parse(text) as { scenarios?: StoredScenario[] } | StoredScenario
-      const list = 'scenarios' in parsed && Array.isArray(parsed.scenarios) ? parsed.scenarios : [parsed as StoredScenario]
-      let imported = 0
-      for (const item of list) {
-        if (!item?.config) continue
-        const scenario = newScenario(uniqueName(item.name || 'Import'), migrateConfig(item.config as StoredConfig))
-        state.scenarios.push(scenario)
-        state.currentId = scenario.id
-        imported++
-      }
-      return imported
+    /** Replaces all variants, e.g. from an export file or the server. */
+    replaceScenarios(scenarios: StoredScenario[]) {
+      state.scenarios = scenarios
+      state.currentId = scenarios[0].id
+    },
+    snapshot: () => snapshotOf(state.scenarios),
+    /** Remembers the server state of the planning after opening or saving it. */
+    markSaved(name: string, version: number, savedAt: string, snapshot = snapshotOf(state.scenarios)) {
+      state.planning = { name, version, savedAt, snapshot }
     },
   }
 }

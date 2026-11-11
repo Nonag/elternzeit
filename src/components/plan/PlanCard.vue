@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import InfoTip from '@/components/fields/InfoTip.vue'
+import { confirmDialog } from '@/lib/dialogs'
 import { createId, generateQuickPlan, normalizeBlocks, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
 import type { ParentKey } from '@/engine/types'
 import { num } from '@/lib/format'
@@ -32,9 +33,9 @@ function onSelect(parent: ParentKey, from: number, to: number, blockId: string |
   selectedBlock.value = block.id
 }
 
-function applyPreset(preset: PlanPreset) {
+async function applyPreset(preset: PlanPreset) {
   const hasPlan = config.value.blocks.a.length + config.value.blocks.b.length > 0
-  if (hasPlan && !confirm(`Den aktuellen Plan durch „${preset.label}“ ersetzen?`)) return
+  if (hasPlan && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
   config.value.blocks = generateQuickPlan(preset.quick, config.value.relationship)
   selectedBlock.value = null
 }

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
+import AdminSetupDialog from '@/components/dialogs/AdminSetupDialog.vue'
+import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import InputPanel from '@/components/inputs/InputPanel.vue'
 import PlanCard from '@/components/plan/PlanCard.vue'
 import AssumptionsPanel from '@/components/results/AssumptionsPanel.vue'
@@ -84,5 +86,7 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
         </main>
       </div>
     </div>
+    <ConfirmDialog />
+    <AdminSetupDialog />
   </TooltipProvider>
 </template>
