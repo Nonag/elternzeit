@@ -1,6 +1,6 @@
-import { daysInMonth, diffDays, isLeapYear, monthKey, parseIso, toEpochDay, toIso, type IsoDate, type LifeMonth } from './dates'
-import type { MonthRow, ParentMonth } from './result'
-import type { ParentKey, PlanPeriod, VariantConfig } from './types'
+import { addDays, daysInMonth, diffDays, isLeapYear, monthKey, parseIso, toEpochDay, toIso, type IsoDate, type LifeMonth } from './dates'
+import type { MonthRow, ParentMonth, SimulationResult } from './result'
+import type { ParentKey, VacationPeriod, VariantConfig } from './types'
 
 export interface LeaveRange {
   start: IsoDate
@@ -24,11 +24,10 @@ export interface VacationYear {
   remaining: number
 }
 
-export interface VacationPeriodUse {
-  /** Working days in the period: the most vacation days it can take. */
-  available: number
-  /** Vacation days taken, at most `available`. */
-  taken: number
+export interface VacationUse {
+  weeks: number
+  /** Vacation days the weeks cost. */
+  days: number
 }
 
 export interface VacationSummary {
@@ -38,16 +37,47 @@ export interface VacationSummary {
   /** Days saved because leave runs from the birth-date day instead of full calendar months. */
   savedByAlignment: number
   /** Vacation periods by id. */
-  periods: Record<string, VacationPeriodUse>
+  periods: Record<string, VacationUse>
 }
 
-/** Vacation planned for one parent, spread over the life months. */
+/** Vacation planned for one parent. */
 export interface PlannedVacation {
-  periods: Record<string, VacationPeriodUse>
-  /** Share of the working days spent on vacation, per life month. */
+  periods: Record<string, VacationUse>
+  /** Share of the weekdays spent on vacation, per life month. */
   shares: number[]
   /** Vacation days per life month. */
   days: number[]
+  /** Vacation days per calendar year. */
+  byYear: Map<number, number>
+}
+
+/** What decides the cost of a vacation day: work in the life month around it. */
+export interface WorkMonth {
+  start: IsoDate
+  end: IsoDate
+  leave: boolean
+  hours: number
+  /** Working days per week. */
+  workDays: number
+}
+
+/** 0 = Monday … 6 = Sunday (day 0, 1970-01-01, was a Thursday). */
+function weekday(date: IsoDate): number {
+  return (((toEpochDay(date) + 3) % 7) + 7) % 7
+}
+
+export function isWeekday(date: IsoDate): boolean {
+  return weekday(date) < 5
+}
+
+/** Monday of the week of a date. */
+export function weekStart(date: IsoDate): IsoDate {
+  return addDays(date, -weekday(date))
+}
+
+/** Friday of the week of a date. */
+export function weekEnd(date: IsoDate): IsoDate {
+  return addDays(weekStart(date), 4)
 }
 
 /** Monday to Friday from start to end, inclusive. */
@@ -58,7 +88,6 @@ export function weekdays(start: IsoDate, end: IsoDate): number {
   const fullWeeks = Math.floor((last - first + 1) / 7)
   let count = fullWeeks * 5
   for (let day = first + fullWeeks * 7; day <= last; day++) {
-    // Day 0 (1970-01-01) was a Thursday: 0 = Monday … 6 = Sunday.
     if ((((day + 3) % 7) + 7) % 7 < 5) count++
   }
   return count
@@ -80,32 +109,55 @@ export function workingDaysByYear(start: IsoDate, end: IsoDate, perWeek: number)
   return result
 }
 
-const roundHalf = (value: number) => Math.round(value * 2) / 2
-
 /**
- * Spreads the vacation days of each vacation period evenly over its working days. Life months in which no
- * vacation can be taken (Mutterschutz) do not count.
+ * Vacation days one weekday costs: the working days per week of that time divided by five. Nothing during
+ * Elternzeit without work and Mutterschutz, where no vacation can be taken, and outside the plan.
  */
-export function planVacation(
-  periods: PlanPeriod[],
-  lms: LifeMonth[],
-  workDaysPerWeek: number,
-  unavailable: (lm: LifeMonth) => boolean,
-): PlannedVacation {
-  const planned: PlannedVacation = { periods: {}, shares: lms.map(() => 0), days: lms.map(() => 0) }
+export function vacationDayCost(months: WorkMonth[], date: IsoDate, maternityEnd: IsoDate | null): number {
+  const index = months.findIndex((m) => m.start <= date && date <= m.end)
+  return index < 0 ? 0 : costIn(months[index], date, maternityEnd)
+}
+
+function costIn(month: WorkMonth, date: IsoDate, maternityEnd: IsoDate | null): number {
+  if (weekday(date) > 4 || (maternityEnd !== null && date <= maternityEnd)) return 0
+  return month.leave && month.hours === 0 ? 0 : month.workDays / 5
+}
+
+/** Vacation days that the weekdays from start to end cost. */
+export function vacationDays(months: WorkMonth[], start: IsoDate, end: IsoDate, maternityEnd: IsoDate | null): number {
+  let days = 0
+  for (let date = start; date <= end; date = addDays(date, 1)) days += vacationDayCost(months, date, maternityEnd)
+  return Math.round(days * 100) / 100
+}
+
+/** The work months of a parent from a simulation result. */
+export function workMonths(result: SimulationResult, key: ParentKey): WorkMonth[] {
+  return result.months.map((row) => ({ start: row.start, end: row.end, leave: row[key].leave, hours: row[key].hours, workDays: row[key].workDays }))
+}
+
+/** Day by day: the vacation days each period costs, and how they fall on life months and calendar years. */
+export function planVacation(periods: VacationPeriod[], lms: LifeMonth[], months: WorkMonth[], maternityEnd: IsoDate | null): PlannedVacation {
+  const planned: PlannedVacation = { periods: {}, shares: lms.map(() => 0), days: lms.map(() => 0), byYear: new Map() }
+  const offWeekdays = lms.map(() => 0)
   for (const period of periods) {
-    if (period.kind !== 'vacation') continue
-    const covered = lms.filter((lm) => lm.index >= period.from && lm.index <= period.to && !unavailable(lm))
-    const perMonth = covered.map((lm) => workingDays(lm.start, lm.end, workDaysPerWeek))
-    const available = roundHalf(perMonth.reduce((sum, days) => sum + days, 0))
-    const taken = Math.min(available, Math.max(0, period.vacationDays ?? available))
-    const share = available > 0 ? taken / available : 0
-    covered.forEach((lm, i) => {
-      planned.shares[lm.index - 1] = share
-      planned.days[lm.index - 1] = perMonth[i] * share
-    })
-    planned.periods[period.id] = { available, taken }
+    if (!period.from || !period.to || period.to < period.from) continue
+    let days = 0
+    for (let date = period.from; date <= period.to; date = addDays(date, 1)) {
+      const index = months.findIndex((m) => m.start <= date && date <= m.end)
+      const cost = index < 0 ? 0 : costIn(months[index], date, maternityEnd)
+      if (cost === 0) continue
+      days += cost
+      planned.days[index] += cost
+      offWeekdays[index] += 1
+      const year = parseIso(date).year
+      planned.byYear.set(year, (planned.byYear.get(year) ?? 0) + cost)
+    }
+    planned.periods[period.id] = { weeks: Math.round((diffDays(period.from, period.to) + 3) / 7), days: Math.round(days * 100) / 100 }
   }
+  lms.forEach((lm, i) => {
+    const total = weekdays(lm.start, lm.end)
+    planned.shares[i] = total > 0 ? Math.min(1, offWeekdays[i] / total) : 0
+  })
   return planned
 }
 
@@ -193,20 +245,6 @@ function annualEntitlement(months: MonthRow[], key: ParentKey, year: number, con
   return Math.round(((contractual * (weighted + yearDays - covered)) / yearDays) * 100) / 100
 }
 
-/** Vacation days of the life months that fall into a calendar year. */
-function plannedInYear(months: MonthRow[], key: ParentKey, year: number, perWeek: number): number {
-  const first = `${year}-01-01`
-  const last = `${year}-12-31`
-  const days = months.reduce((sum, row) => {
-    const share = row[key].vacationShare
-    if (!share) return sum
-    const start = row.start > first ? row.start : first
-    const end = row.end < last ? row.end : last
-    return start > end ? sum : sum + share * workingDays(start, end, perWeek)
-  }, 0)
-  return Math.round(days * 100) / 100
-}
-
 /**
  * Vacation per calendar year. § 17 BEEG: the employer may reduce the annual vacation by 1/12 for each full
  * calendar month of Elternzeit. Months with part-time work at the own employer and Mutterschutz do not count.
@@ -232,7 +270,7 @@ export function computeVacation(
       const annual = active ? annualEntitlement(months, key, year, days, perWeek) : days
       const reduction = config.employerReducesVacation ? (annual * fullLeaveMonths) / 12 : 0
       const entitlement = annual - reduction
-      const plannedDays = active ? plannedInYear(months, key, year, perWeek) : 0
+      const plannedDays = active ? Math.round((planned[key].byYear.get(year) ?? 0) * 100) / 100 : 0
       years.push({ year, contractual: days, annual, fullLeaveMonths, reduction, entitlement, planned: plannedDays, remaining: entitlement - plannedDays })
     }
     const savedByAlignment = config.employerReducesVacation

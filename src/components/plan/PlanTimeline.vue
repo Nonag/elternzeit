@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { formatDate, formatMonthKey } from '@/engine/dates'
+import { diffDays, formatDate, formatMonthKey } from '@/engine/dates'
 import type { MonthRow } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
 import { num } from '@/lib/format'
@@ -49,11 +49,8 @@ const lanes = computed(() => {
     title: result.value.parents[key].name,
     parent: key as ParentKey | null,
     segments: buildSegments(months.value, (row) => {
-      const month = row[key]
-      const style = monthStyle(month)
-      const vacation = month.vacation && !month.maternityLocked && month.periodId ? result.value.vacation[key].periods[month.periodId] : undefined
-      const label = vacation ? `Urlaub: ${num(vacation.taken)} von ${num(vacation.available)} Arbeitstagen` : style.label
-      return { ...style, label, periodId: month.periodId }
+      const style = monthStyle(row[key])
+      return { ...style, periodId: row[key].periodId }
     }),
   }))
   const family = buildSegments(months.value, (row) =>
@@ -95,6 +92,36 @@ const lanes = computed(() => {
     { id: 'childcare', title: 'Kita', parent: null, segments: childcare },
     { id: 'gaps', title: 'Lücken', parent: null, segments: gaps },
   ]
+})
+
+/** Vacation weeks per parent, positioned to the day on the life-month grid. */
+const vacationBars = computed(() => {
+  const rows = months.value
+  const first = rows[0].start
+  const last = rows[rows.length - 1].end
+  const position = (date: string, endOfDay: boolean) => {
+    const i = rows.findIndex((row) => row.start <= date && date <= row.end)
+    if (i < 0) return date < first ? 0 : 1
+    return (i + (diffDays(rows[i].start, date) + (endOfDay ? 1 : 0)) / rows[i].days) / rows.length
+  }
+  return Object.fromEntries(
+    result.value.activeParents.map((key) => [
+      key,
+      config.value.vacation[key]
+        .filter((v) => v.from && v.to && v.to >= first && v.from <= last)
+        .map((v) => {
+          const use = result.value.vacation[key].periods[v.id]
+          const left = position(v.from, false)
+          return {
+            id: v.id,
+            left,
+            width: position(v.to, true) - left,
+            dates: `${formatDate(v.from)} – ${formatDate(v.to)}`,
+            days: use ? `${use.weeks} ${use.weeks === 1 ? 'Woche' : 'Wochen'}, ${num(use.days)} Urlaubstage` : '',
+          }
+        }),
+    ]),
+  ) as Record<ParentKey, { id: string; left: number; width: number; dates: string; days: string }[]>
 })
 
 const markers = computed(() => {
@@ -168,6 +195,22 @@ function onClick(parent: ParentKey | null, segment: Segment) {
                 </div>
               </TooltipContent>
             </Tooltip>
+            <template v-if="lane.parent">
+              <Tooltip v-for="bar in vacationBars[lane.parent]" :key="bar.id">
+                <TooltipTrigger as-child>
+                  <div
+                    class="absolute inset-y-1 z-10 rounded-sm shadow-sm ring-1 ring-black/10"
+                    :style="{ left: `${bar.left * 100}%`, width: `max(3px, ${bar.width * 100}%)`, backgroundColor: 'var(--plan-vacation)' }"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div class="grid gap-0.5">
+                    <span class="font-medium">Urlaub: {{ bar.days }}</span>
+                    <span class="opacity-80">{{ bar.dates }}</span>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </template>
           </div>
         </template>
 

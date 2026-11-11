@@ -1,70 +1,76 @@
 import { describe, expect, it } from 'vitest'
 import { exampleConfig } from './example'
 import { simulate } from './simulate'
-import type { PlanPeriod, VariantConfig } from './types'
-import { weekdays } from './vacation'
+import type { ParentKey, PlanPeriod, VariantConfig } from './types'
+import { weekdays, weekEnd, weekStart } from './vacation'
 
 /** Due date 01.01.2027: life month n is calendar month n of 2027, month 13 is January 2028. */
-function vacation(from: number, to: number, vacationDays: number | null = null): PlanPeriod {
-  return { id: `vacation-${from}`, from, to, kind: 'vacation', hours: null, workDays: null, vacationDays, allowance: 'none' }
-}
-
-function withPlan(patch: (config: VariantConfig) => void): VariantConfig {
-  const config = { ...exampleConfig(), dueDate: '2027-01-01' }
+function withPlan(patch: (config: VariantConfig) => void, dueDate = '2027-01-01'): VariantConfig {
+  const config = { ...exampleConfig(), dueDate }
   patch(config)
   return config
 }
 
+function vacation(config: VariantConfig, key: ParentKey, from: string, to: string) {
+  config.vacation[key].push({ id: `${key}-${from}`, from, to })
+}
+
+const work = (from: number, to: number, hours: number, workDays: number): PlanPeriod => ({
+  id: `work-${from}`,
+  from,
+  to,
+  kind: 'work',
+  hours,
+  workDays,
+  allowance: 'none',
+})
+
 describe('vacation', () => {
-  it('counts Monday to Friday', () => {
+  it('counts weekdays and snaps to whole weeks', () => {
     expect(weekdays('2027-12-01', '2027-12-31')).toBe(23)
     expect(weekdays('2027-12-04', '2027-12-05')).toBe(0)
-    expect(weekdays('2027-12-31', '2027-12-01')).toBe(0)
+    expect(weekStart('2027-12-16')).toBe('2027-12-13')
+    expect(weekEnd('2027-12-19')).toBe('2027-12-17')
   })
 
-  it('pays the salary during vacation and takes the days from that calendar year', () => {
-    const result = simulate(withPlan((c) => c.periods.b.push(vacation(12, 12))))
-    const december = result.months[11].b
-    expect(december).toMatchObject({ vacation: true, vacationShare: 1, vacationDays: 23, parentalAllowance: 0 })
-    expect(december.netSalary).toBe(result.months[10].b.netSalary)
-    expect(result.vacation.b.periods['vacation-12']).toEqual({ available: 23, taken: 23 })
-    expect(result.vacation.b.years.find((y) => y.year === 2027)).toMatchObject({ planned: 23, remaining: 7 })
-  })
-
-  it('closes the care gap in proportion to the vacation days', () => {
-    const base = simulate(withPlan(() => {})).months[14].care.need
-    const full = simulate(withPlan((c) => c.periods.b.push(vacation(15, 15)))).months[14]
-    const partial = simulate(withPlan((c) => c.periods.b.push(vacation(15, 15, 10)))).months[14]
-    expect(base).toBeGreaterThan(0)
-    expect(full.care.need).toBe(0)
-    expect(partial.b.vacationShare).toBeCloseTo(10 / 23, 6)
-    expect(partial.care.need).toBeCloseTo(Math.min(partial.a.hours, partial.b.hours * (13 / 23)), 2)
-  })
-
-  it('splits a vacation over New Year between both calendar years', () => {
-    const result = simulate(withPlan((c) => ((c.dueDate = '2027-01-16'), c.periods.b.push(vacation(12, 12)))))
-    const years = result.vacation.b.years
-    expect(result.vacation.b.periods['vacation-12']).toEqual({ available: 22, taken: 22 })
-    expect(years.find((y) => y.year === 2027)?.planned).toBe(12)
-    expect(years.find((y) => y.year === 2028)?.planned).toBe(10)
-  })
-
-  it('takes at most the working days and none during Mutterschutz', () => {
+  it('costs the working days of that time: none during Elternzeit without work and Mutterschutz', () => {
     const result = simulate(
       withPlan((c) => {
-        c.periods.b.push(vacation(15, 15, 40))
-        c.periods.a = [vacation(1, 1), ...c.periods.a.filter((p) => p.from > 1)]
+        c.periods.b.push(work(3, 4, 24, 3))
+        vacation(c, 'b', '2027-06-07', '2027-06-11')
+        vacation(c, 'b', '2027-03-08', '2027-03-12')
+        vacation(c, 'b', '2028-01-10', '2028-01-14')
+        vacation(c, 'a', '2027-01-11', '2027-01-15')
       }),
     )
-    expect(result.vacation.b.periods['vacation-15']).toEqual({ available: 23, taken: 23 })
-    expect(result.vacation.a.periods['vacation-1']).toEqual({ available: 0, taken: 0 })
+    expect(result.vacation.b.periods['b-2027-06-07']).toEqual({ weeks: 1, days: 5 })
+    expect(result.vacation.b.periods['b-2027-03-08']).toEqual({ weeks: 1, days: 3 })
+    expect(result.vacation.b.periods['b-2028-01-10']).toEqual({ weeks: 1, days: 0 })
+    expect(result.vacation.a.periods['a-2027-01-11']).toEqual({ weeks: 1, days: 0 })
+    expect(result.vacation.b.years.find((y) => y.year === 2027)?.planned).toBe(8)
+  })
+
+  it('keeps the salary and closes the care gap in proportion to the vacation', () => {
+    const before = simulate(withPlan(() => {})).months[14]
+    const after = simulate(withPlan((c) => vacation(c, 'b', '2028-03-06', '2028-03-24'))).months[14]
+    // March 2028 has 23 weekdays, 15 of them on vacation.
+    expect(after.b).toMatchObject({ vacationDays: 15, netSalary: before.b.netSalary, parentalAllowance: 0 })
+    expect(after.b.vacationShare).toBeCloseTo(15 / 23, 6)
+    expect(after.care.need).toBeCloseTo(Math.min(after.a.hours, after.b.hours * (8 / 23)), 2)
+    expect(after.care.need).toBeLessThan(before.care.need)
+  })
+
+  it('splits the week around New Year day by day', () => {
+    const result = simulate(withPlan((c) => vacation(c, 'b', '2029-12-31', '2030-01-04'), '2027-01-15'))
+    const years = result.vacation.b.years
+    expect(years.find((y) => y.year === 2029)?.planned).toBe(1)
+    expect(years.find((y) => y.year === 2030)?.planned).toBe(4)
   })
 
   it('prorates the entitlement for months with fewer working days per week', () => {
-    const partTime: PlanPeriod = { id: 'tz', from: 7, to: 12, kind: 'work', hours: 24, workDays: 3, vacationDays: null, allowance: 'none' }
     const result = simulate(
       withPlan((c) => {
-        c.periods.b.push(partTime)
+        c.periods.b.push(work(7, 12, 24, 3))
         c.periods.b[0].workDays = 2
       }),
     )
@@ -76,17 +82,17 @@ describe('vacation', () => {
   })
 
   it('warns when a calendar year has more vacation planned than it provides', () => {
-    // March and April 2028 have 43 working days; 2028 provides 30 days minus 5 for two months of Elternzeit.
-    const result = simulate(withPlan((c) => c.periods.b.push(vacation(15, 16))))
+    // Six weeks in 2028 cost 30 days; 2028 provides 30 days minus 5 for two months of Elternzeit.
+    const result = simulate(withPlan((c) => vacation(c, 'b', '2028-03-06', '2028-04-14')))
     expect(result.issues.find((i) => i.id === 'vacation-over-b-2028')).toMatchObject({ severity: 'warning', category: 'vacation', months: [15, 16] })
   })
 
   it('suggests vacation instead of Elternzeit without Elterngeld while enough days are left', () => {
-    const unpaid: PlanPeriod = { id: 'ez', from: 12, to: 12, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'none' }
+    const unpaid: PlanPeriod = { id: 'ez', from: 12, to: 12, kind: 'leave', hours: 0, workDays: null, allowance: 'none' }
     const suggestion = (config: VariantConfig) => simulate(config).issues.find((i) => i.id === 'tip-vacation-instead-leave-b-12')
     const config = withPlan((c) => c.periods.b.push(unpaid))
     expect(suggestion(config)).toMatchObject({ category: 'vacation', months: [12], impact: simulate(config).months[11].b.fullTimeNet })
-    // With March 2027 already planned as vacation, only 4.5 days are left for December.
-    expect(suggestion(withPlan((c) => c.periods.b.push(unpaid, vacation(3, 3))))).toBeUndefined()
+    // With four weeks already planned in 2027, only 7.5 days are left for December.
+    expect(suggestion(withPlan((c) => (c.periods.b.push(unpaid), vacation(c, 'b', '2027-06-07', '2027-07-02'))))).toBeUndefined()
   })
 })

@@ -13,9 +13,6 @@ export function monthStyle(month: ParentMonth): PlanStyle {
   if (month.maternityLocked) {
     return { label: 'Mutterschutz (zählt als Basis)', short: 'Mutterschutz', color: 'var(--plan-maternity)', textClass: 'text-white' }
   }
-  if (month.vacation) {
-    return { label: 'Urlaub', short: 'Urlaub', color: 'var(--plan-vacation)', textClass: 'text-white' }
-  }
   const hours = month.hours > 0 ? ` ${formatHours(month.hours)} h` : ''
   switch (month.allowance) {
     case 'basic':

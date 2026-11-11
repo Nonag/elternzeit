@@ -6,17 +6,11 @@ import { useVariants } from '@/stores/variants'
 
 const { result, config } = useVariants()
 
-/** Vacation periods of a parent with their dates and days. */
+/** Picked vacation weeks of a parent with what they cost. */
 function vacationPeriods(key: ParentKey) {
-  const months = result.value.months
-  return result.value.periods[key]
-    .filter((period) => period.kind === 'vacation' && period.from <= months.length)
-    .map((period) => ({
-      id: period.id,
-      start: months[period.from - 1].start,
-      end: months[Math.min(period.to, months.length) - 1].end,
-      ...result.value.vacation[key].periods[period.id],
-    }))
+  return config.value.vacation[key]
+    .filter((period) => period.from && period.to && result.value.vacation[key].periods[period.id])
+    .map((period) => ({ ...period, ...result.value.vacation[key].periods[period.id] }))
 }
 </script>
 
@@ -77,8 +71,8 @@ function vacationPeriods(key: ParentKey) {
         <p v-else class="text-muted-foreground text-xs">Keine Elternzeit ohne Arbeit, daher keine Kürzung.</p>
         <div v-if="vacationPeriods(key).length" class="text-muted-foreground grid gap-0.5 text-xs">
           <span v-for="period in vacationPeriods(key)" :key="period.id">
-            Urlaub {{ formatDate(period.start) }} – {{ formatDate(period.end) }}: {{ num(period.taken) }} von
-            {{ num(period.available) }} Arbeitstagen
+            Urlaub {{ formatDate(period.from) }} – {{ formatDate(period.to) }}: {{ period.weeks }}
+            {{ period.weeks === 1 ? 'Woche' : 'Wochen' }}, {{ num(period.days) }} Tage
           </span>
         </div>
       </div>

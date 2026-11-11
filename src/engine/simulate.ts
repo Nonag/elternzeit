@@ -35,14 +35,13 @@ import type {
 import { evaluateRules } from './rules'
 import { evaluateTips } from './tips'
 import type { ParentConfig, ParentKey, PlanPeriod, RelationshipStatus, VariantConfig, TaxClass } from './types'
-import { computeVacation, hoursWorked, planVacation, type PlannedVacation } from './vacation'
+import { computeVacation, hoursWorked, planVacation, type PlannedVacation, type WorkMonth } from './vacation'
 
 const PARENT_KEYS: ParentKey[] = ['a', 'b']
 
 const EMPTY_MONTH: ParentMonth = {
   active: false,
   leave: false,
-  vacation: false,
   vacationDays: 0,
   vacationShare: 0,
   hours: 0,
@@ -179,12 +178,17 @@ export function simulate(config: VariantConfig): SimulationResult {
 
   const maternityRate = maternityBenefitRate(setup.a.realNetBefore, config.parents.a.healthInsurance)
 
-  // Paid vacation, spread over the working days of each vacation period (none during Mutterschutz)
+  // Paid vacation, day by day (none during Elternzeit without work and Mutterschutz)
   const plannedVacation = Object.fromEntries(
-    PARENT_KEYS.map((key) => [
-      key,
-      planVacation(periods[key], lms, config.parents[key].workDaysPerWeek, (lm) => key === 'a' && overlapDays(lm.start, lm.end, birth, maternity.end) > 0),
-    ]),
+    PARENT_KEYS.map((key) => {
+      const contractDays = config.parents[key].workDaysPerWeek
+      const months: WorkMonth[] = lms.map((lm, i) => {
+        const plan = setup[key].plan[i]
+        const workDays = plan.hours > 0 && plan.workDays !== null ? plan.workDays : contractDays
+        return { start: lm.start, end: lm.end, leave: plan.leave, hours: plan.hours, workDays }
+      })
+      return [key, planVacation(isActive(key) ? config.vacation[key] : [], lms, months, key === 'a' ? maternity.end : null)]
+    }),
   ) as Record<ParentKey, PlannedVacation>
 
   // Pass 1: work, salary, maternity benefits
@@ -239,7 +243,6 @@ export function simulate(config: VariantConfig): SimulationResult {
       parentMonths[key].push({
         active: true,
         leave: planMonth.leave,
-        vacation: planMonth.vacation,
         vacationDays: round2(plannedVacation[key].days[lm.index - 1]),
         vacationShare: plannedVacation[key].shares[lm.index - 1],
         hours: round2(hours * workFraction),

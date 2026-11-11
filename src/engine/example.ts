@@ -34,6 +34,7 @@ export function exampleConfig(): VariantConfig {
     churchTaxRate: 0.09,
     horizonMonths: 36,
     periods: periodsFromOutline(classic, 'married'),
+    vacation: { a: [], b: [] },
     parents: {
       a: exampleParent('Mutter', 3800),
       b: exampleParent('Vater', 4500),

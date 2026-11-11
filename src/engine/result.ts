@@ -8,8 +8,6 @@ import type { VacationSummary } from './vacation'
 export interface ParentMonth {
   active: boolean
   leave: boolean
-  /** Part of a vacation period. */
-  vacation: boolean
   /** Vacation days taken in this month. */
   vacationDays: number
   /** Share of the working days spent on vacation (0–1). */

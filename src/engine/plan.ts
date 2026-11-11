@@ -49,7 +49,6 @@ function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
       to: cursor + plan.leaveMonths - 1,
       kind: 'leave',
       workDays: null,
-      vacationDays: null,
       hours: 0,
       allowance: plan.leaveAllowance,
     })
@@ -62,7 +61,6 @@ function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
       to: cursor + plan.partTimeMonths - 1,
       kind: 'leave',
       workDays: null,
-      vacationDays: null,
       hours: plan.partTimeHours,
       allowance: plan.partTimeAllowance,
     })
@@ -86,7 +84,6 @@ export function periodsFromOutline(outline: PlanOutline, relationship: Relations
       to: start + outline.bonusMonths - 1,
       kind: 'leave',
       workDays: null,
-      vacationDays: null,
       hours: outline.bonusHours,
       allowance: 'bonus',
     })
@@ -98,8 +95,6 @@ export function periodsFromOutline(outline: PlanOutline, relationship: Relations
 
 export interface MonthPlan {
   leave: boolean
-  /** Part of a vacation period: paid at contract hours. */
-  vacation: boolean
   hours: number
   /** Working days per week set for the period (null = as in the contract). */
   workDays: number | null
@@ -111,7 +106,6 @@ export interface MonthPlan {
 export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHours: number): MonthPlan[] {
   const months: MonthPlan[] = Array.from({ length: horizon }, () => ({
     leave: false,
-    vacation: false,
     hours: contractHours,
     workDays: null,
     hoursMissing: false,
@@ -120,14 +114,12 @@ export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHo
   }))
   for (const period of periods) {
     for (let m = Math.max(1, period.from); m <= Math.min(horizon, period.to); m++) {
-      const vacation = period.kind === 'vacation'
       months[m - 1] = {
         leave: period.kind === 'leave',
-        vacation,
-        hours: vacation ? contractHours : (period.hours ?? 0),
-        workDays: vacation ? null : period.workDays,
-        hoursMissing: !vacation && period.hours === null,
-        allowance: vacation ? 'none' : period.allowance,
+        hours: period.hours ?? 0,
+        workDays: period.workDays,
+        hoursMissing: period.hours === null,
+        allowance: period.allowance,
         periodId: period.id,
       }
     }

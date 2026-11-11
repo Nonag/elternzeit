@@ -4,7 +4,7 @@ import { computeDeadlines } from '@/engine/deadlines'
 import { exampleConfig } from '@/engine/example'
 import { createId, periodsFromOutline } from '@/engine/plan'
 import { simulate } from '@/engine/simulate'
-import type { PlanOutline, PlanPeriod, VariantConfig } from '@/engine/types'
+import type { ParentKey, PlanOutline, PlanPeriod, VacationPeriod, VariantConfig } from '@/engine/types'
 import { stableStringify } from '@/lib/json'
 
 /** One complete set of inputs including its plan ("Variante"). All variants together form the "Planung". */
@@ -56,14 +56,25 @@ function pick<T extends object>(base: T, stored: unknown): T {
   return Object.fromEntries(Object.keys(base).map((key) => [key, merged[key as keyof T]])) as T
 }
 
-const PERIOD: PlanPeriod = { id: '', from: 1, to: 1, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'none' }
+const PERIOD: PlanPeriod = { id: '', from: 1, to: 1, kind: 'leave', hours: 0, workDays: null, allowance: 'none' }
 
-/** Version 1 had an Elternzeit switch ("leave") instead of the kind of period. */
-function migratePeriod(stored: unknown): PlanPeriod {
-  const raw = stored as Partial<PlanPeriod> & { leave?: boolean }
-  const period = pick(PERIOD, raw)
-  if (!raw.kind) period.kind = raw.leave === false ? 'work' : 'leave'
-  return { ...period, id: period.id || createId('period') }
+/** Version 1 had an Elternzeit switch ("leave") instead of the kind of period; unknown kinds are dropped. */
+function migratePeriods(stored: unknown[] | undefined): PlanPeriod[] {
+  return (stored ?? []).flatMap((item) => {
+    const raw = item as Partial<PlanPeriod> & { leave?: boolean; kind?: string }
+    const period = pick(PERIOD, raw)
+    if (!raw.kind) period.kind = raw.leave === false ? 'work' : 'leave'
+    else if (raw.kind !== 'leave' && raw.kind !== 'work') return []
+    return [{ ...period, id: period.id || createId('period') }]
+  })
+}
+
+function migrateVacation(stored: unknown[] | undefined): VacationPeriod[] {
+  return (stored ?? []).flatMap((item) => {
+    const raw = item as Partial<VacationPeriod> | null
+    if (typeof raw?.from !== 'string' || typeof raw.to !== 'string') return []
+    return [{ id: raw.id || createId('vacation'), from: raw.from, to: raw.to }]
+  })
 }
 
 /** Brings a stored config of any older version into the current shape; missing fields get the example values. */
@@ -79,9 +90,11 @@ export function migrateConfig(stored: StoredConfig): VariantConfig {
       ? periodsFromOutline(stored.quickPlan, stored.relationship ?? 'married')
       : ((raw.periods as Partial<VariantConfig['periods']> | undefined) ?? base.periods)
   const parents = raw.parents as Partial<VariantConfig['parents']> | undefined
+  const vacation = raw.vacation as Partial<Record<ParentKey, unknown[]>> | undefined
   return {
     ...pick(base, raw),
-    periods: { a: (periods.a ?? []).map(migratePeriod), b: (periods.b ?? []).map(migratePeriod) },
+    periods: { a: migratePeriods(periods.a), b: migratePeriods(periods.b) },
+    vacation: { a: migrateVacation(vacation?.a), b: migrateVacation(vacation?.b) },
     parents: { a: pick(base.parents.a, parents?.a), b: pick(base.parents.b, parents?.b) },
     childcare: pick(base.childcare, raw.childcare),
     assumptions: pick(base.assumptions, raw.assumptions),

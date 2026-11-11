@@ -6,8 +6,8 @@ export type RelationshipStatus = 'married' | 'unmarried' | 'single'
 export type HealthInsurance = 'statutory' | 'statutoryVoluntary' | 'private'
 export type AllowanceType = 'none' | 'basic' | 'plus' | 'bonus'
 export type OutlineAllowance = 'none' | 'basic' | 'plus'
-/** "Art" of a plan period: Elternzeit, work with other hours, or paid vacation. */
-export type PeriodKind = 'leave' | 'work' | 'vacation'
+/** "Art" of a plan period: Elternzeit or work with other hours. */
+export type PeriodKind = 'leave' | 'work'
 
 export interface ParentConfig {
   name: string
@@ -49,12 +49,10 @@ export interface PlanPeriod {
   /** Last life month (inclusive). */
   to: number
   kind: PeriodKind
-  /** Weekly working hours in this period (null = not entered yet); vacation keeps the contract hours. */
+  /** Weekly working hours in this period (null = not entered yet). */
   hours: number | null
   /** Working days per week while working (null = as in the contract); sets the vacation entitlement. */
   workDays: number | null
-  /** Vacation days taken in a vacation period (null = all working days). */
-  vacationDays: number | null
   allowance: AllowanceType
 }
 
@@ -74,6 +72,15 @@ export interface PlanOutline {
   /** First life month of the Partnerschaftsbonus (null = directly after both full-time leaves). */
   bonusStart: number | null
   bonusHours: number
+}
+
+/** Paid vacation in whole weeks ("Urlaub"); empty dates until the weeks are picked. */
+export interface VacationPeriod {
+  id: string
+  /** Monday of the first week. */
+  from: IsoDate
+  /** Friday of the last week. */
+  to: IsoDate
 }
 
 export interface FamilyCarePeriod {
@@ -127,6 +134,7 @@ export interface VariantConfig {
   churchTaxRate: number
   horizonMonths: number
   periods: Record<ParentKey, PlanPeriod[]>
+  vacation: Record<ParentKey, VacationPeriod[]>
   parents: Record<ParentKey, ParentConfig>
   fixedCosts: number
   childCosts: CostItem[]

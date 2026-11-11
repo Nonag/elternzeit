@@ -75,11 +75,12 @@ function modelCell(month: ParentMonth) {
     },
     style.short,
   )
-  if (!month.allowanceNote) return chip
+  const note = [month.allowanceNote, month.vacationDays > 0 ? `Urlaub: ${num(month.vacationDays)} Tage` : ''].filter(Boolean).join('\n')
+  if (!note) return chip
   return h(Tooltip, null, {
     default: () => [
       h(TooltipTrigger, { asChild: true }, () => chip),
-      h(TooltipContent, { class: 'max-w-sm' }, () => month.allowanceNote),
+      h(TooltipContent, { class: 'max-w-sm whitespace-pre-line' }, () => note),
     ],
   })
 }
