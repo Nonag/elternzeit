@@ -130,6 +130,14 @@
   html {
     color-scheme: light dark;
   }
+  /* The hand on everything clickable; Tailwind 4 leaves buttons with the arrow. Disabled controls keep the arrow. */
+  :is(button, select, [role='button'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='option'], [role='tab']):not(
+      :disabled,
+      [data-disabled],
+      [aria-disabled='true']
+    ) {
+    cursor: pointer;
+  }
   html.dark {
     color-scheme: dark;
   }
