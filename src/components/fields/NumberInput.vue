@@ -2,6 +2,7 @@
 import { NumberFieldInput, NumberFieldRoot } from 'reka-ui'
 import { computed } from 'vue'
 import { InputGroup, InputGroupAddon, InputGroupText } from '@/components/ui/input-group'
+import { TONE_BORDER, type FieldTone } from '@/lib/issues'
 
 const model = defineModel<number | null>({ required: true })
 const props = withDefaults(
@@ -16,7 +17,8 @@ const props = withDefaults(
     /** Allows an empty field (model becomes null). */
     nullable?: boolean
     placeholder?: string
-    invalid?: boolean
+    /** Marks the field for an error, a warning or a tip. */
+    tone?: FieldTone
     disabled?: boolean
     ariaLabel?: string
   }>(),
@@ -28,7 +30,7 @@ const props = withDefaults(
     unit: undefined,
     nullable: false,
     placeholder: undefined,
-    invalid: false,
+    tone: undefined,
     disabled: false,
     ariaLabel: undefined,
   },
@@ -62,10 +64,10 @@ function update(value: number | null | undefined) {
     :format-options="formatOptions"
     @update:model-value="update"
   >
-    <InputGroup class="h-9">
+    <InputGroup class="h-9" :class="tone && TONE_BORDER[tone]">
       <NumberFieldInput
         data-slot="input-group-control"
-        :aria-invalid="invalid || undefined"
+        :aria-invalid="tone === 'error' || undefined"
         :aria-label="ariaLabel"
         :placeholder="placeholder"
         class="placeholder:text-muted-foreground h-full w-full min-w-0 flex-1 rounded-none border-0 bg-transparent px-3 text-right text-sm tabular-nums shadow-none outline-none"

@@ -10,6 +10,8 @@ import type { ParentKey, VacationPeriod } from '@/engine/types'
 import { isWeekday, vacationDayCost, vacationDays, weekEnd, workMonths } from '@/engine/vacation'
 import { num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
+import IssueTip from './IssueTip.vue'
+import { planIssues } from './planIssues'
 
 const props = defineProps<{ parentKey: ParentKey }>()
 const { config, result } = useVariants()
@@ -21,6 +23,7 @@ const maternityEnd = computed(() => (props.parentKey === 'a' ? result.value.mate
 const first = computed(() => result.value.months[0].start)
 const last = computed(() => result.value.months[result.value.months.length - 1].end)
 const lifeMonthStarts = computed(() => result.value.months.map((m) => m.start))
+const marks = computed(() => planIssues(result.value, config.value))
 
 const yearOf = (date: string) => parseIso(date).year
 
@@ -76,18 +79,21 @@ function label(period: VacationPeriod): string {
       <Button variant="outline" size="sm" @click="add"><PlusIcon /> Urlaub</Button>
     </div>
     <div v-for="period in periods" :key="period.id" class="grid grid-cols-[minmax(0,1fr)_auto_2rem] items-center gap-2 px-1">
-      <DateRangeInput
-        v-model:from="period.from"
-        v-model:to="period.to"
-        weeks
-        :min="first"
-        :max="last"
-        :marked-dates="lifeMonthStarts"
-        :is-date-disabled="isDisabled"
-        :adjust="(from, to) => adjust(period, from, to)"
-        :hint="(start) => hint(period, start)"
-        placeholder="Wochen wählen"
-      />
+      <IssueTip v-slot="{ tone }" :issues="marks.vacation.get(period.id) ?? []">
+        <DateRangeInput
+          v-model:from="period.from"
+          v-model:to="period.to"
+          weeks
+          :min="first"
+          :max="last"
+          :marked-dates="lifeMonthStarts"
+          :is-date-disabled="isDisabled"
+          :adjust="(from, to) => adjust(period, from, to)"
+          :hint="(start) => hint(period, start)"
+          placeholder="Wochen wählen"
+          :tone="tone"
+        />
+      </IssueTip>
       <span class="text-muted-foreground text-xs whitespace-nowrap tabular-nums">{{ label(period) }}</span>
       <Button variant="ghost" size="icon" aria-label="Urlaub löschen" @click="remove(period.id)"><Trash2Icon /></Button>
     </div>

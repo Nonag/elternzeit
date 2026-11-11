@@ -95,6 +95,9 @@ docs/research-notes.md legal research with sources
 - **Engine:** no Vue imports; components read `config` and `result` from `useVariants()`.
 - **Law:** "voraussichtlich geltendes Recht" = enacted law plus `EXPECTED_CHANGES`. No full income tax assessment,
   only rough hints in the tips.
+- **Rules and tips:** the plan card marks issues at the field they concern (`TARGETS` in
+  `components/plan/planIssues.ts`), details only in tooltips. Without an entry an issue goes to the counter or lane of
+  its category, so add one for new rules about a period input.
 - **Colour mode:** `useColorMode` from @vueuse/core; the inline script in `index.html` applies the stored mode before
   the first paint and must use the same key.
 - **Commits:** Conventional Commits (`feat(ui):`, `fix(engine):`, `refactor:`, `docs:`, `build(docker):` …), small,

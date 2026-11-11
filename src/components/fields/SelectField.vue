@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends string | number | null">
 import { computed } from 'vue'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { TONE_BORDER, type FieldTone } from '@/lib/issues'
 
 const model = defineModel<T>({ required: true })
 const props = defineProps<{
@@ -10,6 +11,8 @@ const props = defineProps<{
   triggerClass?: string
   /** Heading above the options in the opened list. */
   label?: string
+  /** Marks the field for an error, a warning or a tip. */
+  tone?: FieldTone
 }>()
 
 const NULL_KEY = '__null__'
@@ -29,7 +32,11 @@ function update(value: unknown) {
 
 <template>
   <Select :model-value="selected" @update:model-value="update">
-    <SelectTrigger size="default" :class="['h-9 w-full min-w-0 data-[size=default]:h-9', triggerClass]">
+    <SelectTrigger
+      size="default"
+      :aria-invalid="tone === 'error' || undefined"
+      :class="['h-9 w-full min-w-0 data-[size=default]:h-9', triggerClass, tone && TONE_BORDER[tone]]"
+    >
       <SelectValue :placeholder="placeholder">{{ selectedLabel }}</SelectValue>
     </SelectTrigger>
     <SelectContent>

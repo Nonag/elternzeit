@@ -263,6 +263,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
         severity: 'info',
         category: 'leave',
         parent: key,
+        months: partTime.map((row) => row.index),
         title: `${name(key)}: Teilzeit nur in Absprache`,
         detail: 'Ein Recht auf Teilzeit in der Elternzeit gibt es nur bei mehr als 15 Beschäftigten und nach mehr als 6 Monaten im Betrieb.',
       })

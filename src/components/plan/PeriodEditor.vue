@@ -6,8 +6,11 @@ import InfoTip from '@/components/fields/InfoTip.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SelectField from '@/components/fields/SelectField.vue'
 import { createId, normalizePeriods, sortPeriods } from '@/engine/plan'
+import type { Issue } from '@/engine/result'
 import type { AllowanceType, ParentKey, PeriodKind, PlanPeriod } from '@/engine/types'
 import { useVariants } from '@/stores/variants'
+import IssueTip from './IssueTip.vue'
+import { planIssues, type PeriodField } from './planIssues'
 import VacationEditor from './VacationEditor.vue'
 
 const selected = defineModel<string | null>('selected', { default: null })
@@ -62,8 +65,16 @@ function updateWorkDays(key: ParentKey, period: PlanPeriod, days: number | null)
   update(key, period.id, { workDays: days === null || days === config.value.parents[key].workDaysPerWeek ? null : days })
 }
 
-function hasError(key: ParentKey, period: PlanPeriod): boolean {
-  return period.hours === null || (period.kind === 'work' && period.hours === 0) || result.value.issues.some((i) => i.id === `period-hours-${period.id}`)
+const marks = computed(() => planIssues(result.value, config.value))
+const NONE: Issue[] = []
+const FIELDS: PeriodField[] = ['to', 'kind', 'hours', 'allowance']
+
+function issuesAt(period: PlanPeriod, field: PeriodField): Issue[] {
+  return marks.value.fields.get(`${period.id}:${field}`) ?? NONE
+}
+
+function hasError(period: PlanPeriod): boolean {
+  return FIELDS.some((field) => issuesAt(period, field).some((issue) => issue.severity === 'error'))
 }
 </script>
 
@@ -112,30 +123,44 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
         <div
           v-for="period in periodsOf(key)"
           :key="period.id"
-          :class="[GRID, selected === period.id ? 'bg-accent ring-ring/40 ring-1' : '', hasError(key, period) ? 'bg-destructive/5' : '']"
+          :class="[GRID, selected === period.id ? 'bg-accent ring-ring/40 ring-1' : '', hasError(period) ? 'bg-destructive/5' : '']"
           class="rounded-lg p-1"
           @click="selected = period.id"
         >
           <NumberInput :model-value="period.from" :min="1" :max="96" aria-label="von Monat" @update:model-value="(v) => update(key, period.id, { from: v ?? period.from })" />
-          <NumberInput :model-value="period.to" :min="1" :max="96" aria-label="bis Monat" @update:model-value="(v) => update(key, period.id, { to: v ?? period.to })" />
-          <SelectField
-            :model-value="period.kind"
-            :options="kindOptions"
-            trigger-class="px-2 text-xs"
-            @update:model-value="(v) => update(key, period.id, { kind: v as PeriodKind })"
-          />
-          <NumberInput
-            :model-value="period.hours"
-            nullable
-            :invalid="period.hours === null || (period.kind === 'work' && period.hours === 0)"
-            placeholder="?"
-            :min="0"
-            :max="60"
-            :step="0.5"
-            :decimals="2"
-            aria-label="Stunden pro Woche"
-            @update:model-value="(v) => update(key, period.id, { hours: v })"
-          />
+          <IssueTip v-slot="{ tone }" :issues="issuesAt(period, 'to')">
+            <NumberInput
+              :model-value="period.to"
+              :min="1"
+              :max="96"
+              :tone="tone"
+              aria-label="bis Monat"
+              @update:model-value="(v) => update(key, period.id, { to: v ?? period.to })"
+            />
+          </IssueTip>
+          <IssueTip v-slot="{ tone }" :issues="issuesAt(period, 'kind')">
+            <SelectField
+              :model-value="period.kind"
+              :options="kindOptions"
+              trigger-class="px-2 text-xs"
+              :tone="tone"
+              @update:model-value="(v) => update(key, period.id, { kind: v as PeriodKind })"
+            />
+          </IssueTip>
+          <IssueTip v-slot="{ tone }" :issues="issuesAt(period, 'hours')">
+            <NumberInput
+              :model-value="period.hours"
+              nullable
+              :tone="tone"
+              placeholder="?"
+              :min="0"
+              :max="60"
+              :step="0.5"
+              :decimals="2"
+              aria-label="Stunden pro Woche"
+              @update:model-value="(v) => update(key, period.id, { hours: v })"
+            />
+          </IssueTip>
           <NumberInput
             :model-value="period.hours ? (period.workDays ?? config.parents[key].workDaysPerWeek) : null"
             nullable
@@ -148,12 +173,15 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
             aria-label="Arbeitstage pro Woche"
             @update:model-value="(v) => updateWorkDays(key, period, v)"
           />
-          <SelectField
-            :model-value="period.allowance"
-            :options="allowanceOptions"
-            trigger-class="px-2 text-xs"
-            @update:model-value="(v) => update(key, period.id, { allowance: v as AllowanceType })"
-          />
+          <IssueTip v-slot="{ tone }" :issues="issuesAt(period, 'allowance')">
+            <SelectField
+              :model-value="period.allowance"
+              :options="allowanceOptions"
+              trigger-class="px-2 text-xs"
+              :tone="tone"
+              @update:model-value="(v) => update(key, period.id, { allowance: v as AllowanceType })"
+            />
+          </IssueTip>
           <Button variant="ghost" size="icon" aria-label="Zeitraum löschen" @click.stop="remove(key, period.id)"><Trash2Icon /></Button>
         </div>
         <VacationEditor :parent-key="key" />

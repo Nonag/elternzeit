@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RangeCalendar } from '@/components/ui/range-calendar'
 import { formatDate } from '@/engine/dates'
 import { weekEnd, weekStart } from '@/engine/vacation'
+import { TONE_BORDER, type FieldTone } from '@/lib/issues'
 
 const from = defineModel<string>('from', { required: true })
 const to = defineModel<string>('to', { required: true })
@@ -23,6 +24,8 @@ const props = defineProps<{
   /** Extra line below the calendar, for the start picked so far. */
   hint?: (start: string | null) => string | null
   placeholder?: string
+  /** Marks the field for an error, a warning or a tip. */
+  tone?: FieldTone
 }>()
 
 const minValue = computed(() => (props.min ? parseDate(props.min) : undefined))
@@ -67,7 +70,12 @@ const hintText = computed(() => props.hint?.(draft.value.start?.toString() ?? nu
 <template>
   <Popover v-model:open="open">
     <PopoverTrigger as-child>
-      <Button variant="outline" class="h-9 w-full justify-start font-normal">
+      <Button
+        variant="outline"
+        class="h-9 w-full justify-start font-normal"
+        :class="tone && TONE_BORDER[tone]"
+        :aria-invalid="tone === 'error' || undefined"
+      >
         <CalendarRangeIcon class="text-muted-foreground" />
         <span v-if="from && to">{{ formatDate(from) }} – {{ formatDate(to) }}</span>
         <span v-else class="text-muted-foreground">{{ placeholder ?? 'Zeitraum wählen' }}</span>

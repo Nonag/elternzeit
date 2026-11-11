@@ -6,12 +6,15 @@ import type { MonthRow } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
 import { num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
+import IssueMarker from './IssueMarker.vue'
+import { planIssues } from './planIssues'
 import { LEGEND, monthStyle } from './planStyle'
 
 const emit = defineEmits<{ select: [parent: ParentKey, from: number, to: number, periodId: string | null] }>()
 const props = defineProps<{ selectedPeriodId?: string | null }>()
 
 const { result, config } = useVariants()
+const laneIssues = computed(() => planIssues(result.value, config.value).lanes)
 
 interface Segment {
   key: string
@@ -168,7 +171,10 @@ function onClick(parent: ParentKey | null, segment: Segment) {
         </Tooltip>
 
         <template v-for="lane in lanes" :key="lane.id">
-          <div class="sticky left-0 z-10 flex items-center truncate bg-card pr-2 text-xs font-medium">{{ lane.title }}</div>
+          <div class="sticky left-0 z-10 flex items-center gap-1 bg-card pr-2 text-xs font-medium">
+            <span class="truncate">{{ lane.title }}</span>
+            <IssueMarker :issues="laneIssues.get(lane.id) ?? []" />
+          </div>
           <div class="relative grid h-7" :style="{ gridColumn: '2 / -1', gridTemplateColumns: `repeat(${horizon}, minmax(1.2rem, 1fr))` }">
             <div class="bg-muted/40 row-start-1 rounded" :style="{ gridColumn: `1 / ${horizon + 1}` }" />
             <Tooltip v-for="segment in lane.segments" :key="segment.key">

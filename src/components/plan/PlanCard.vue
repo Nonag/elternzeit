@@ -11,17 +11,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import InfoTip from '@/components/fields/InfoTip.vue'
 import { confirmDialog } from '@/lib/dialogs'
 import { createId, periodsFromOutline, normalizePeriods, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
 import type { ParentKey } from '@/engine/types'
 import { num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
+import IssueMarker from './IssueMarker.vue'
 import PeriodEditor from './PeriodEditor.vue'
+import { planIssues } from './planIssues'
 import PlanTimeline from './PlanTimeline.vue'
 
 const { config, result } = useVariants()
 const selectedPeriod = ref<string | null>(null)
+const counters = computed(() => planIssues(result.value, config.value).counters)
 
 function onSelect(parent: ParentKey, from: number, to: number, periodId: string | null) {
   if (periodId) {
@@ -53,16 +55,23 @@ async function applyPreset(preset: PlanPreset) {
           <strong :class="result.entitlement.used > result.entitlement.available ? 'text-destructive' : 'text-foreground'">
             {{ num(result.entitlement.used) }}/{{ result.entitlement.available }} Monate
           </strong>
-          <InfoTip text="Basiselterngeld zählt voll, ElterngeldPlus halb. Zusammen gibt es 14 Monate, wenn beide Elterngeld beziehen." />
+          <IssueMarker
+            :issues="counters.allowance"
+            text="Basiselterngeld zählt voll, ElterngeldPlus halb. Zusammen gibt es 14 Monate, wenn beide Elterngeld beziehen."
+          />
         </span>
         <span class="flex items-center gap-1">
           Partnerschaftsbonus <strong class="text-foreground">{{ result.parents.a.counts.bonus }}/4</strong>
-          <InfoTip text="Bis zu 4 zusätzliche Monate ElterngeldPlus für jeden Elternteil – wenn ihr beide 2 bis 4 Monate am Stück gleichzeitig 24 bis 32 Stunden pro Woche arbeitet." />
+          <IssueMarker
+            :issues="counters.bonus"
+            text="Bis zu 4 zusätzliche Monate ElterngeldPlus für jeden Elternteil – wenn ihr beide 2 bis 4 Monate am Stück gleichzeitig 24 bis 32 Stunden pro Woche arbeitet."
+          />
         </span>
-        <span>
+        <span class="flex items-center gap-1">
           Elternzeit
           <strong class="text-foreground">{{ result.activeParents.map((k) => `${result.parents[k].name} ${result.parents[k].counts.leaveMonths}`).join(' · ') }}</strong>
           Monate
+          <IssueMarker :issues="counters.leave" />
         </span>
       </div>
       <CardAction>
