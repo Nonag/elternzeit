@@ -1,4 +1,5 @@
-import { computed, reactive, watch } from 'vue'
+import { useManualRefHistory, watchDebounced } from '@vueuse/core'
+import { computed, reactive, ref, toRef, watch } from 'vue'
 import { todayIso } from '@/engine/dates'
 import { computeDeadlines } from '@/engine/deadlines'
 import { exampleConfig } from '@/engine/example'
@@ -218,6 +219,27 @@ const missing = computed(() => missingInputs(config.value))
 const result = computed(() => simulate(calculable(config.value, today)))
 const deadlines = computed(() => computeDeadlines(calculable(config.value, today), result.value, today))
 
+// Undo and redo over all variants, since the page or the planning was loaded. Changes in quick succession
+// (typing) become one step.
+const history = useManualRefHistory(toRef(state, 'variants'), { capacity: 100, dump: JSON.stringify, parse: JSON.parse })
+const commitChanges = () => {
+  if (JSON.stringify(state.variants) !== history.last.value.snapshot) history.commit()
+}
+watchDebounced(() => state.variants, commitChanges, { deep: true, debounce: 400 })
+
+/** Shows the variant that an undo or redo changed; returns it if that meant switching to another variant. */
+function showChanged(before: Variant[]): Variant | null {
+  const previousId = state.currentId
+  const previous = new Map(before.map((v) => [v.id, JSON.stringify(v)]))
+  const changed = state.variants.find((v) => previous.get(v.id) !== JSON.stringify(v))
+  if (changed) state.currentId = changed.id
+  else if (!state.variants.some((v) => v.id === state.currentId)) state.currentId = state.variants[0].id
+  return state.currentId !== previousId ? current.value : null
+}
+
+/** Counts loaded plannings, so the results can fade in. */
+const loads = ref(0)
+
 function uniqueName(base: string): string {
   const names = new Set(state.variants.map((v) => v.name))
   if (!names.has(base)) return base
@@ -237,6 +259,23 @@ export function useVariants() {
     result,
     deadlines,
     today,
+    loads,
+    canUndo: history.canUndo,
+    canRedo: history.canRedo,
+    /** Both return the variant they switched to, if any. */
+    undo(): Variant | null {
+      commitChanges()
+      const before = state.variants
+      history.undo()
+      return showChanged(before)
+    },
+    redo(): Variant | null {
+      const before = state.variants
+      history.redo()
+      return showChanged(before)
+    },
+    /** A single variant without any input, as in a new planning. */
+    isBlank: computed(() => state.variants.length === 1 && stableStringify(state.variants[0].config) === stableStringify(emptyConfig())),
     select(id: string) {
       state.currentId = id
     },
@@ -261,10 +300,18 @@ export function useVariants() {
     planningData(): PlanningData {
       return { app: 'elternzeit-planer', version: 2, variants: state.variants }
     },
-    /** Replaces all variants, e.g. from an export file or the server. */
+    /** Replaces all variants, e.g. from an export file or the server; undo starts over. */
     replaceVariants(variants: Variant[]) {
       state.variants = variants
       state.currentId = variants[0].id
+      history.commit()
+      history.clear()
+      loads.value++
+    },
+    /** Starts an empty planning that is not on the server yet. */
+    newPlanning() {
+      this.replaceVariants([newVariant('Variante A')])
+      state.planning = { ...NO_PLANNING }
     },
     snapshot: () => snapshotOf(state.variants),
     /** Detaches the variants from the server planning, e.g. after it was deleted there. */

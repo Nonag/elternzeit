@@ -32,7 +32,7 @@ them type-correct by hand. Check UI changes in a browser, in light and dark mode
 src/
   engine/              pure TypeScript calculation core, no Vue, unit-tested
     types.ts           inputs of a variant: VariantConfig, ParentConfig, PlanPeriod …
-    example.ts         example values (exampleConfig) for new variants and "Auf Beispielwerte zurücksetzen"
+    example.ts         example values (exampleConfig) for tests and as defaults when migrating stored data
     simulate.ts        simulate(config) → SimulationResult (result.ts): monthly rows, summaries, issues
     params.ts          legal parameters per year; EXPECTED_CHANGES lists what is not law yet
     payroll.ts, tax.ts gross → net (PAP 2026 via lohnsteuerrechner plus the draft 2027 tariff)
@@ -63,7 +63,8 @@ docs/research-notes.md legal research with sources
 | Urlaub (whole weeks below the periods) | `config.vacation`: `VacationPeriod[]` per parent; days per calendar year in `vacation.ts` |
 | Mutter / Vater (renamable) | parents `a` / `b`; `a` has the Mutterschutz |
 | Lebensmonat | `lifeMonth()`, 1-based month index |
-| Beispielwerte | `exampleConfig()` |
+| Neue Planung, Noch keine Berechnung | starts with `emptyConfig()`; `missingInputs()` lists what is still needed |
+| Rückgängig / Wiederholen | `useVariants().undo()` / `redo()`, history since the page or planning was loaded |
 | Fixkosten pro Monat / Kontostand zur Geburt / Mindestreserve | `fixedCosts` / `balanceAtBirth` / `minReserve` |
 | Kita | `childcare` |
 | Familie & Freunde | `familyCare` (`FamilyCarePeriod`) |
@@ -73,7 +74,7 @@ docs/research-notes.md legal research with sources
 | Fristen | `DeadlinesPanel`, `computeDeadlines()`, ticked off in `config.doneDeadlines` |
 | Rente & Vermögen | `LongTermPanel`, `result.longTerm`; Kindererziehungszeiten für = `childRaisingCreditTo` |
 | Rechtsstand | `LegalBasisPanel` |
-| nicht gespeichert | `unsaved` (differs from the last opened or saved server state) |
+| Nicht gespeicherte Änderungen | `unsaved` (differs from the last opened or saved server state); the save button is enabled and closing the window asks first |
 | Planung öffnen | `openSession()` → session token |
 
 ## Conventions

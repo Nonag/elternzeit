@@ -26,6 +26,12 @@ export function count(value: number, one: string, many: string): string {
   return `${num(value)} ${value === 1 ? one : many}`
 }
 
+/** "11.11.2026 um 17:30" */
+export function formatTimestamp(iso: string): string {
+  const date = new Date(iso)
+  return `${date.toLocaleDateString('de-DE')} um ${date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
+}
+
 export function percent(value: number): string {
   return percent1.format(value)
 }

@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { formatTimestamp } from '@/lib/format'
 
 const MAX_LINES = 8
 
@@ -17,10 +18,7 @@ const props = defineProps<{ name: string; savedAt: string; differences: string[]
 const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ loadServer: []; overwrite: [] }>()
 
-const savedAt = computed(() => {
-  const date = new Date(props.savedAt)
-  return `${date.toLocaleDateString('de-DE')} um ${date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
-})
+const savedAt = computed(() => formatTimestamp(props.savedAt))
 </script>
 
 <template>

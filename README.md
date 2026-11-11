@@ -61,7 +61,8 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
 - **Shows** tips with an estimated euro effect, deadlines (with checklist), vacation per calendar year (reduction
   per § 17 BEEG, planned vacation, fewer working days in part-time),
   pension points incl. Kindererziehungszeiten, lost savings and a 50/50 compensation proposal.
-- **Variants** can be copied, compared and exported/imported as a JSON planning, or saved on the server.
+- **Variants** can be copied, compared and exported/imported as a JSON planning, or saved on the server. Undo and
+  redo cover all variants since the page or planning was loaded; a new planning starts empty.
 
 ## Development
 

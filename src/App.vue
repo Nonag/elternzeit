@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { CalculatorIcon } from '@lucide/vue'
+import { useColorMode } from '@vueuse/core'
 import { computed } from 'vue'
+import 'vue-sonner/style.css'
 import AppHeader from '@/components/AppHeader.vue'
 import AdminSetupDialog from '@/components/dialogs/AdminSetupDialog.vue'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
@@ -19,11 +21,14 @@ import MonthlyTable from '@/components/results/MonthlyTable.vue'
 import VacationPanel from '@/components/results/VacationPanel.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Toaster } from '@/components/ui/sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useVariants } from '@/stores/variants'
 
-const { result, deadlines, missing } = useVariants()
+const { result, deadlines, missing, loads } = useVariants()
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.state.value === 'dark')
 const openIssues = computed(() => result.value.issues.filter((i) => i.severity === 'error' || i.severity === 'warning').length)
 const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === 'soon' || d.status === 'missed').length)
 </script>
@@ -50,7 +55,8 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
             </EmptyContent>
           </Empty>
         </main>
-        <main v-else class="grid min-w-0 content-start gap-5 p-5">
+        <!-- A newly loaded planning fades in. -->
+        <main v-else :key="loads" class="grid min-w-0 content-start gap-5 p-5" :class="loads ? 'animate-in fade-in duration-500' : ''">
           <KpiCards />
           <PlanCard />
           <Card>
@@ -105,6 +111,7 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
     </div>
     <ConfirmDialog />
     <PromptDialog />
+    <Toaster :theme="isDark ? 'dark' : 'light'" />
     <AdminSetupDialog />
   </TooltipProvider>
 </template>
