@@ -164,6 +164,11 @@ const MONTH_NAMES_DE_LONG = [
   'Dezember',
 ]
 
+/** 1 → "Januar". */
+export function monthName(month: number): string {
+  return MONTH_NAMES_DE_LONG[month - 1]
+}
+
 export function formatMonthKey(key: string, long = false): string {
   const { year, month } = parseIso(monthKeyToIso(key))
   return `${(long ? MONTH_NAMES_DE_LONG : MONTH_NAMES_DE)[month - 1]} ${year}`

@@ -3,7 +3,7 @@ import { PlusIcon, Trash2Icon } from '@lucide/vue'
 import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import DateRangeInput from '@/components/fields/DateRangeInput.vue'
+import DatePicker from '@/components/fields/DatePicker.vue'
 import FormField from '@/components/fields/FormField.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import { addMonths } from '@/engine/dates'
@@ -40,7 +40,8 @@ function addFamilyCare() {
         <Button variant="ghost" size="icon" aria-label="Zeitraum entfernen" @click="config.familyCare.splice(i, 1)"><Trash2Icon /></Button>
       </div>
       <FormField label="Zeitraum">
-        <DateRangeInput
+        <DatePicker
+          mode="range"
           v-model:from="period.from"
           v-model:to="period.to"
           :min="result.birth"

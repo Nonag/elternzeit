@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ChoiceToggle from '@/components/fields/ChoiceToggle.vue'
-import DateInput from '@/components/fields/DateInput.vue'
+import DatePicker from '@/components/fields/DatePicker.vue'
 import FieldGroup from '@/components/fields/FieldGroup.vue'
 import FormField from '@/components/fields/FormField.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
@@ -53,10 +53,10 @@ function onRelationshipChange(value: RelationshipStatus | null) {
     <FieldGroup title="Termine">
       <div class="grid grid-cols-2 gap-4">
         <FormField label="Errechneter Termin">
-          <DateInput :model-value="config.dueDate" @update:model-value="(v) => v && (config.dueDate = v)" />
+          <DatePicker :model-value="config.dueDate" @update:model-value="(v) => v && (config.dueDate = v)" />
         </FormField>
         <FormField label="Tatsächliche Geburt" hint="Nach der Geburt eintragen. Termine und Fristen werden dann neu berechnet.">
-          <DateInput v-model="config.birthDate" placeholder="noch offen" clearable />
+          <DatePicker v-model="config.birthDate" :start="config.dueDate" placeholder="noch offen" clearable />
         </FormField>
       </div>
       <SwitchField
