@@ -32,7 +32,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel } from '@/c
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { confirmDialog, messageDialog, promptDialog } from '@/lib/dialogs'
-import { formatTimestamp } from '@/lib/format'
+import { formatTimestamp } from '@/engine/format'
 import { ApiError, type RemotePlanning } from '@/lib/planningApi'
 import { describeDifferences } from '@/lib/planningDiff'
 import { usePlanning, type PlanningDialogMode } from '@/stores/planning'

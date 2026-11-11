@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { CURRENT_LAW_NOTES, EXPECTED_CHANGES, PARAMETER_YEARS, yearParameters } from '@/engine/params'
-import { euro } from '@/lib/format'
+import { euro, num } from '@/engine/format'
 
 const years = computed(() => PARAMETER_YEARS.map((year) => yearParameters(year)))
 
@@ -13,7 +13,7 @@ const rows = [
   { label: 'Kinderfreibeträge (beide Eltern)', value: (y: ReturnType<typeof yearParameters>) => euro(y.childTaxAllowanceJoint) },
   { label: 'Beitragsgrenze Rente/Arbeitslosenversicherung (Monat)', value: (y: ReturnType<typeof yearParameters>) => euro(y.pensionCeilingMonthly) },
   { label: 'Beitragsgrenze Kranken-/Pflegeversicherung (Monat)', value: (y: ReturnType<typeof yearParameters>) => euro(y.healthCeilingMonthly, true) },
-  { label: 'Ø Zusatzbeitrag Krankenkassen', value: (y: ReturnType<typeof yearParameters>) => `${y.averageAdditionalHealthRate.toLocaleString('de-DE')} %` },
+  { label: 'Ø Zusatzbeitrag Krankenkassen', value: (y: ReturnType<typeof yearParameters>) => `${num(y.averageAdditionalHealthRate, 2)} %` },
   { label: 'Minijob-Grenze', value: (y: ReturnType<typeof yearParameters>) => euro(y.minijobLimit) },
   { label: 'Kinderkrankentage je Elternteil und Kind', value: (y: ReturnType<typeof yearParameters>) => String(y.sickChildDaysPerParent) },
 ]

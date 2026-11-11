@@ -15,7 +15,7 @@ import { addMonthsToKey, monthKey } from '@/engine/dates'
 import { createId } from '@/engine/plan'
 import type { OneTimePaymentResult } from '@/engine/result'
 import type { HealthInsurance, ParentKey, TaxClass } from '@/engine/types'
-import { euro, percent } from '@/lib/format'
+import { euro, percent } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 
 const props = defineProps<{ parentKey: ParentKey }>()

@@ -6,7 +6,7 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RangeCalendar } from '@/components/ui/range-calendar'
-import { formatDate } from '@/engine/dates'
+import { formatDateRange } from '@/engine/dates'
 
 const from = defineModel<string>('from', { required: true })
 const to = defineModel<string>('to', { required: true })
@@ -44,7 +44,7 @@ function update(range: DateRange) {
     <PopoverTrigger as-child>
       <Button variant="outline" class="h-9 w-full justify-start font-normal">
         <CalendarRangeIcon class="text-muted-foreground" />
-        <span v-if="from && to">{{ formatDate(from) }} – {{ formatDate(to) }}</span>
+        <span v-if="from && to">{{ formatDateRange(from, to) }}</span>
         <span v-else class="text-muted-foreground">Zeitraum wählen</span>
       </Button>
     </PopoverTrigger>

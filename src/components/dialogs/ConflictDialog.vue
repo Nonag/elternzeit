@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { formatTimestamp } from '@/lib/format'
+import { formatTimestamp } from '@/engine/format'
 
 const MAX_LINES = 8
 

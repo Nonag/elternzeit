@@ -5,14 +5,14 @@ import FormField from '@/components/fields/FormField.vue'
 import InfoTip from '@/components/fields/InfoTip.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import type { ParentKey } from '@/engine/types'
-import { euro, num, signedEuro } from '@/lib/format'
+import { euro, fixed, num, signedEuro } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 
 const { result, config } = useVariants()
 
 const longTerm = computed(() => result.value.longTerm)
 const parentOptions = computed(() => result.value.activeParents.map((k) => ({ value: k as ParentKey, label: result.value.parents[k].name })))
-const points = (value: number) => value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const points = (value: number) => fixed(value, 2)
 const name = (key: ParentKey) => result.value.parents[key].name
 </script>
 

@@ -19,7 +19,7 @@ import { formatDate, formatMonthKey, formatShortDate } from '@/engine/dates'
 import type { MonthRow, ParentMonth } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
 import { hoursWorked } from '@/engine/vacation'
-import { count, euro, num, signedEuro } from '@/lib/format'
+import { count, euro, num, signedEuro } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 
 const { result, config } = useVariants()

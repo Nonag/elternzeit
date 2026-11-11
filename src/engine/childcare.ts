@@ -12,7 +12,7 @@ interface FeeBracket {
 }
 
 /** Elternbeiträge Köln (EUR per month), valid since 2025-08-01. */
-export const COLOGNE_FEES: FeeBracket[] = [
+const COLOGNE_FEES: FeeBracket[] = [
   { upTo: 24542, fees: { under2: [0, 0, 0], age2: [0, 0, 0], age3plus: [0, 0, 0] } },
   { upTo: 36813, fees: { under2: [120.02, 133.36, 148.18], age2: [120.02, 133.36, 148.18], age3plus: [31.52, 35.03, 42.0] } },
   { upTo: 49084, fees: { under2: [190.73, 211.92, 235.47], age2: [181.65, 201.83, 224.26], age3plus: [70.73, 78.59, 123.67] } },
@@ -38,16 +38,10 @@ export function cologneAgeCategory(birth: string, month: string): CologneAgeCate
   return 'under2'
 }
 
-export function cologneFeeBracket(annualIncome: number): FeeBracket {
+function cologneFeeBracket(annualIncome: number): FeeBracket {
   return COLOGNE_FEES.find((b) => b.upTo === null || annualIncome <= b.upTo) ?? COLOGNE_FEES[COLOGNE_FEES.length - 1]
 }
 
 export function cologneFee(annualIncome: number, category: CologneAgeCategory, hours: ChildcareHours): number {
   return cologneFeeBracket(annualIncome).fees[category][HOURS_INDEX[hours]]
-}
-
-export const AGE_CATEGORY_LABELS: Record<CologneAgeCategory, string> = {
-  under2: 'unter 2 Jahre',
-  age2: '2 bis unter 3 Jahre',
-  age3plus: 'ab 3 Jahre',
 }

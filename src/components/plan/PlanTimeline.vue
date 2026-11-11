@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { diffDays, formatDate, formatMonthKey } from '@/engine/dates'
+import { diffDays, formatDateRange, formatMonthKey } from '@/engine/dates'
 import type { MonthRow } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
-import { count, num } from '@/lib/format'
+import { count, formatMonthRange, num } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 import IssueMarker from './IssueMarker.vue'
 import { planIssues } from './planIssues'
@@ -120,7 +120,7 @@ const vacationBars = computed(() => {
             id: v.id,
             left,
             width: position(v.to, true) - left,
-            dates: `${formatDate(v.from)} – ${formatDate(v.to)}`,
+            dates: formatDateRange(v.from, v.to),
             days: use ? `${count(use.weeks, 'Woche', 'Wochen')}, ${count(use.days, 'Urlaubstag', 'Urlaubstage')}` : '',
           }
         }),
@@ -144,8 +144,7 @@ const gridStyle = computed(() => ({
 function rangeLabel(segment: Segment): string {
   const first = months.value[segment.from - 1]
   const last = months.value[segment.to - 1]
-  const lmRange = segment.from === segment.to ? `Monat ${segment.from}` : `Monat ${segment.from}–${segment.to}`
-  return `${lmRange} · ${formatDate(first.start)} – ${formatDate(last.end)}`
+  return `${formatMonthRange(segment.from, segment.to)} · ${formatDateRange(first.start, last.end)}`
 }
 </script>
 
@@ -161,7 +160,7 @@ function rangeLabel(segment: Segment): string {
           <TooltipContent>
             <div class="grid gap-0.5">
               <span class="font-medium">Monat {{ row.index }}</span>
-              <span class="opacity-80">{{ formatDate(row.start) }} – {{ formatDate(row.end) }} ({{ formatMonthKey(row.calendarMonth) }})</span>
+              <span class="opacity-80">{{ formatDateRange(row.start, row.end) }} ({{ formatMonthKey(row.calendarMonth) }})</span>
             </div>
           </TooltipContent>
         </Tooltip>

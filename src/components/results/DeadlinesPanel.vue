@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { diffDays } from '@/engine/dates'
 import type { Deadline, DeadlineStatus } from '@/engine/deadlines'
-import { formatDate } from '@/lib/format'
+import { formatDate } from '@/engine/dates'
 import { useVariants } from '@/stores/variants'
 
 const { deadlines, config, today, result } = useVariants()

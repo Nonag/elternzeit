@@ -2,9 +2,9 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypt
 import { DatabaseSync } from 'node:sqlite'
 
 export const MAX_PLANNINGS = 50
-export const MAX_NAME_LENGTH = 60
-export const MIN_PASSWORD_LENGTH = 6
-export const MIN_ADMIN_PASSWORD_LENGTH = 8
+const MAX_NAME_LENGTH = 60
+const MIN_PASSWORD_LENGTH = 6
+const MIN_ADMIN_PASSWORD_LENGTH = 8
 const MAX_VARIANTS = 50
 /** Remembered sessions kept per planning; older ones are dropped. */
 const TOKENS_PER_PLANNING = 20

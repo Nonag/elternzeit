@@ -1,6 +1,6 @@
 import { addDays, diffDays, type IsoDate } from './dates'
 import { MATERNITY } from './params'
-import { round2 } from './payroll'
+import { round2 } from './math'
 import type { HealthInsurance } from './types'
 
 export interface MaternityPeriod {

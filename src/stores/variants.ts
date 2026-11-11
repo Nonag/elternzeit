@@ -1,12 +1,11 @@
 import { useManualRefHistory, watchDebounced } from '@vueuse/core'
 import { computed, reactive, ref, toRef, watch } from 'vue'
-import { todayIso } from '@/engine/dates'
+import { todayIso, weekEnd, weekStart } from '@/engine/dates'
 import { computeDeadlines } from '@/engine/deadlines'
 import { exampleConfig } from '@/engine/example'
 import { createId, periodsFromOutline } from '@/engine/plan'
 import { simulate } from '@/engine/simulate'
 import type { ParentKey, PlanOutline, PlanPeriod, VacationPeriod, VariantConfig } from '@/engine/types'
-import { weekEnd, weekStart } from '@/engine/vacation'
 import { stableStringify } from '@/lib/json'
 
 /** One complete set of inputs including its plan ("Variante"). All variants together form the "Planung". */
@@ -81,7 +80,7 @@ function migrateVacation(stored: unknown[] | undefined): VacationPeriod[] {
 }
 
 /** Brings a stored config of any older version into the current shape; missing fields get the example values. */
-export function migrateConfig(stored: StoredConfig): VariantConfig {
+function migrateConfig(stored: StoredConfig): VariantConfig {
   const base = exampleConfig()
   const raw: Record<string, unknown> = { ...stored }
   for (const [old, name] of Object.entries(RENAMED_FIELDS)) {
@@ -211,7 +210,7 @@ watch(
 )
 
 const current = computed(() => state.variants.find((v) => v.id === state.currentId) ?? state.variants[0])
-/** Changes since the planning was last opened or saved on the server ("nicht gespeichert"). */
+/** Changes since the planning was last opened or saved on the server. */
 const unsaved = computed(() => state.planning.name !== null && state.planning.snapshot !== snapshotOf(state.variants))
 const config = computed(() => current.value.config)
 const today = todayIso()
@@ -222,6 +221,7 @@ const deadlines = computed(() => computeDeadlines(calculable(config.value, today
 // Undo and redo over all variants, since the page or the planning was loaded. Changes in quick succession
 // (typing) become one step.
 const history = useManualRefHistory(toRef(state, 'variants'), { capacity: 100, dump: JSON.stringify, parse: JSON.parse })
+
 const commitChanges = () => {
   if (JSON.stringify(state.variants) !== history.last.value.snapshot) history.commit()
 }

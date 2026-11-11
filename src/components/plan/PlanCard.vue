@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { confirmDialog } from '@/lib/dialogs'
 import { periodsFromOutline, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
-import { num } from '@/lib/format'
+import { num } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 import IssueMarker from './IssueMarker.vue'
 import PeriodEditor from './PeriodEditor.vue'

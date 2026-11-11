@@ -1,7 +1,6 @@
-import { addDays, parseIso } from '@/engine/dates'
+import { addDays, parseIso, weekStart } from '@/engine/dates'
 import type { Issue, IssueCategory, SimulationResult } from '@/engine/result'
 import type { VariantConfig } from '@/engine/types'
-import { weekStart } from '@/engine/vacation'
 
 /** Inputs of a plan period that can be marked. */
 export type PeriodField = 'to' | 'kind' | 'hours' | 'workDays' | 'allowance'

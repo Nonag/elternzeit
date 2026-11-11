@@ -15,7 +15,7 @@ import {
   CalendarNextButton,
   CalendarPrevButton,
 } from '@/components/ui/calendar'
-import { isoWeek, weekEnd, weekStart } from '@/engine/vacation'
+import { isoWeek, weekEnd, weekStart } from '@/engine/dates'
 
 // Whole weeks: a click on a day or on the calendar week (KW) adds the week or takes it out again. Picked periods
 // and the hovered week look like the range and its preview in the other date pickers.

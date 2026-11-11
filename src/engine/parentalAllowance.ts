@@ -1,5 +1,6 @@
 import { PARENTAL_ALLOWANCE as PA, TRANSITION_ZONE_UPPER_LIMIT } from './params'
-import { round2, wageTax } from './payroll'
+import { round2 } from './math'
+import { wageTax } from './payroll'
 import type { TaxClass } from './types'
 
 export interface AllowanceNetInput {

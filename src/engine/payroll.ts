@@ -1,5 +1,6 @@
 import { calculate } from 'lohnsteuerrechner'
 import { CONTRIBUTION_RATES, TRANSITION_ZONE_UPPER_LIMIT, yearParameters } from './params'
+import { cents, round2 } from './math'
 import { wageTaxYearAdjustment } from './tax'
 import type { HealthInsurance, TaxClass } from './types'
 
@@ -34,14 +35,6 @@ export interface PayrollResult {
 
 /** Wage tax is calculated with the PAP 2026 until the final PAP 2027 is published. */
 export const PAP_YEAR = 2026
-
-export function round2(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100
-}
-
-function cents(value: number): number {
-  return Math.round(value * 100)
-}
 
 export interface WageTaxInput {
   gross: number
@@ -101,7 +94,7 @@ export function wageTax(input: WageTaxInput): WageTaxResult {
 }
 
 /** Employee contribution base in the Übergangsbereich (Midijob, § 20 Abs. 2a SGB IV). */
-export function employeeContributionBase(gross: number, minijobLimit: number): number {
+function employeeContributionBase(gross: number, minijobLimit: number): number {
   if (gross <= minijobLimit) return 0
   if (gross >= TRANSITION_ZONE_UPPER_LIMIT) return gross
   return (TRANSITION_ZONE_UPPER_LIMIT / (TRANSITION_ZONE_UPPER_LIMIT - minijobLimit)) * (gross - minijobLimit)

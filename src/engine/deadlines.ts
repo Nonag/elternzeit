@@ -1,7 +1,7 @@
-import { addDays, addMonths, addMonthsToKey, lastDayOfMonth, monthKey, monthKeyToIso, type IsoDate } from './dates'
+import { addDays, addMonths, addMonthsToKey, formatDate, formatDateRange, lastDayOfMonth, monthKey, monthKeyToIso, type IsoDate } from './dates'
 import { PARENTAL_LEAVE } from './params'
 import type { SimulationResult } from './result'
-import { consecutiveRuns } from './rules'
+import { consecutiveRuns } from './math'
 import type { ParentKey, VariantConfig } from './types'
 
 export type DeadlineCategory = 'leave' | 'allowance' | 'benefits' | 'tax' | 'childcare' | 'family' | 'insurance' | 'event'
@@ -21,7 +21,6 @@ export interface Deadline {
   status: DeadlineStatus
 }
 
-const fmt = (iso: IsoDate) => iso.split('-').reverse().join('.')
 
 function status(deadline: Omit<Deadline, 'status'>, today: IsoDate, done: Set<string>): DeadlineStatus {
   if (deadline.isEvent) return deadline.date < today ? 'past-event' : 'event'
@@ -43,7 +42,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     id: 'event-maternity-start',
     date: maternity.start,
     title: 'Mutterschutz beginnt',
-    detail: `Sechs Wochen vor dem errechneten Termin. Nach der Geburt dauert er bis ${fmt(maternity.end)}. In dieser Zeit zahlen Krankenkasse und Arbeitgeber zusammen etwa das bisherige Netto weiter.`,
+    detail: `Sechs Wochen vor dem errechneten Termin. Nach der Geburt dauert er bis ${formatDate(maternity.end)}. In dieser Zeit zahlen Krankenkasse und Arbeitgeber zusammen etwa das bisherige Netto weiter.`,
     category: 'event',
     isEvent: true,
   })
@@ -93,7 +92,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     id: 'event-birth',
     date: birth,
     title: result.birth === config.dueDate ? 'Errechneter Geburtstermin' : 'Geburt',
-    detail: `Der erste Lebensmonat läuft vom ${fmt(months[0].start)} bis ${fmt(months[0].end)}.`,
+    detail: `Der erste Lebensmonat läuft vom ${formatDate(months[0].start)} bis ${formatDate(months[0].end)}.`,
     category: 'event',
     isEvent: true,
   })
@@ -154,15 +153,15 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
       const twoYears = addMonths(afterMaternity ? birth : start, 24).date
       const within = sections
         .filter((s) => months[s[0] - 1].start < twoYears)
-        .map((s) => `${fmt(months[s[0] - 1].start)} – ${fmt(months[s[s.length - 1] - 1].end)}`)
+        .map((s) => formatDateRange(months[s[0] - 1].start, months[s[s.length - 1] - 1].end))
         .join(', ')
       const partTime = section.filter((m) => months[m - 1][key].hours > 0)
       items.push({
         id: `leave-${key}-${section[0]}`,
         date: addDays(start, -weeks * 7),
-        title: `Elternzeit beim Arbeitgeber anmelden: ${name} ab ${fmt(start)}`,
+        title: `Elternzeit beim Arbeitgeber anmelden: ${name} ab ${formatDate(start)}`,
         detail:
-          `Zeitraum ${fmt(start)} – ${fmt(lastRow.end)}. Spätestens ${weeks} Wochen vorher schriftlich anmelden, eine E-Mail reicht. ` +
+          `Zeitraum ${formatDateRange(start, lastRow.end)}. Spätestens ${weeks} Wochen vorher schriftlich anmelden, eine E-Mail reicht. ` +
           (i === 0
             ? `Dabei verbindlich alle Elternzeiten der nächsten zwei Jahre angeben (${within}) – spätere Änderungen gehen nur mit Zustimmung des Arbeitgebers. `
             : '') +

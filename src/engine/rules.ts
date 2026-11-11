@@ -1,3 +1,5 @@
+import { count, euro, formatMonthList, formatMonthRange, num } from './format'
+import { consecutiveRuns } from './math'
 import { PARENTAL_ALLOWANCE as PA, PARENTAL_LEAVE as PL, WORKING_TIME } from './params'
 import type { EntitlementSummary, Issue, MonthRow, ParentMonth, ParentSummary } from './result'
 import type { ParentKey, PlanPeriod, VariantConfig } from './types'
@@ -15,23 +17,6 @@ export interface RuleContext {
   vacation: Record<ParentKey, VacationSummary>
 }
 
-/** Groups sorted month indices into runs of consecutive months. */
-export function consecutiveRuns(indices: number[]): number[][] {
-  const runs: number[][] = []
-  for (const index of indices) {
-    const last = runs[runs.length - 1]
-    if (last && last[last.length - 1] === index - 1) last.push(index)
-    else runs.push([index])
-  }
-  return runs
-}
-
-/** "Monat 3", "Monat 3–12" or "Monat 3, 5–7". */
-export function formatMonthList(months: number[]): string {
-  const parts = consecutiveRuns(months).map((run) => (run.length === 1 ? `${run[0]}` : `${run[0]}–${run[run.length - 1]}`))
-  return `Monat ${parts.join(', ')}`
-}
-
 function monthsWhere(rows: MonthRow[], key: ParentKey, predicate: (m: ParentMonth) => boolean): number[] {
   return rows.filter((row) => predicate(row[key])).map((row) => row.index)
 }
@@ -45,7 +30,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
 
   for (const key of activeParents) {
     for (const period of periods[key]) {
-      const range = period.from === period.to ? `Monat ${period.from}` : `Monat ${period.from}–${period.to}`
+      const range = formatMonthRange(period.from, period.to)
       if (period.hours === null) {
         add({
           id: `period-hours-${period.id}`,
@@ -77,7 +62,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
             parent: key,
             months: rangeOf(period),
             title: `${name(key)}: mehr als ${WORKING_TIME.regularDailyHours} Stunden pro Arbeitstag (${range})`,
-            detail: `${fmt(period.hours)} Stunden an ${fmt(workDays)} ${workDays === 1 ? 'Tag' : 'Tagen'} pro Woche sind ${fmt(perDay)} Stunden pro Tag, mehr als ein normaler Arbeitstag mit ${WORKING_TIME.regularDailyHours} Stunden.`,
+            detail: `${num(period.hours)} Stunden an ${count(workDays, 'Tag', 'Tagen')} pro Woche sind ${num(perDay)} Stunden pro Tag, mehr als ein normaler Arbeitstag mit ${WORKING_TIME.regularDailyHours} Stunden.`,
           })
         }
       }
@@ -134,7 +119,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
         category: 'allowance',
         parent: key,
         title: `${name(key)}: mehr als ${entitlement.perParentMax} Monate Basiselterngeld`,
-        detail: `Ein Elternteil kann höchstens ${entitlement.perParentMax} Monate Basiselterngeld bekommen (ElterngeldPlus zählt halb). Geplant sind ${fmt(counts.entitlement)}.`,
+        detail: `Ein Elternteil kann höchstens ${entitlement.perParentMax} Monate Basiselterngeld bekommen (ElterngeldPlus zählt halb). Geplant sind ${num(counts.entitlement)}.`,
       })
     }
     if (counts.allowanceMonths > 0 && counts.allowanceMonths < PA.minMonthsPerParent) {
@@ -325,7 +310,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
       id: 'entitlement',
       severity: 'error',
       category: 'allowance',
-      title: `Zu viele Elterngeld-Monate verplant (${fmt(entitlement.used)} von ${entitlement.available})`,
+      title: `Zu viele Elterngeld-Monate verplant (${num(entitlement.used)} von ${entitlement.available})`,
       detail:
         'Zusammen gibt es 14 Monate Basiselterngeld, wenn beide Elterngeld beziehen – sonst 12. ElterngeldPlus zählt halb, der Partnerschaftsbonus kommt obendrauf.',
     })
@@ -437,7 +422,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
         parent: key,
         months: inYear,
         title: `${name(key)}: ${year.year} mehr Urlaub geplant als vorhanden`,
-        detail: `Geplant sind ${fmt(year.planned)} Tage, der Anspruch für ${year.year} liegt bei ${fmt(year.entitlement)} Tagen. Resturlaub aus dem Vorjahr kann das ausgleichen.`,
+        detail: `Geplant sind ${num(year.planned)} Tage, der Anspruch für ${year.year} liegt bei ${num(year.entitlement)} Tagen. Resturlaub aus dem Vorjahr kann das ausgleichen.`,
       })
     }
   }
@@ -456,12 +441,4 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
 
 function rangeOf(period: PlanPeriod): number[] {
   return Array.from({ length: period.to - period.from + 1 }, (_, i) => period.from + i)
-}
-
-function fmt(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toLocaleString('de-DE', { maximumFractionDigits: 1 })
-}
-
-function euro(value: number): string {
-  return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
 }

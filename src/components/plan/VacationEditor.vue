@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import InfoTip from '@/components/fields/InfoTip.vue'
 import WeekCalendar from '@/components/fields/WeekCalendar.vue'
-import { addDays, formatDate } from '@/engine/dates'
+import { addDays, formatDateRange, weekEnd, weekStart } from '@/engine/dates'
 import { createId } from '@/engine/plan'
 import type { ParentKey, VacationPeriod } from '@/engine/types'
-import { toggleVacationWeek, vacationDaysByYear, vacationWeeks, weekEnd, weekStart, workMonths } from '@/engine/vacation'
-import { count, num } from '@/lib/format'
+import { count, num } from '@/engine/format'
+import { toggleVacationWeek, vacationDaysByYear, vacationWeeks, workMonths } from '@/engine/vacation'
 import { TONE_BORDER } from '@/lib/issues'
 import { useVariants } from '@/stores/variants'
 import IssueTip from './IssueTip.vue'
@@ -114,7 +114,7 @@ function label(period: VacationPeriod): string {
             @click="openAt(period.from)"
           >
             <CalendarRangeIcon class="text-muted-foreground" />
-            {{ formatDate(period.from) }} – {{ formatDate(period.to) }}
+            {{ formatDateRange(period.from, period.to) }}
           </Button>
         </IssueTip>
         <span class="text-muted-foreground text-xs whitespace-nowrap tabular-nums">{{ label(period) }}</span>

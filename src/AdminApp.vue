@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { formatTimestamp } from '@/engine/format'
 import { confirmDialog, messageDialog } from '@/lib/dialogs'
 import { ApiError, deletePlannings, listPlannings, type AdminPlanning } from '@/lib/planningApi'
 import { refreshServerStatus } from '@/stores/planning'
@@ -27,9 +28,7 @@ const selected = ref<number[]>([])
 const allSelected = computed(() => plannings.value.length > 0 && selected.value.length === plannings.value.length)
 
 function formatTime(iso: string | null): string {
-  if (!iso) return '–'
-  const date = new Date(iso)
-  return `${date.toLocaleDateString('de-DE')}, ${date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
+  return iso ? formatTimestamp(iso) : '–'
 }
 
 async function load() {

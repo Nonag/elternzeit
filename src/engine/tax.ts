@@ -33,7 +33,7 @@ export function incomeTax(taxableIncome: number, year: number): number {
   return Math.floor(0.47 * x - (is2027 ? 24341.68 : 24405.47))
 }
 
-export function incomeTaxForClass(taxableIncome: number, year: number, taxClass: TaxClass): number {
+function incomeTaxForClass(taxableIncome: number, year: number, taxClass: TaxClass): number {
   return taxClass === 3 ? 2 * incomeTax(taxableIncome / 2, year) : incomeTax(taxableIncome, year)
 }
 

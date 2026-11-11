@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Badge } from '@/components/ui/badge'
-import { formatMonthList } from '@/engine/rules'
-import { signedEuro } from '@/lib/format'
+import { formatMonthList, signedEuro } from '@/engine/format'
 import { SEVERITY_ORDER, SEVERITY_STYLE } from '@/lib/issues'
 import { useVariants } from '@/stores/variants'
 

@@ -1,6 +1,6 @@
 import { addMonthsToKey, monthKey, parseIso } from './dates'
 import { CONTRIBUTION_RATES, PENSION, yearParameters } from './params'
-import { round2 } from './payroll'
+import { round2 } from './math'
 import type { MonthRow, ParentSummary } from './result'
 import type { ParentKey, VariantConfig } from './types'
 

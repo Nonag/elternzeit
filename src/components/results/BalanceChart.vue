@@ -2,8 +2,8 @@
 import { VisArea, VisAxis, VisLine, VisPlotline, VisXYContainer } from '@unovis/vue'
 import { computed } from 'vue'
 import { ChartContainer, ChartCrosshair, ChartTooltip, type ChartConfig } from '@/components/ui/chart'
-import { formatDate } from '@/engine/dates'
-import { euro, signedEuro } from '@/lib/format'
+import { formatDateRange } from '@/engine/dates'
+import { compactEuro, euro, signedEuro } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 
 interface Datum {
@@ -21,7 +21,7 @@ const data = computed<Datum[]>(() => [
     x: m.index,
     balance: m.balance,
     change: m.balanceChange,
-    period: `Monat ${m.index} · ${formatDate(m.start)} – ${formatDate(m.end)}`,
+    period: `Monat ${m.index} · ${formatDateRange(m.start, m.end)}`,
   })),
 ])
 
@@ -42,7 +42,6 @@ const tickValues = computed(() => {
   return data.value.filter((d) => d.x % step === 0).map((d) => d.x)
 })
 
-const compactEuro = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 })
 
 function tooltip(d: Datum | undefined): string {
   if (!d) return ''
@@ -67,7 +66,7 @@ function tooltip(d: Datum | undefined): string {
         label-color="var(--muted-foreground)"
       />
       <VisAxis type="x" :tick-values="tickValues" label="Lebensmonat" :tick-format="(v: number) => (v === 0 ? 'Geburt' : String(v))" :grid-line="false" :domain-line="false" :tick-line="false" />
-      <VisAxis type="y" :tick-format="(v: number) => compactEuro.format(v)" :domain-line="false" :tick-line="false" :num-ticks="4" />
+      <VisAxis type="y" :tick-format="(v: number) => compactEuro(v)" :domain-line="false" :tick-line="false" :num-ticks="4" />
       <ChartTooltip />
       <ChartCrosshair :x="(d: Datum) => d.x" :y="(d: Datum) => d.balance" :template="tooltip" :color="() => 'var(--line-balance)'" />
     </VisXYContainer>

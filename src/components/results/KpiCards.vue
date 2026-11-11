@@ -3,7 +3,8 @@ import { BadgeEuroIcon, PiggyBankIcon, ShieldCheckIcon, TrendingDownIcon } from 
 import { computed } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import InfoTip from '@/components/fields/InfoTip.vue'
-import { euro, formatDate, signedEuro } from '@/lib/format'
+import { euro, signedEuro } from '@/engine/format'
+import { formatDate } from '@/engine/dates'
 import { useVariants } from '@/stores/variants'
 
 const { result, deadlines } = useVariants()

@@ -29,12 +29,12 @@ export function daysInMonth(year: number, month: number): number {
   return [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
 }
 
-export function toEpochDay(iso: IsoDate): number {
+function toEpochDay(iso: IsoDate): number {
   const { year, month, day } = parseIso(iso)
   return Math.round(Date.UTC(year, month - 1, day) / MS_PER_DAY)
 }
 
-export function fromEpochDay(epochDay: number): IsoDate {
+function fromEpochDay(epochDay: number): IsoDate {
   const date = new Date(epochDay * MS_PER_DAY)
   return toIso({ year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() })
 }
@@ -61,10 +61,6 @@ export function addMonths(iso: IsoDate, months: number): { date: IsoDate; clampe
   }
 }
 
-export function compareIso(a: IsoDate, b: IsoDate): number {
-  return a < b ? -1 : a > b ? 1 : 0
-}
-
 export function maxIso(a: IsoDate, b: IsoDate): IsoDate {
   return a > b ? a : b
 }
@@ -80,6 +76,45 @@ export function overlapDays(aStart: IsoDate, aEnd: IsoDate, bStart: IsoDate, bEn
   return start > end ? 0 : diffDays(start, end) + 1
 }
 
+/** 0 = Monday … 6 = Sunday (day 0, 1970-01-01, was a Thursday). */
+function weekdayOfEpochDay(epochDay: number): number {
+  return (((epochDay + 3) % 7) + 7) % 7
+}
+
+/** 0 = Monday … 6 = Sunday. */
+export function weekday(date: IsoDate): number {
+  return weekdayOfEpochDay(toEpochDay(date))
+}
+
+/** Monday of the week of a date. */
+export function weekStart(date: IsoDate): IsoDate {
+  return addDays(date, -weekday(date))
+}
+
+/** Sunday of the week of a date. */
+export function weekEnd(date: IsoDate): IsoDate {
+  return addDays(weekStart(date), 6)
+}
+
+/** Calendar week (KW) after ISO 8601: weeks start on Monday, week 1 holds the first Thursday of the year. */
+export function isoWeek(date: IsoDate): number {
+  const thursday = addDays(weekStart(date), 3)
+  return Math.floor(diffDays(`${parseIso(thursday).year}-01-01`, thursday) / 7) + 1
+}
+
+/** Monday to Friday from start to end, inclusive. */
+export function weekdays(start: IsoDate, end: IsoDate): number {
+  const first = toEpochDay(start)
+  const last = toEpochDay(end)
+  if (last < first) return 0
+  const fullWeeks = Math.floor((last - first + 1) / 7)
+  let count = fullWeeks * 5
+  for (let day = first + fullWeeks * 7; day <= last; day++) {
+    if (weekdayOfEpochDay(day) < 5) count++
+  }
+  return count
+}
+
 /** 'YYYY-MM' key of the month containing the date. */
 export function monthKey(iso: IsoDate): string {
   return iso.slice(0, 7)
@@ -93,12 +128,6 @@ export function addMonthsToKey(key: string, months: number): string {
   return monthKey(addMonths(monthKeyToIso(key), months).date)
 }
 
-export function monthsBetweenKeys(from: string, to: string): number {
-  const a = parseIso(monthKeyToIso(from))
-  const b = parseIso(monthKeyToIso(to))
-  return (b.year - a.year) * 12 + (b.month - a.month)
-}
-
 export function lastDayOfMonth(key: string): IsoDate {
   const { year, month } = parseIso(monthKeyToIso(key))
   return toIso({ year, month, day: daysInMonth(year, month) })
@@ -107,6 +136,11 @@ export function lastDayOfMonth(key: string): IsoDate {
 export function formatDate(iso: IsoDate): string {
   const { year, month, day } = parseIso(iso)
   return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`
+}
+
+/** "01.03.2027 – 14.03.2027" */
+export function formatDateRange(start: IsoDate, end: IsoDate): string {
+  return `${formatDate(start)} – ${formatDate(end)}`
 }
 
 export function formatShortDate(iso: IsoDate): string {
@@ -152,7 +186,7 @@ export interface LifeMonth {
   days: number
 }
 
-export function lifeMonthEnd(birth: IsoDate, index: number): IsoDate {
+function lifeMonthEnd(birth: IsoDate, index: number): IsoDate {
   const { date, clamped } = addMonths(birth, index)
   return clamped ? date : addDays(date, -1)
 }

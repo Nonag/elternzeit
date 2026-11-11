@@ -15,7 +15,8 @@ import {
 } from './dates'
 import type { MaternityPeriod } from './maternity'
 import { CONTRIBUTION_RATES, yearParameters } from './params'
-import { maxPrivateEmployerSubsidy, PAP_YEAR, round2 } from './payroll'
+import { cents, round2 } from './math'
+import { maxPrivateEmployerSubsidy, PAP_YEAR } from './payroll'
 import type { OneTimePaymentResult, ParentMonth } from './result'
 import { annualWageTaxAdjustment, incomeTax } from './tax'
 import type { OneTimePayment, ParentConfig, ParentKey, VariantConfig } from './types'
@@ -63,10 +64,6 @@ interface Contributions {
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
 const ALTERNATIVE_OFFSETS = [-1, 1, -2, 2, -3, 3]
 const MIN_SAVING = 50
-
-function cents(value: number): number {
-  return Math.round(value * 100)
-}
 
 function keyOf(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, '0')}`

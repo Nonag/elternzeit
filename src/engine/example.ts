@@ -1,7 +1,7 @@
 import { periodsFromOutline, PLAN_PRESETS } from './plan'
 import type { ParentConfig, VariantConfig } from './types'
 
-export function exampleParent(name: string, grossMonthly: number): ParentConfig {
+function exampleParent(name: string, grossMonthly: number): ParentConfig {
   return {
     name,
     grossMonthly,

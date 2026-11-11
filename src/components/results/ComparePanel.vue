@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ChartContainer, ChartCrosshair, ChartLegendContent, ChartTooltip, type ChartConfig } from '@/components/ui/chart'
 import { simulate } from '@/engine/simulate'
 import type { SimulationResult } from '@/engine/result'
-import { euro, num, signedEuro } from '@/lib/format'
+import { compactEuro, euro, fixed, num, signedEuro } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 
 const { state } = useVariants()
@@ -39,7 +39,7 @@ interface Metric {
   higherIsBetter?: boolean
 }
 
-const points = (v: number) => `${v > 0 ? '+' : ''}${v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+const points = (v: number) => `${v > 0 ? '+' : ''}${fixed(v, 2)}`
 
 const metrics: Metric[] = [
   { label: 'Elterngeld gesamt', value: (r) => euro(r.totals.parentalAllowance), numeric: (r) => r.totals.parentalAllowance, higherIsBetter: true },
@@ -103,7 +103,6 @@ const chartData = computed<Datum[]>(() => {
 const chartConfig = computed<ChartConfig>(() =>
   Object.fromEntries(compared.value.map((c, j) => [`s${j}`, { label: c.name, color: c.color }])),
 )
-const compactEuro = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 })
 
 function tooltip(d: Datum | undefined): string {
   if (!d) return ''
@@ -161,7 +160,7 @@ function tooltip(d: Datum | undefined): string {
           :line-width="2"
         />
         <VisAxis type="x" label="Lebensmonat" :tick-format="(v: number) => String(v)" :grid-line="false" :domain-line="false" :tick-line="false" :num-ticks="12" />
-        <VisAxis type="y" :tick-format="(v: number) => compactEuro.format(v)" :domain-line="false" :tick-line="false" :num-ticks="4" />
+        <VisAxis type="y" :tick-format="(v: number) => compactEuro(v)" :domain-line="false" :tick-line="false" :num-ticks="4" />
         <ChartTooltip />
         <ChartCrosshair :x="(d: Datum) => d.x" :y="compared.map((_, j) => (d: Datum) => d[`s${j}`])" :template="tooltip" :color="() => 'transparent'" />
       </VisXYContainer>

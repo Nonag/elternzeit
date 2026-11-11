@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
   addMonths,
+  isoWeek,
   lifeMonth,
   lifeMonthForCalendarMonth,
   lifeMonthIndexOf,
   overlapDays,
   primaryCalendarMonth,
+  weekdays,
+  weekEnd,
+  weekStart,
 } from './dates'
 
 describe('addMonths', () => {
@@ -54,5 +58,22 @@ describe('life months (Lebensmonate)', () => {
 
   it('counts overlapping days inclusively', () => {
     expect(overlapDays('2027-02-28', '2027-03-27', '2027-01-28', '2027-03-25')).toBe(26)
+  })
+})
+
+describe('weeks', () => {
+  it('counts weekdays and snaps to whole weeks', () => {
+    expect(weekdays('2027-12-01', '2027-12-31')).toBe(23)
+    expect(weekdays('2027-12-04', '2027-12-05')).toBe(0)
+    expect(weekStart('2027-12-16')).toBe('2027-12-13')
+    expect(weekEnd('2027-12-16')).toBe('2027-12-19')
+  })
+
+  it('numbers calendar weeks after ISO 8601', () => {
+    expect(isoWeek('2027-01-04')).toBe(1)
+    expect(isoWeek('2027-01-01')).toBe(53)
+    expect(isoWeek('2026-12-28')).toBe(53)
+    expect(isoWeek('2028-01-02')).toBe(52)
+    expect(isoWeek('2028-01-03')).toBe(1)
   })
 })

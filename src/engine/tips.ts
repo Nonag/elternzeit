@@ -3,12 +3,10 @@ import { PARENTAL_ALLOWANCE as PA } from './params'
 import { basicWithIncome, computeAllowanceNet, plusWithIncome } from './parentalAllowance'
 import { computePayroll } from './payroll'
 import type { Issue, SimulationResult } from './result'
-import { consecutiveRuns, formatMonthList } from './rules'
+import { euro, formatMonthList, num } from './format'
+import { consecutiveRuns } from './math'
 import { workingDaysByYear, type VacationSummary } from './vacation'
 import type { ParentKey, VariantConfig } from './types'
-
-const euro = (value: number) =>
-  value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
 
 /** Synergies and missed opportunities, each with an estimated effect in euros where possible. */
 export function evaluateTips(
@@ -52,7 +50,7 @@ export function evaluateTips(
         severity: 'success',
         category: 'leave',
         parent: key,
-        title: `${name}: ${saved.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Urlaubstage gespart`,
+        title: `${name}: ${num(saved)} Urlaubstage gespart`,
         detail: `Der Urlaub darf nur für volle Kalendermonate Elternzeit gekürzt werden. Weil die Elternzeit am ${formatDate(first.start).slice(0, 6)} beginnt und nicht am Monatsersten, sind es weniger volle Monate.`,
       })
     }
@@ -75,7 +73,7 @@ export function evaluateTips(
         months: run,
         impact: salary,
         title: `${name}: Urlaub statt Elternzeit ohne Elterngeld`,
-        detail: `Für ${formatMonthList(run)} reichen die übrigen Urlaubstage (${days.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Tage). Dann läuft das Gehalt weiter, etwa ${euro(salary)} netto. Urlaub muss der Arbeitgeber genehmigen.`,
+        detail: `Für ${formatMonthList(run)} reichen die übrigen Urlaubstage (${num(days)} Tage). Dann läuft das Gehalt weiter, etwa ${euro(salary)} netto. Urlaub muss der Arbeitgeber genehmigen.`,
       })
     }
 
@@ -120,7 +118,7 @@ export function evaluateTips(
       category: 'allowance',
       impact: free * best,
       title: `Ungenutztes Elterngeld: bis zu ${euro(free * best)}`,
-      detail: `Es sind noch ${free.toLocaleString('de-DE')} Monate Basiselterngeld frei – oder doppelt so viele Monate ElterngeldPlus, das lohnt sich auch neben einer Teilzeitstelle.`,
+      detail: `Es sind noch ${num(free)} Monate Basiselterngeld frei – oder doppelt so viele Monate ElterngeldPlus, das lohnt sich auch neben einer Teilzeitstelle.`,
     })
   }
 

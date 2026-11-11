@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import SwitchField from '@/components/fields/SwitchField.vue'
 import type { ParentKey } from '@/engine/types'
-import { count, formatDate, num } from '@/lib/format'
+import { count, num } from '@/engine/format'
+import { formatDateRange } from '@/engine/dates'
 import { useVariants } from '@/stores/variants'
 
 const { result, config } = useVariants()
@@ -60,7 +61,7 @@ function vacationPeriods(key: ParentKey) {
         </table>
         <div v-if="result.vacation[key].ranges.length" class="text-muted-foreground grid gap-0.5 text-xs">
           <span v-for="range in result.vacation[key].ranges" :key="range.start">
-            Elternzeit {{ formatDate(range.start) }} – {{ formatDate(range.end) }}: {{ range.lifeMonths }} Monate,
+            Elternzeit {{ formatDateRange(range.start, range.end) }}: {{ range.lifeMonths }} Monate,
             davon {{ range.fullCalendarMonths }} volle Kalendermonate
           </span>
           <span v-if="result.vacation[key].savedByAlignment > 0" class="text-emerald-700 dark:text-emerald-400">
@@ -71,7 +72,7 @@ function vacationPeriods(key: ParentKey) {
         <p v-else class="text-muted-foreground text-xs">Keine Elternzeit ohne Arbeit, daher keine Kürzung.</p>
         <div v-if="vacationPeriods(key).length" class="text-muted-foreground grid gap-0.5 text-xs">
           <span v-for="period in vacationPeriods(key)" :key="period.id">
-            Urlaub {{ formatDate(period.from) }} – {{ formatDate(period.to) }}:
+            Urlaub {{ formatDateRange(period.from, period.to) }}:
             {{ count(period.weeks, 'Woche', 'Wochen') }}, {{ count(period.days, 'Tag', 'Tage') }}
           </span>
         </div>

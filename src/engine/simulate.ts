@@ -19,7 +19,9 @@ import {
   plusWithIncome,
   type AllowanceSupplements,
 } from './parentalAllowance'
-import { computePayroll, round2, voluntaryMinimumContribution } from './payroll'
+import { euro, percent } from './format'
+import { round2 } from './math'
+import { computePayroll, voluntaryMinimumContribution } from './payroll'
 import { computeLongTerm } from './pension'
 import { expandPeriods, normalizePeriods, type MonthPlan } from './plan'
 import type {
@@ -70,7 +72,7 @@ function childAllowanceCount(relationship: RelationshipStatus | null, taxClass: 
 }
 
 /** Additional Basis months after a premature birth (§ 4 Abs. 5 BEEG). */
-export function prematureExtraMonths(dueDate: string, birth: string): number {
+function prematureExtraMonths(dueDate: string, birth: string): number {
   const weeksEarly = diffDays(birth, dueDate) / 7
   if (weeksEarly >= 16) return 4
   if (weeksEarly >= 12) return 3
@@ -114,7 +116,7 @@ function careCoverage(parents: ParentMonth[], family: { days: number; hours: num
   }
 }
 
-export function effectivePeriods(config: VariantConfig): Record<ParentKey, PlanPeriod[]> {
+function effectivePeriods(config: VariantConfig): Record<ParentKey, PlanPeriod[]> {
   return {
     a: normalizePeriods(config.periods.a),
     b: config.relationship === 'single' ? [] : normalizePeriods(config.periods.b),
@@ -335,16 +337,17 @@ export function simulate(config: VariantConfig): SimulationResult {
       }
       const variantLabel = isBasic ? 'Basiselterngeld' : month.allowance === 'bonus' ? 'Partnerschaftsbonus (Plus)' : 'ElterngeldPlus'
       let note = hasIncome
-        ? `${variantLabel} mit Zuverdienst: ${pct(base.rate)} × (${eur(Math.min(base.netBefore, PA.incomeCapForDifference))} − Ø ${eur(
+        ? `${variantLabel} mit Zuverdienst: ${percent(base.rate)} × (${euro(Math.min(base.netBefore, PA.incomeCapForDifference), true)} − Ø ${euro(
             (isBasic ? avgBasic : avgPlus) ?? 0,
-          )} Elterngeld-Netto) = ${eur(amount)}${isBasic ? '' : ' (max. halbes Basiselterngeld)'}`
-        : `${variantLabel}: ${pct(base.rate)} × ${eur(base.netBefore)} Elterngeld-Netto${isBasic ? '' : ' ÷ 2'} = ${eur(amount)}`
+            true,
+          )} Elterngeld-Netto) = ${euro(amount, true)}${isBasic ? '' : ' (max. halbes Basiselterngeld)'}`
+        : `${variantLabel}: ${percent(base.rate)} × ${euro(base.netBefore, true)} Elterngeld-Netto${isBasic ? '' : ' ÷ 2'} = ${euro(amount, true)}`
       if (month.maternityDays > 0) {
         const daily = amount / lm.days
         const uncovered = lm.days - month.maternityDays
         const covered = month.maternityDays * Math.max(0, daily - maternityRate.totalDaily)
         const reduced = uncovered * daily + covered
-        note += `; Mutterschaftsleistungen werden tageweise angerechnet (${month.maternityDays} von ${lm.days} Tagen) → ${eur(reduced)}`
+        note += `; Mutterschaftsleistungen werden tageweise angerechnet (${month.maternityDays} von ${lm.days} Tagen) → ${euro(reduced, true)}`
         amount = reduced
       }
       month.parentalAllowance = round2(amount)
@@ -615,12 +618,4 @@ export function simulate(config: VariantConfig): SimulationResult {
     ...evaluateTips(config, result, result.vacation),
   ]
   return result
-}
-
-function eur(value: number): string {
-  return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
-}
-
-function pct(rate: number): string {
-  return `${(rate * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} %`
 }

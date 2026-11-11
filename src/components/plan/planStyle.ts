@@ -1,3 +1,4 @@
+import { num } from '@/engine/format'
 import type { ParentMonth } from '@/engine/result'
 
 export interface PlanStyle {
@@ -15,7 +16,7 @@ export function monthStyle(month: ParentMonth): PlanStyle {
   if (month.maternityLocked) {
     return { label: 'Mutterschutz (zählt als Basis)', short: 'Mutterschutz', color: 'var(--plan-maternity)', textClass: 'text-white' }
   }
-  const hours = month.hours > 0 ? ` ${formatHours(month.hours)} h` : ''
+  const hours = month.hours > 0 ? ` ${num(month.hours, 2)} h` : ''
   // Elterngeld does not need Elternzeit; without it the month is work with fewer hours.
   const work = !month.leave
   const base = work ? `Arbeit${hours}` : month.hours > 0 ? `Teilzeit${hours}` : 'Elternzeit'
@@ -43,10 +44,6 @@ export function monthStyle(month: ParentMonth): PlanStyle {
       }
       return { label: `Arbeit${hours}`, short: `Arbeit${hours}`, color: 'var(--plan-work)', textClass: 'text-muted-foreground', borderClass: 'border border-dashed' }
   }
-}
-
-function formatHours(hours: number): string {
-  return hours.toLocaleString('de-DE', { maximumFractionDigits: 2 })
 }
 
 export const LEGEND: { label: string; color: string; striped?: boolean; line?: boolean }[] = [

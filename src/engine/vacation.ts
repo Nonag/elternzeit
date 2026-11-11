@@ -1,4 +1,22 @@
-import { addDays, daysInMonth, diffDays, isLeapYear, monthKey, parseIso, toEpochDay, toIso, type IsoDate, type LifeMonth } from './dates'
+import {
+  addDays,
+  daysInMonth,
+  diffDays,
+  isLeapYear,
+  maxIso,
+  minIso,
+  monthKey,
+  overlapDays,
+  parseIso,
+  toIso,
+  weekday,
+  weekdays,
+  weekEnd,
+  weekStart,
+  type IsoDate,
+  type LifeMonth,
+} from './dates'
+import { round2 } from './math'
 import type { MonthRow, ParentMonth, SimulationResult } from './result'
 import type { ParentKey, VacationPeriod, VariantConfig } from './types'
 
@@ -61,42 +79,8 @@ export interface WorkMonth {
   workDays: number
 }
 
-/** 0 = Monday … 6 = Sunday (day 0, 1970-01-01, was a Thursday). */
-function weekday(date: IsoDate): number {
-  return (((toEpochDay(date) + 3) % 7) + 7) % 7
-}
-
-/** Monday of the week of a date. */
-export function weekStart(date: IsoDate): IsoDate {
-  return addDays(date, -weekday(date))
-}
-
-/** Sunday of the week of a date. */
-export function weekEnd(date: IsoDate): IsoDate {
-  return addDays(weekStart(date), 6)
-}
-
-/** Calendar week (KW) after ISO 8601: weeks start on Monday, week 1 holds the first Thursday of the year. */
-export function isoWeek(date: IsoDate): number {
-  const thursday = addDays(weekStart(date), 3)
-  return Math.floor(diffDays(`${parseIso(thursday).year}-01-01`, thursday) / 7) + 1
-}
-
-/** Monday to Friday from start to end, inclusive. */
-export function weekdays(start: IsoDate, end: IsoDate): number {
-  const first = toEpochDay(start)
-  const last = toEpochDay(end)
-  if (last < first) return 0
-  const fullWeeks = Math.floor((last - first + 1) / 7)
-  let count = fullWeeks * 5
-  for (let day = first + fullWeeks * 7; day <= last; day++) {
-    if ((((day + 3) % 7) + 7) % 7 < 5) count++
-  }
-  return count
-}
-
 /** Working days from start to end for a week with `perWeek` working days (Monday to Friday, scaled). */
-export function workingDays(start: IsoDate, end: IsoDate, perWeek: number): number {
+function workingDays(start: IsoDate, end: IsoDate, perWeek: number): number {
   return (weekdays(start, end) * perWeek) / 5
 }
 
@@ -104,9 +88,7 @@ export function workingDays(start: IsoDate, end: IsoDate, perWeek: number): numb
 export function workingDaysByYear(start: IsoDate, end: IsoDate, perWeek: number): Map<number, number> {
   const result = new Map<number, number>()
   for (let year = parseIso(start).year; year <= parseIso(end).year; year++) {
-    const first = start > `${year}-01-01` ? start : `${year}-01-01`
-    const last = end < `${year}-12-31` ? end : `${year}-12-31`
-    result.set(year, workingDays(first, last, perWeek))
+    result.set(year, workingDays(maxIso(start, `${year}-01-01`), minIso(end, `${year}-12-31`), perWeek))
   }
   return result
 }
@@ -186,7 +168,7 @@ export function planVacation(periods: VacationPeriod[], lms: LifeMonth[], months
       const year = parseIso(date).year
       planned.byYear.set(year, (planned.byYear.get(year) ?? 0) + cost)
     }
-    planned.periods[period.id] = { weeks: Math.round((diffDays(period.from, period.to) + 3) / 7), days: Math.round(days * 100) / 100 }
+    planned.periods[period.id] = { weeks: Math.round((diffDays(period.from, period.to) + 3) / 7), days: round2(days) }
   }
   lms.forEach((lm, i) => {
     const total = weekdays(lm.start, lm.end)
@@ -228,7 +210,7 @@ export function fullCalendarMonths(start: IsoDate, end: IsoDate): string[] {
 }
 
 /** Full-time parental leave (0 h) without Mutterschutz, grouped into date ranges. */
-export function leaveRanges(months: MonthRow[], key: ParentKey): LeaveRange[] {
+function leaveRanges(months: MonthRow[], key: ParentKey): LeaveRange[] {
   const ranges: LeaveRange[] = []
   let current: { from: MonthRow; to: MonthRow } | null = null
   const flush = () => {
@@ -269,14 +251,11 @@ function annualEntitlement(months: MonthRow[], key: ParentKey, year: number, con
   let covered = 0
   let weighted = 0
   for (const row of months) {
-    const start = row.start > first ? row.start : first
-    const end = row.end < last ? row.end : last
-    if (start > end) continue
-    const days = diffDays(start, end) + 1
+    const days = overlapDays(row.start, row.end, first, last)
     covered += days
     weighted += (days * row[key].workDays) / perWeek
   }
-  return Math.round(((contractual * (weighted + yearDays - covered)) / yearDays) * 100) / 100
+  return round2((contractual * (weighted + yearDays - covered)) / yearDays)
 }
 
 /**
@@ -304,7 +283,7 @@ export function computeVacation(
       const annual = active ? annualEntitlement(months, key, year, days, perWeek) : days
       const reduction = config.employerReducesVacation ? (annual * fullLeaveMonths) / 12 : 0
       const entitlement = annual - reduction
-      const plannedDays = active ? Math.round((planned[key].byYear.get(year) ?? 0) * 100) / 100 : 0
+      const plannedDays = active ? round2(planned[key].byYear.get(year) ?? 0) : 0
       years.push({ year, contractual: days, annual, fullLeaveMonths, reduction, entitlement, planned: plannedDays, remaining: entitlement - plannedDays })
     }
     const savedByAlignment = config.employerReducesVacation
