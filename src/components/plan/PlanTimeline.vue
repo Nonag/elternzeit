@@ -22,6 +22,7 @@ interface Segment {
   color: string
   textClass: string
   striped?: boolean
+  borderClass?: string
   periodId: string | null
 }
 
@@ -180,7 +181,7 @@ function onClick(parent: ParentKey | null, segment: Segment) {
                     segment.striped ? 'plan-stripes' : '',
                     lane.parent ? 'cursor-pointer hover:ring-2 hover:ring-ring' : 'cursor-default',
                     props.selectedPeriodId && segment.periodId === props.selectedPeriodId ? 'ring-2 ring-foreground' : '',
-                    segment.color === 'var(--plan-work)' ? 'border border-dashed' : '',
+                    segment.borderClass,
                   ]"
                   :style="{ gridColumn: `${segment.from} / ${segment.to + 1}`, backgroundColor: segment.color }"
                   @click="onClick(lane.parent, segment)"

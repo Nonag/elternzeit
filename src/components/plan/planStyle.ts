@@ -6,6 +6,8 @@ export interface PlanStyle {
   color: string
   textClass: string
   striped?: boolean
+  /** Dashed border for work without Elternzeit; white on coloured months to stay visible in dark mode. */
+  borderClass?: string
 }
 
 /** Visual category of a parent's month in timeline, table and legend. */
@@ -14,27 +16,23 @@ export function monthStyle(month: ParentMonth): PlanStyle {
     return { label: 'Mutterschutz (zählt als Basis)', short: 'Mutterschutz', color: 'var(--plan-maternity)', textClass: 'text-white' }
   }
   const hours = month.hours > 0 ? ` ${formatHours(month.hours)} h` : ''
+  // Elterngeld does not need Elternzeit; without it the month is work with fewer hours.
+  const work = !month.leave
+  const base = work ? `Arbeit${hours}` : month.hours > 0 ? `Teilzeit${hours}` : 'Elternzeit'
+  const short = work ? `Arbeit${hours}` : month.hours > 0 ? `TZ${hours}` : 'EZ'
+  const borderClass = work ? 'border border-dashed border-white/70' : undefined
   switch (month.allowance) {
     case 'basic':
-      return {
-        label: month.hours > 0 ? `Teilzeit${hours} + Basiselterngeld` : 'Elternzeit + Basiselterngeld',
-        short: month.hours > 0 ? `TZ${hours} · Basis` : 'EZ · Basis',
-        color: 'var(--plan-basic)',
-        textClass: 'text-white',
-      }
+      return { label: `${base} + Basiselterngeld`, short: `${short} · Basis`, color: 'var(--plan-basic)', textClass: 'text-white', borderClass }
     case 'plus':
-      return {
-        label: month.hours > 0 ? `Teilzeit${hours} + ElterngeldPlus` : 'Elternzeit + ElterngeldPlus',
-        short: month.hours > 0 ? `TZ${hours} · Plus` : 'EZ · Plus',
-        color: 'var(--plan-plus)',
-        textClass: 'text-white',
-      }
+      return { label: `${base} + ElterngeldPlus`, short: `${short} · Plus`, color: 'var(--plan-plus)', textClass: 'text-white', borderClass }
     case 'bonus':
       return {
-        label: `Teilzeit${hours} + Partnerschaftsbonus`,
-        short: `Bonus${hours}`,
+        label: `${base} + Partnerschaftsbonus`,
+        short: work ? `${short} · Bonus` : `Bonus${hours}`,
         color: 'var(--plan-bonus)',
         textClass: 'text-white',
+        borderClass,
       }
     default:
       if (month.leave && month.hours === 0) {
@@ -43,7 +41,7 @@ export function monthStyle(month: ParentMonth): PlanStyle {
       if (month.leave) {
         return { label: `Elternteilzeit${hours} (ohne Elterngeld)`, short: `TZ${hours}`, color: 'var(--plan-parttime)', textClass: 'text-foreground' }
       }
-      return { label: `Arbeit${hours}`, short: `Arbeit${hours}`, color: 'var(--plan-work)', textClass: 'text-muted-foreground' }
+      return { label: `Arbeit${hours}`, short: `Arbeit${hours}`, color: 'var(--plan-work)', textClass: 'text-muted-foreground', borderClass: 'border border-dashed' }
   }
 }
 

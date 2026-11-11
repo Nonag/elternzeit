@@ -70,7 +70,7 @@ function modelCell(month: ParentMonth) {
   const chip = h(
     'span',
     {
-      class: `inline-flex rounded px-1.5 py-0.5 text-[0.7rem] font-medium whitespace-nowrap ${style.textClass} ${style.striped ? 'plan-stripes' : ''} ${style.color === 'var(--plan-work)' ? 'border border-dashed' : ''}`,
+      class: `inline-flex rounded px-1.5 py-0.5 text-[0.7rem] font-medium whitespace-nowrap ${style.textClass} ${style.striped ? 'plan-stripes' : ''} ${style.borderClass ?? ''}`,
       style: { backgroundColor: style.color },
     },
     style.short,
