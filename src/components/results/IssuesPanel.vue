@@ -19,6 +19,7 @@ const META: Record<IssueSeverity, { icon: typeof InfoIcon; className: string }> 
 const CATEGORY_LABELS: Record<string, string> = {
   allowance: 'Elterngeld',
   leave: 'Elternzeit',
+  vacation: 'Urlaub',
   care: 'Betreuung',
   finance: 'Finanzen',
   general: 'Allgemein',

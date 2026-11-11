@@ -69,6 +69,17 @@ export function workingDays(start: IsoDate, end: IsoDate, perWeek: number): numb
   return (weekdays(start, end) * perWeek) / 5
 }
 
+/** Working days per calendar year from start to end. */
+export function workingDaysByYear(start: IsoDate, end: IsoDate, perWeek: number): Map<number, number> {
+  const result = new Map<number, number>()
+  for (let year = parseIso(start).year; year <= parseIso(end).year; year++) {
+    const first = start > `${year}-01-01` ? start : `${year}-01-01`
+    const last = end < `${year}-12-31` ? end : `${year}-12-31`
+    result.set(year, workingDays(first, last, perWeek))
+  }
+  return result
+}
+
 const roundHalf = (value: number) => Math.round(value * 2) / 2
 
 /**

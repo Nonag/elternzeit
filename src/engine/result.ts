@@ -140,7 +140,7 @@ export interface ParentSummary {
 }
 
 export type IssueSeverity = 'error' | 'warning' | 'info' | 'success'
-export type IssueCategory = 'allowance' | 'leave' | 'care' | 'finance' | 'general'
+export type IssueCategory = 'allowance' | 'leave' | 'vacation' | 'care' | 'finance' | 'general'
 
 export interface Issue {
   id: string

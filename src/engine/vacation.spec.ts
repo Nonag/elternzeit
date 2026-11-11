@@ -74,4 +74,19 @@ describe('vacation', () => {
     // Days per week do not matter during Elternzeit without work.
     expect(years.find((y) => y.year === 2028)).toMatchObject({ annual: 30, reduction: 5, entitlement: 25 })
   })
+
+  it('warns when a calendar year has more vacation planned than it provides', () => {
+    // March and April 2028 have 43 working days; 2028 provides 30 days minus 5 for two months of Elternzeit.
+    const result = simulate(withPlan((c) => c.periods.b.push(vacation(15, 16))))
+    expect(result.issues.find((i) => i.id === 'vacation-over-b-2028')).toMatchObject({ severity: 'warning', category: 'vacation', months: [15, 16] })
+  })
+
+  it('suggests vacation instead of Elternzeit without Elterngeld while enough days are left', () => {
+    const unpaid: PlanPeriod = { id: 'ez', from: 12, to: 12, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'none' }
+    const suggestion = (config: VariantConfig) => simulate(config).issues.find((i) => i.id === 'tip-vacation-instead-leave-b-12')
+    const config = withPlan((c) => c.periods.b.push(unpaid))
+    expect(suggestion(config)).toMatchObject({ category: 'vacation', months: [12], impact: simulate(config).months[11].b.fullTimeNet })
+    // With March 2027 already planned as vacation, only 4.5 days are left for December.
+    expect(suggestion(withPlan((c) => c.periods.b.push(unpaid, vacation(3, 3))))).toBeUndefined()
+  })
 })

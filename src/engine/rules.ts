@@ -1,6 +1,7 @@
 import { PARENTAL_ALLOWANCE as PA, PARENTAL_LEAVE as PL } from './params'
 import type { EntitlementSummary, Issue, MonthRow, ParentMonth, ParentSummary } from './result'
 import type { ParentKey, PlanPeriod, VariantConfig } from './types'
+import type { VacationSummary } from './vacation'
 
 export interface RuleContext {
   config: VariantConfig
@@ -11,6 +12,7 @@ export interface RuleContext {
   entitlement: EntitlementSummary
   parallelBasicAllowed: boolean
   estimatedTaxableIncome: number
+  vacation: Record<ParentKey, VacationSummary>
 }
 
 /** Groups sorted month indices into runs of consecutive months. */
@@ -407,6 +409,25 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
       detail: `${parents.a.counts.bonus} zusätzliche Monate ElterngeldPlus für jeden Elternteil.`,
     })
   }
+  for (const key of activeParents) {
+    for (const year of ctx.vacation[key].years) {
+      if (year.remaining > -0.05) continue
+      const inYear = monthsWhere(months, key, (m) => m.vacationShare > 0).filter((i) => {
+        const row = months[i - 1]
+        return row.start <= `${year.year}-12-31` && row.end >= `${year.year}-01-01`
+      })
+      add({
+        id: `vacation-over-${key}-${year.year}`,
+        severity: 'warning',
+        category: 'vacation',
+        parent: key,
+        months: inYear,
+        title: `${name(key)}: ${year.year} mehr Urlaub geplant als vorhanden`,
+        detail: `Geplant sind ${fmt(year.planned)} Tage, der Anspruch für ${year.year} liegt bei ${fmt(year.entitlement)} Tagen. Resturlaub aus dem Vorjahr kann das ausgleichen.`,
+      })
+    }
+  }
+
   if (!issues.some((i) => i.category === 'allowance' && i.severity === 'error')) {
     add({
       id: 'plan-valid',

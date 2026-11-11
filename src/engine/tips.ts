@@ -3,8 +3,8 @@ import { PARENTAL_ALLOWANCE as PA } from './params'
 import { basicWithIncome, computeAllowanceNet, plusWithIncome } from './parentalAllowance'
 import { computePayroll } from './payroll'
 import type { Issue, SimulationResult } from './result'
-import { formatMonthList } from './rules'
-import type { VacationSummary } from './vacation'
+import { consecutiveRuns, formatMonthList } from './rules'
+import { workingDaysByYear, type VacationSummary } from './vacation'
 import type { ParentKey, VariantConfig } from './types'
 
 const euro = (value: number) =>
@@ -54,6 +54,28 @@ export function evaluateTips(
         parent: key,
         title: `${name}: ${saved.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Urlaubstage gespart`,
         detail: `Der Urlaub darf nur für volle Kalendermonate Elternzeit gekürzt werden. Weil die Elternzeit am ${formatDate(first.start).slice(0, 6)} beginnt und nicht am Monatsersten, sind es weniger volle Monate.`,
+      })
+    }
+
+    // Paid vacation instead of Elternzeit without Elterngeld, if the days left in those years suffice.
+    const unpaidLeave = months.filter((m) => m[key].leave && m[key].hours === 0 && m[key].allowance === 'none' && !m[key].maternityLocked)
+    for (const run of consecutiveRuns(unpaidLeave.map((m) => m.index))) {
+      const first = months[run[0] - 1]
+      const last = months[run[run.length - 1] - 1]
+      const needed = workingDaysByYear(first.start, last.end, parent.workDaysPerWeek)
+      const left = (year: number) => vacation[key].years.find((y) => y.year === year)?.remaining ?? 0
+      if (![...needed].every(([year, days]) => days <= left(year))) continue
+      const salary = run.reduce((sum, index) => sum + months[index - 1][key].fullTimeNet, 0)
+      const days = [...needed.values()].reduce((sum, d) => sum + d, 0)
+      tips.push({
+        id: `tip-vacation-instead-leave-${key}-${run[0]}`,
+        severity: 'info',
+        category: 'vacation',
+        parent: key,
+        months: run,
+        impact: salary,
+        title: `${name}: Urlaub statt Elternzeit ohne Elterngeld`,
+        detail: `Für ${formatMonthList(run)} reichen die übrigen Urlaubstage (${days.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Tage). Dann läuft das Gehalt weiter, etwa ${euro(salary)} netto. Urlaub muss der Arbeitgeber genehmigen.`,
       })
     }
 

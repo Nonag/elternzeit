@@ -585,6 +585,7 @@ export function simulate(config: VariantConfig): SimulationResult {
       entitlement,
       parallelBasicAllowed,
       estimatedTaxableIncome,
+      vacation: result.vacation,
     }),
     ...evaluateTips(config, result, result.vacation),
   ]
