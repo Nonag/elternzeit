@@ -31,7 +31,7 @@ const paymentMonths = computed(() => ({
 }))
 
 const PAYMENT_HINT =
-  'Boni, Prämien oder andere einmalige Zahlungen vom Arbeitgeber – brutto, im Monat der Auszahlung. Beispiel: 3.000 € Elternzeit-Bonus im Mai 2027.\nDas Elterngeld ändert sich dadurch nicht. Steuern und Sozialabgaben hängen vom Monat ab.'
+  'Weihnachts- und Urlaubsgeld, Boni oder Prämien trägst du brutto im Monat der Auszahlung ein. Auf der Gehaltsabrechnung stehen sie als eigene Zeile, oft als „Einmalzahlung“ oder „Sonderzahlung“. Kommt das Geld in monatlichen Raten, zählt es zum normalen Monatsgehalt.\nDas Elterngeld ändert sich durch Einmalzahlungen nicht.'
 
 function addPayment() {
   parent.value.oneTimePayments.push({ id: createId('payment'), label: 'Bonus', gross: 1000, month: monthKey(result.value.birth) })
