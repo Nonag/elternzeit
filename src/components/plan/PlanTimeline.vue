@@ -10,7 +10,7 @@ import IssueMarker from './IssueMarker.vue'
 import { planIssues } from './planIssues'
 import { LEGEND, monthStyle } from './planStyle'
 
-const emit = defineEmits<{ select: [parent: ParentKey, from: number, to: number, periodId: string | null] }>()
+const emit = defineEmits<{ select: [periodId: string] }>()
 const props = defineProps<{ selectedPeriodId?: string | null }>()
 
 const { result, config } = useVariants()
@@ -147,10 +147,6 @@ function rangeLabel(segment: Segment): string {
   const lmRange = segment.from === segment.to ? `Monat ${segment.from}` : `Monat ${segment.from}–${segment.to}`
   return `${lmRange} · ${formatDate(first.start)} – ${formatDate(last.end)}`
 }
-
-function onClick(parent: ParentKey | null, segment: Segment) {
-  if (parent) emit('select', parent, segment.from, segment.to, segment.periodId)
-}
 </script>
 
 <template>
@@ -185,12 +181,13 @@ function onClick(parent: ParentKey | null, segment: Segment) {
                   :class="[
                     segment.textClass,
                     segment.striped ? 'plan-stripes' : '',
-                    lane.parent ? 'cursor-pointer hover:ring-2 hover:ring-ring' : 'cursor-default',
+                    lane.parent ? 'hover:ring-2 hover:ring-ring' : '',
+                    lane.parent && segment.periodId ? 'cursor-pointer' : 'cursor-default',
                     props.selectedPeriodId && segment.periodId === props.selectedPeriodId ? 'ring-2 ring-foreground' : '',
                     segment.borderClass,
                   ]"
                   :style="{ gridColumn: `${segment.from} / ${segment.to + 1}`, backgroundColor: segment.color }"
-                  @click="onClick(lane.parent, segment)"
+                  @click="segment.periodId && lane.parent && emit('select', segment.periodId)"
                 >
                   <span v-if="segment.to - segment.from >= 1" class="truncate">{{ segment.short }}</span>
                 </button>

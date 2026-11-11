@@ -12,8 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { confirmDialog } from '@/lib/dialogs'
-import { createId, periodsFromOutline, normalizePeriods, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
-import type { ParentKey } from '@/engine/types'
+import { periodsFromOutline, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
 import { num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
 import IssueMarker from './IssueMarker.vue'
@@ -24,16 +23,6 @@ import PlanTimeline from './PlanTimeline.vue'
 const { config, result } = useVariants()
 const selectedPeriod = ref<string | null>(null)
 const counters = computed(() => planIssues(result.value, config.value).counters)
-
-function onSelect(parent: ParentKey, from: number, to: number, periodId: string | null) {
-  if (periodId) {
-    selectedPeriod.value = periodId
-    return
-  }
-  const period = { id: createId('period'), from, to, kind: 'leave' as const, hours: 0, workDays: null, allowance: 'none' as const }
-  config.value.periods[parent] = normalizePeriods([...config.value.periods[parent], period])
-  selectedPeriod.value = period.id
-}
 
 // Replacing an existing plan asks for confirmation first, hence the "…" on the presets.
 const hasPlan = computed(() => config.value.periods.a.length + config.value.periods.b.length > 0)
@@ -91,10 +80,10 @@ async function applyPreset(preset: PlanPreset) {
       </CardAction>
     </CardHeader>
     <CardContent class="grid gap-6">
-      <PlanTimeline :selected-period-id="selectedPeriod" @select="onSelect" />
+      <PlanTimeline :selected-period-id="selectedPeriod" @select="(id) => (selectedPeriod = id)" />
       <div class="grid gap-4 border-t pt-5">
         <p class="text-muted-foreground text-xs">
-          Außerhalb der Zeiträume wird normal gearbeitet. Ein Klick in den Zeitstrahl legt dort einen neuen Zeitraum an.
+          Außerhalb der Zeiträume wird normal gearbeitet.
         </p>
         <PeriodEditor v-model:selected="selectedPeriod" />
       </div>
