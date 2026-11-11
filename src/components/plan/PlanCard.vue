@@ -29,7 +29,7 @@ const hasPlan = computed(() => config.value.periods.a.length + config.value.peri
 
 async function applyPreset(preset: PlanPreset) {
   if (hasPlan.value && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
-  config.value.periods = periodsFromOutline(preset.outline, config.value.relationship)
+  config.value.periods = periodsFromOutline(preset.outline, config.value.relationship ?? 'married')
   selectedPeriod.value = null
 }
 </script>

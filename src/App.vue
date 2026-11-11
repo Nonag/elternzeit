@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CalculatorIcon } from '@lucide/vue'
 import { computed } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import AdminSetupDialog from '@/components/dialogs/AdminSetupDialog.vue'
@@ -17,11 +18,12 @@ import LongTermPanel from '@/components/results/LongTermPanel.vue'
 import MonthlyTable from '@/components/results/MonthlyTable.vue'
 import VacationPanel from '@/components/results/VacationPanel.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useVariants } from '@/stores/variants'
 
-const { result, deadlines } = useVariants()
+const { result, deadlines, missing } = useVariants()
 const openIssues = computed(() => result.value.issues.filter((i) => i.severity === 'error' || i.severity === 'warning').length)
 const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === 'soon' || d.status === 'missed').length)
 </script>
@@ -34,7 +36,21 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
         <aside class="bg-card border-r lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto lg:overscroll-contain">
           <InputPanel />
         </aside>
-        <main class="grid min-w-0 content-start gap-5 p-5">
+        <main v-if="missing.length" class="p-5">
+          <Empty class="border border-dashed">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><CalculatorIcon /></EmptyMedia>
+              <EmptyTitle>Noch keine Berechnung</EmptyTitle>
+              <EmptyDescription>Dafür fehlen noch diese Angaben:</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <ul class="grid gap-1 text-sm">
+                <li v-for="label in missing" :key="label">{{ label }}</li>
+              </ul>
+            </EmptyContent>
+          </Empty>
+        </main>
+        <main v-else class="grid min-w-0 content-start gap-5 p-5">
           <KpiCards />
           <PlanCard />
           <Card>

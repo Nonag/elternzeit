@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { exampleConfig } from '@/engine/example'
 import { PLAN_PRESETS, periodsFromOutline } from '@/engine/plan'
 import type { PlanPeriod } from '@/engine/types'
-import { parsePlanning } from './variants'
+import { emptyConfig, missingInputs, parsePlanning } from './variants'
 
 const withoutIds = (periods: PlanPeriod[]) => periods.map(({ id: _id, ...rest }) => rest)
 
@@ -64,5 +64,14 @@ describe('parsePlanning', () => {
     expect(rest).toEqual(example)
     expect(withoutIds(periods.a)).toEqual(withoutIds(examplePeriods.a))
     expect(() => parsePlanning({ variants: [] })).toThrow()
+  })
+})
+
+describe('missingInputs', () => {
+  it('asks for relationship, due date and the salaries before anything is calculated', () => {
+    expect(missingInputs(emptyConfig())).toEqual(['Beziehungsstatus', 'Errechneter Termin', 'Brutto pro Monat (Mutter)', 'Brutto pro Monat (Vater)'])
+    const single = { ...emptyConfig(), relationship: 'single' as const, dueDate: '2027-01-15' }
+    expect(missingInputs(single)).toEqual(['Brutto pro Monat (Mutter)'])
+    expect(missingInputs(exampleConfig())).toEqual([])
   })
 })

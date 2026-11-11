@@ -16,7 +16,8 @@ const relationshipOptions: { value: RelationshipStatus; label: string }[] = [
   { value: 'single', label: 'Alleinerziehend' },
 ]
 
-function onRelationshipChange(value: RelationshipStatus) {
+function onRelationshipChange(value: RelationshipStatus | null) {
+  if (!value) return
   config.value.relationship = value
   const { a, b } = config.value.parents
   if (value === 'unmarried') {

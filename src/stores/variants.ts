@@ -127,7 +127,42 @@ function snapshotOf(variants: Variant[]): string {
   return stableStringify(variants.map(({ id, name, config }) => ({ id, name, config })))
 }
 
-function newVariant(name: string, config: VariantConfig = exampleConfig()): Variant {
+/** A new variant without example values: relationship, due date and salaries come first. */
+export function emptyConfig(): VariantConfig {
+  const example = exampleConfig()
+  return {
+    ...example,
+    relationship: null,
+    dueDate: '',
+    periods: { a: [], b: [] },
+    parents: { a: { ...example.parents.a, grossMonthly: 0 }, b: { ...example.parents.b, grossMonthly: 0 } },
+    fixedCosts: 0,
+    childCosts: [],
+    oneTimeCosts: [],
+    childcare: { ...example.childcare, enabled: false },
+    balanceAtBirth: 0,
+    minReserve: 0,
+  }
+}
+
+/** What has to be entered before anything can be calculated, by the labels of the fields. */
+export function missingInputs(config: VariantConfig): string[] {
+  const missing: string[] = []
+  if (!config.relationship) missing.push('Beziehungsstatus')
+  if (!config.dueDate) missing.push('Errechneter Termin')
+  const parents: ParentKey[] = config.relationship === 'single' ? ['a'] : ['a', 'b']
+  for (const key of parents) {
+    if (!(config.parents[key].grossMonthly > 0)) missing.push(`Brutto pro Monat (${config.parents[key].name})`)
+  }
+  return missing
+}
+
+/** Fills what is still missing with placeholders, so the input fields keep working; the results stay hidden. */
+function calculable(config: VariantConfig, today: string): VariantConfig {
+  return { ...config, relationship: config.relationship ?? 'married', dueDate: config.dueDate || today }
+}
+
+function newVariant(name: string, config: VariantConfig = emptyConfig()): Variant {
   return { id: createId('variant'), name, updatedAt: new Date().toISOString(), config }
 }
 
@@ -178,9 +213,10 @@ const current = computed(() => state.variants.find((v) => v.id === state.current
 /** Changes since the planning was last opened or saved on the server ("nicht gespeichert"). */
 const unsaved = computed(() => state.planning.name !== null && state.planning.snapshot !== snapshotOf(state.variants))
 const config = computed(() => current.value.config)
-const result = computed(() => simulate(config.value))
 const today = todayIso()
-const deadlines = computed(() => computeDeadlines(config.value, result.value, today))
+const missing = computed(() => missingInputs(config.value))
+const result = computed(() => simulate(calculable(config.value, today)))
+const deadlines = computed(() => computeDeadlines(calculable(config.value, today), result.value, today))
 
 function uniqueName(base: string): string {
   const names = new Set(state.variants.map((v) => v.name))
@@ -197,6 +233,7 @@ export function useVariants() {
     current,
     unsaved,
     config,
+    missing,
     result,
     deadlines,
     today,
@@ -220,9 +257,6 @@ export function useVariants() {
       if (state.variants.length <= 1) return
       state.variants = state.variants.filter((v) => v.id !== id)
       if (state.currentId === id) state.currentId = state.variants[0].id
-    },
-    resetToExample() {
-      current.value.config = exampleConfig()
     },
     planningData(): PlanningData {
       return { app: 'elternzeit-planer', version: 2, variants: state.variants }

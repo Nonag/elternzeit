@@ -70,7 +70,7 @@ const taxClassOptions = computed(() => {
     { value: 6, label: 'VI' },
   ]
   const allowed: Record<string, TaxClass[]> = { married: [3, 4, 5], unmarried: [1], single: [2, 1] }
-  return all.filter((o) => allowed[config.value.relationship].includes(o.value) || o.value === parent.value.taxClass)
+  return all.filter((o) => allowed[config.value.relationship ?? 'married'].includes(o.value) || o.value === parent.value.taxClass)
 })
 
 const taxClassAfterOptions = computed(() => [

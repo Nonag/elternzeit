@@ -122,7 +122,8 @@ export interface ChildcareConfig {
 }
 
 export interface VariantConfig {
-  relationship: RelationshipStatus
+  /** null until it is chosen in a new planning. */
+  relationship: RelationshipStatus | null
   dueDate: IsoDate
   /** Actual birth date once known; null = due date. */
   birthDate: IsoDate | null

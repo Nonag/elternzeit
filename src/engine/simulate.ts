@@ -64,7 +64,7 @@ const EMPTY_MONTH: ParentMonth = {
 }
 
 /** Kinderfreibetragszähler after birth (only affects Soli and church tax). */
-function childAllowanceCount(relationship: RelationshipStatus, taxClass: TaxClass, children: number): number {
+function childAllowanceCount(relationship: RelationshipStatus | null, taxClass: TaxClass, children: number): number {
   if (taxClass >= 5) return 0
   return (relationship === 'married' ? 1 : 0.5) * children
 }

@@ -10,7 +10,6 @@ import {
   FolderXIcon,
   MoonIcon,
   PencilIcon,
-  RotateCcwIcon,
   SaveIcon,
   SunIcon,
   Trash2Icon,
@@ -216,16 +215,6 @@ async function removeCurrent() {
   })
   if (confirmed) store.remove(current.value.id)
 }
-
-async function resetToExample() {
-  const confirmed = await confirmDialog({
-    title: 'Variante zurücksetzen?',
-    description: `Alle Eingaben von „${current.value.name}“ werden durch die Beispielwerte ersetzt.`,
-    confirmLabel: 'Zurücksetzen',
-    destructive: true,
-  })
-  if (confirmed) store.resetToExample()
-}
 </script>
 
 <template>
@@ -259,7 +248,6 @@ async function resetToExample() {
             <DropdownMenuItem @select="store.create()"><FilePlusIcon /> Neue Variante</DropdownMenuItem>
             <DropdownMenuItem @select="store.copy()"><CopyIcon /> Variante kopieren</DropdownMenuItem>
             <DropdownMenuItem @select="renameCurrent"><PencilIcon /> Variante umbenennen …</DropdownMenuItem>
-            <DropdownMenuItem @select="resetToExample"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen …</DropdownMenuItem>
             <DropdownMenuItem :disabled="state.variants.length <= 1" variant="destructive" @select="removeCurrent">
               <Trash2Icon /> Variante löschen …
             </DropdownMenuItem>

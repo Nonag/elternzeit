@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends string | number">
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
-const model = defineModel<T>({ required: true })
+const model = defineModel<T | null>({ required: true })
 defineProps<{ options: { value: T; label: string }[] }>()
 
 function update(value: unknown) {
