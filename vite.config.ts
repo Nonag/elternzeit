@@ -11,8 +11,12 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  // During development the sync server (npm run server or npm run docker) answers /api.
+  server: {
+    proxy: { '/api': 'http://localhost:8080' },
+  },
   test: {
     environment: 'node',
-    include: ['src/**/*.spec.ts'],
+    include: ['src/**/*.spec.ts', 'server/**/*.spec.ts'],
   },
 })
