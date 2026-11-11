@@ -78,7 +78,7 @@ docs/research-notes.md legal research with sources
 | Fristen | `DeadlinesPanel`, `computeDeadlines()`, ticked off in `config.doneDeadlines` |
 | Rente & Vermögen | `LongTermPanel`, `result.longTerm`; Kindererziehungszeiten für = `childRaisingCreditTo` |
 | Rechtsstand | `LegalBasisPanel` |
-| Nicht gespeicherte Änderungen | `unsaved` (differs from the last opened or saved server state); the save button is enabled and closing the window asks first |
+| Nicht gespeicherte Änderungen | `unsaved` (differs from the last opened or saved server state); the save button is enabled |
 | Planung öffnen | `openSession()` → session token |
 
 ## Conventions

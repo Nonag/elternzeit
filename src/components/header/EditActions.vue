@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Redo2Icon, SaveIcon, Undo2Icon } from '@lucide/vue'
-import { onKeyStroke, useEventListener } from '@vueuse/core'
+import { onKeyStroke } from '@vueuse/core'
 import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -35,13 +35,6 @@ onKeyStroke((event) => {
     if (event.shiftKey) redo()
     else undo()
   }
-})
-
-// Closing the window with something to save asks first, like other online editors.
-useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
-  if (saveHint.value) return
-  event.preventDefault()
-  event.returnValue = ''
 })
 </script>
 

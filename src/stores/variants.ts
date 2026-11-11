@@ -1,4 +1,4 @@
-import { useManualRefHistory, watchDebounced } from '@vueuse/core'
+import { useEventListener, useManualRefHistory, watchDebounced } from '@vueuse/core'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { todayIso, weekEnd, weekStart } from '@/engine/dates'
 import { computeDeadlines } from '@/engine/deadlines'
@@ -199,15 +199,23 @@ function migratePlanning(stored: Partial<PlanningMeta> | undefined): PlanningMet
 
 const state = reactive<StoreState>(loadState())
 
+// The browser copy is written shortly after the last change, and at once when the page is left, so a reload or
+// closing the tab never loses input.
 let saveTimer: ReturnType<typeof setTimeout> | undefined
+function persist() {
+  clearTimeout(saveTimer)
+  saveTimer = undefined
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+}
 watch(
   state,
   () => {
     clearTimeout(saveTimer)
-    saveTimer = setTimeout(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(state)), 300)
+    saveTimer = setTimeout(persist, 300)
   },
   { deep: true },
 )
+useEventListener('pagehide', () => saveTimer !== undefined && persist())
 
 const current = computed(() => state.variants.find((v) => v.id === state.currentId) ?? state.variants[0])
 /** Changes since the planning was last opened or saved on the server. */
