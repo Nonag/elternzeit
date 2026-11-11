@@ -4,9 +4,11 @@ import {
   DownloadIcon,
   EllipsisVerticalIcon,
   FilePlusIcon,
+  FolderIcon,
   FolderOpenIcon,
   FolderPlusIcon,
   MoonIcon,
+  PencilIcon,
   RotateCcwIcon,
   SaveIcon,
   SunIcon,
@@ -28,9 +30,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { confirmDialog, messageDialog } from '@/lib/dialogs'
+import { confirmDialog, messageDialog, promptDialog } from '@/lib/dialogs'
 import { ApiError, type RemotePlanning } from '@/lib/planningApi'
 import { describeDifferences } from '@/lib/planningDiff'
 import { usePlanning, type PlanningDialogMode } from '@/stores/planning'
@@ -151,6 +152,11 @@ async function upload(event: Event) {
   if (confirmed) store.replaceScenarios(scenarios)
 }
 
+async function renameCurrent() {
+  const name = await promptDialog({ title: 'Variante umbenennen', label: 'Name', value: current.value.name, confirmLabel: 'Umbenennen' })
+  if (name) store.rename(name)
+}
+
 async function removeCurrent() {
   const confirmed = await confirmDialog({
     title: `Variante „${current.value.name}“ löschen?`,
@@ -177,24 +183,23 @@ async function resetCurrent() {
     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2.5">
       <h1 class="text-base leading-tight font-semibold">Elternzeit-Planer</h1>
       <div class="flex min-w-0 items-center gap-2 text-sm">
-        <span class="text-muted-foreground">Planung</span>
+        <FolderIcon class="text-muted-foreground size-4 shrink-0" />
         <span class="max-w-56 truncate font-medium" :class="state.planning.name ? '' : 'text-muted-foreground'">
-          {{ state.planning.name ?? 'ohne Namen' }}
+          {{ state.planning.name ?? 'Neue Planung' }}
         </span>
         <Badge v-if="dirty" variant="outline" class="border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400">
           nicht gespeichert
         </Badge>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-muted-foreground text-sm">Variante</span>
-        <div class="w-44">
+      <div class="flex items-center gap-1">
+        <div class="w-52">
           <SelectField
+            label="Varianten"
             :model-value="state.currentId"
             :options="state.scenarios.map((s) => ({ value: s.id, label: s.name }))"
             @update:model-value="(id) => store.select(id)"
           />
         </div>
-        <Input v-model="current.name" class="h-8 w-40" aria-label="Name der Variante" />
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="icon" aria-label="Menü"><EllipsisVerticalIcon /></Button>
@@ -203,9 +208,10 @@ async function resetCurrent() {
             <DropdownMenuLabel>Variante</DropdownMenuLabel>
             <DropdownMenuItem @select="store.create()"><FilePlusIcon /> Neue Variante</DropdownMenuItem>
             <DropdownMenuItem @select="store.duplicate()"><CopyIcon /> Variante kopieren</DropdownMenuItem>
-            <DropdownMenuItem @select="resetCurrent"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen …</DropdownMenuItem>
+            <DropdownMenuItem @select="renameCurrent"><PencilIcon /> Variante umbenennen …</DropdownMenuItem>
+            <DropdownMenuItem @select="resetCurrent"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen</DropdownMenuItem>
             <DropdownMenuItem :disabled="state.scenarios.length <= 1" variant="destructive" @select="removeCurrent">
-              <Trash2Icon /> Variante löschen …
+              <Trash2Icon /> Variante löschen
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Planung</DropdownMenuLabel>

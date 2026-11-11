@@ -1,9 +1,15 @@
 <script setup lang="ts" generic="T extends string | number | null">
 import { computed } from 'vue'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const model = defineModel<T>({ required: true })
-const props = defineProps<{ options: { value: T; label: string }[]; placeholder?: string; triggerClass?: string }>()
+const props = defineProps<{
+  options: { value: T; label: string }[]
+  placeholder?: string
+  triggerClass?: string
+  /** Heading above the options in the opened list. */
+  label?: string
+}>()
 
 const NULL_KEY = '__null__'
 const key = (value: T) => (value === null ? NULL_KEY : String(value))
@@ -23,9 +29,12 @@ function update(value: unknown) {
       <SelectValue :placeholder="placeholder">{{ selectedLabel }}</SelectValue>
     </SelectTrigger>
     <SelectContent>
-      <SelectItem v-for="option in options" :key="key(option.value)" :value="key(option.value)">
-        {{ option.label }}
-      </SelectItem>
+      <SelectGroup>
+        <SelectLabel v-if="label">{{ label }}</SelectLabel>
+        <SelectItem v-for="option in options" :key="key(option.value)" :value="key(option.value)">
+          {{ option.label }}
+        </SelectItem>
+      </SelectGroup>
     </SelectContent>
   </Select>
 </template>

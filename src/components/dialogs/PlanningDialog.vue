@@ -95,7 +95,7 @@ function submit() {
           <Label for="planning-repeat">Passwort wiederholen</Label>
           <Input id="planning-repeat" v-model="form.repeat" type="password" autocomplete="new-password" />
         </div>
-        <Label class="font-normal"><Checkbox v-model="form.remember" /> Auf diesem Gerät angemeldet bleiben</Label>
+        <Label class="font-normal"><Checkbox v-model="form.remember" /> Passwort auf diesem Gerät merken</Label>
         <p v-if="warning" class="text-sm text-amber-700 dark:text-amber-400">{{ warning }}</p>
         <p v-if="inputError ?? error" class="text-destructive text-sm">{{ inputError ?? error }}</p>
         <DialogFooter>

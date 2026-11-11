@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import AdminSetupDialog from '@/components/dialogs/AdminSetupDialog.vue'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
+import PromptDialog from '@/components/dialogs/PromptDialog.vue'
 import InputPanel from '@/components/inputs/InputPanel.vue'
 import PlanCard from '@/components/plan/PlanCard.vue'
 import AssumptionsPanel from '@/components/results/AssumptionsPanel.vue'
@@ -87,6 +88,7 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
       </div>
     </div>
     <ConfirmDialog />
+    <PromptDialog />
     <AdminSetupDialog />
   </TooltipProvider>
 </template>
