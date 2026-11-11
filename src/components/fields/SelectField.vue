@@ -8,6 +8,8 @@ const props = defineProps<{ options: { value: T; label: string }[]; placeholder?
 const NULL_KEY = '__null__'
 const key = (value: T) => (value === null ? NULL_KEY : String(value))
 const selected = computed(() => key(model.value))
+// Rendered explicitly, so renamed options (e.g. variants) update the trigger immediately.
+const selectedLabel = computed(() => props.options.find((o) => key(o.value) === selected.value)?.label)
 
 function update(value: unknown) {
   const option = props.options.find((o) => key(o.value) === value)
@@ -18,7 +20,7 @@ function update(value: unknown) {
 <template>
   <Select :model-value="selected" @update:model-value="update">
     <SelectTrigger size="default" :class="['h-9 w-full min-w-0 data-[size=default]:h-9', triggerClass]">
-      <SelectValue :placeholder="placeholder" />
+      <SelectValue :placeholder="placeholder">{{ selectedLabel }}</SelectValue>
     </SelectTrigger>
     <SelectContent>
       <SelectItem v-for="option in options" :key="key(option.value)" :value="key(option.value)">
