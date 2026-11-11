@@ -28,7 +28,7 @@ export function defaultScenario(): ScenarioConfig {
   return {
     version: 1,
     relationship: 'married',
-    dueDate: '2027-01-28',
+    dueDate: '2027-01-01',
     birthDate: null,
     children: 1,
     extendedMaternity: false,

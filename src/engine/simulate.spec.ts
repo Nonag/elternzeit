@@ -6,8 +6,11 @@ import { simulate } from './simulate'
 import { incomeTax } from './tax'
 import type { PlanBlock, ScenarioConfig } from './types'
 
+/** Worked example of the tests: due date and birth on 28.01.2027. */
+const exampleScenario = () => ({ ...defaultScenario(), dueDate: '2027-01-28' })
+
 function scenario(patch: (config: ScenarioConfig) => void = () => {}): ScenarioConfig {
-  const config = defaultScenario()
+  const config = exampleScenario()
   patch(config)
   return config
 }
