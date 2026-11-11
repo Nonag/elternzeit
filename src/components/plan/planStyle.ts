@@ -51,14 +51,14 @@ function formatHours(hours: number): string {
   return hours.toLocaleString('de-DE', { maximumFractionDigits: 2 })
 }
 
-export const LEGEND: { label: string; color: string; striped?: boolean }[] = [
+export const LEGEND: { label: string; color: string; striped?: boolean; line?: boolean }[] = [
   { label: 'Mutterschutz', color: 'var(--plan-maternity)' },
   { label: 'Basiselterngeld', color: 'var(--plan-basic)' },
   { label: 'ElterngeldPlus', color: 'var(--plan-plus)' },
   { label: 'Partnerschaftsbonus', color: 'var(--plan-bonus)' },
   { label: 'Elternzeit ohne Elterngeld', color: 'var(--plan-leave)', striped: true },
   { label: 'Teilzeit in Elternzeit', color: 'var(--plan-parttime)' },
-  { label: 'Urlaub', color: 'var(--plan-vacation)' },
+  { label: 'Urlaub', color: 'var(--plan-vacation)', line: true },
   { label: 'Familie/Freunde', color: 'var(--plan-family)' },
   { label: 'Kita', color: 'var(--plan-childcare)' },
 ]
