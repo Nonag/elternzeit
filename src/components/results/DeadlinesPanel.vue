@@ -56,7 +56,7 @@ function toggle(deadline: Deadline, done: boolean) {
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="text-muted-foreground text-xs">
         Berechnet aus {{ result.birth === result.dueDate ? 'dem errechneten Termin' : 'dem Geburtsdatum' }} und eurem Plan – Stand heute
-        ({{ formatDate(today) }}). Abhaken wird im Szenario gespeichert.
+        ({{ formatDate(today) }}). Abhaken wird in der Variante gespeichert.
       </p>
       <label class="flex items-center gap-1.5 text-xs">
         <Checkbox v-model="hidePast" /> Erledigtes und Vergangenes ausblenden

@@ -122,7 +122,7 @@ function tooltip(d: Datum | undefined): string {
         {{ variant.name }}
       </label>
       <span v-if="state.variants.length < 2" class="text-muted-foreground text-xs">
-        Tipp: Mit „Variante“ oben eine Kopie anlegen, ändern und hier vergleichen.
+        Zum Vergleichen eine Variante kopieren und ändern.
       </span>
     </div>
     <div class="overflow-x-auto">
