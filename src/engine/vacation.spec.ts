@@ -4,13 +4,13 @@ import { simulate } from './simulate'
 import type { PlanPeriod, VariantConfig } from './types'
 import { weekdays } from './vacation'
 
-/** Example due date 01.01.2027: life month n is calendar month n of 2027, month 13 is January 2028. */
+/** Due date 01.01.2027: life month n is calendar month n of 2027, month 13 is January 2028. */
 function vacation(from: number, to: number, vacationDays: number | null = null): PlanPeriod {
   return { id: `vacation-${from}`, from, to, kind: 'vacation', hours: null, workDays: null, vacationDays, allowance: 'none' }
 }
 
 function withPlan(patch: (config: VariantConfig) => void): VariantConfig {
-  const config = exampleConfig()
+  const config = { ...exampleConfig(), dueDate: '2027-01-01' }
   patch(config)
   return config
 }
@@ -32,7 +32,7 @@ describe('vacation', () => {
   })
 
   it('closes the care gap in proportion to the vacation days', () => {
-    const base = simulate(exampleConfig()).months[14].care.need
+    const base = simulate(withPlan(() => {})).months[14].care.need
     const full = simulate(withPlan((c) => c.periods.b.push(vacation(15, 15)))).months[14]
     const partial = simulate(withPlan((c) => c.periods.b.push(vacation(15, 15, 10)))).months[14]
     expect(base).toBeGreaterThan(0)

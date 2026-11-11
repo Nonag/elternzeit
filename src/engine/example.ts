@@ -26,7 +26,7 @@ export function exampleConfig(): VariantConfig {
   const classic = PLAN_PRESETS[0].outline
   return {
     relationship: 'married',
-    dueDate: '2027-01-01',
+    dueDate: '2027-01-15',
     birthDate: null,
     children: 1,
     extendedMaternity: false,
