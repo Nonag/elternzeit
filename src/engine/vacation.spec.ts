@@ -6,7 +6,7 @@ import { weekdays } from './vacation'
 
 /** Example due date 01.01.2027: life month n is calendar month n of 2027, month 13 is January 2028. */
 function vacation(from: number, to: number, vacationDays: number | null = null): PlanPeriod {
-  return { id: `vacation-${from}`, from, to, kind: 'vacation', hours: null, vacationDays, allowance: 'none' }
+  return { id: `vacation-${from}`, from, to, kind: 'vacation', hours: null, workDays: null, vacationDays, allowance: 'none' }
 }
 
 function withPlan(patch: (config: VariantConfig) => void): VariantConfig {
@@ -58,5 +58,20 @@ describe('vacation', () => {
     )
     expect(result.vacation.b.periods['vacation-15']).toEqual({ available: 23, taken: 23 })
     expect(result.vacation.a.periods['vacation-1']).toEqual({ available: 0, taken: 0 })
+  })
+
+  it('prorates the entitlement for months with fewer working days per week', () => {
+    const partTime: PlanPeriod = { id: 'tz', from: 7, to: 12, kind: 'work', hours: 24, workDays: 3, vacationDays: null, allowance: 'none' }
+    const result = simulate(
+      withPlan((c) => {
+        c.periods.b.push(partTime)
+        c.periods.b[0].workDays = 2
+      }),
+    )
+    const years = result.vacation.b.years
+    // January to June at five days, July to December at three days.
+    expect(years.find((y) => y.year === 2027)?.annual).toBeCloseTo((30 * (181 + (184 * 3) / 5)) / 365, 2)
+    // Days per week do not matter during Elternzeit without work.
+    expect(years.find((y) => y.year === 2028)).toMatchObject({ annual: 30, reduction: 5, entitlement: 25 })
   })
 })

@@ -17,6 +17,7 @@ const props = withDefaults(
     nullable?: boolean
     placeholder?: string
     invalid?: boolean
+    disabled?: boolean
     ariaLabel?: string
   }>(),
   {
@@ -28,6 +29,7 @@ const props = withDefaults(
     nullable: false,
     placeholder: undefined,
     invalid: false,
+    disabled: false,
     ariaLabel: undefined,
   },
 )
@@ -54,6 +56,7 @@ function update(value: number | null | undefined) {
     :max="max"
     :step="step"
     :step-snapping="false"
+    :disabled="disabled"
     disable-wheel-change
     locale="de-DE"
     :format-options="formatOptions"

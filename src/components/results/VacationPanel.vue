@@ -53,7 +53,7 @@ function vacationPeriods(key: ParentKey) {
           <tbody>
             <tr v-for="year in result.vacation[key].years" :key="year.year" class="border-b last:border-0">
               <td class="py-1">{{ year.year }}</td>
-              <td class="text-right tabular-nums">{{ num(year.contractual) }}</td>
+              <td class="text-right tabular-nums">{{ num(year.annual) }}</td>
               <td class="text-right tabular-nums" :class="year.reduction > 0 ? 'text-destructive' : ''">
                 {{ year.reduction > 0 ? `−${num(year.reduction)}` : '–' }}
               </td>

@@ -51,6 +51,8 @@ export interface PlanPeriod {
   kind: PeriodKind
   /** Weekly working hours in this period (null = not entered yet); vacation keeps the contract hours. */
   hours: number | null
+  /** Working days per week while working (null = as in the contract); sets the vacation entitlement. */
+  workDays: number | null
   /** Vacation days taken in a vacation period (null = all working days). */
   vacationDays: number | null
   allowance: AllowanceType

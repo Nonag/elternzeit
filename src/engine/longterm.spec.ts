@@ -38,7 +38,7 @@ describe('long-term effects', () => {
 describe('deadlines', () => {
   it('derives the key dates for a birth on 28.01.2027', () => {
     const config = workedExample()
-    config.periods.b = [{ id: 'b1', from: 1, to: 2, kind: 'leave', hours: 0, vacationDays: null, allowance: 'plus' }]
+    config.periods.b = [{ id: 'b1', from: 1, to: 2, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'plus' }]
     const result = simulate(config)
     const deadlines = computeDeadlines(config, result, '2026-11-09')
     const byId = Object.fromEntries(deadlines.map((d) => [d.id, d]))
@@ -53,7 +53,7 @@ describe('deadlines', () => {
 
   it('counts the mother’s two binding years from the birth when Elternzeit follows Mutterschutz', () => {
     const config = workedExample()
-    config.periods.a = [...config.periods.a, { id: 'a-late', from: 25, to: 26, kind: 'leave', hours: 0, vacationDays: null, allowance: 'none' }]
+    config.periods.a = [...config.periods.a, { id: 'a-late', from: 25, to: 26, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'none' }]
     const result = simulate(config)
     const first = computeDeadlines(config, result, '2026-11-09').find((d) => d.id === 'leave-a-3')!
     expect(first.detail).toContain('26.03.2027 – 27.01.2028')

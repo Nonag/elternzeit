@@ -1,4 +1,4 @@
-import { daysInMonth, monthKey, parseIso, toEpochDay, toIso, type IsoDate, type LifeMonth } from './dates'
+import { daysInMonth, diffDays, isLeapYear, monthKey, parseIso, toEpochDay, toIso, type IsoDate, type LifeMonth } from './dates'
 import type { MonthRow, ParentMonth } from './result'
 import type { ParentKey, PlanPeriod, VariantConfig } from './types'
 
@@ -12,6 +12,8 @@ export interface LeaveRange {
 export interface VacationYear {
   year: number
   contractual: number
+  /** Annual entitlement before the reduction, prorated for months with fewer working days per week. */
+  annual: number
   fullLeaveMonths: number
   reduction: number
   /** Entitlement after the reduction. */
@@ -159,6 +161,27 @@ export function leaveRanges(months: MonthRow[], key: ParentKey): LeaveRange[] {
   return ranges
 }
 
+/**
+ * Contract vacation for a calendar year, prorated by the working days per week of each day. Days already
+ * earned keep their value when someone switches to fewer days (EuGH C-415/12, BAG 9 AZR 53/14 (F)).
+ */
+function annualEntitlement(months: MonthRow[], key: ParentKey, year: number, contractual: number, perWeek: number): number {
+  const first = `${year}-01-01`
+  const last = `${year}-12-31`
+  const yearDays = isLeapYear(year) ? 366 : 365
+  let covered = 0
+  let weighted = 0
+  for (const row of months) {
+    const start = row.start > first ? row.start : first
+    const end = row.end < last ? row.end : last
+    if (start > end) continue
+    const days = diffDays(start, end) + 1
+    covered += days
+    weighted += (days * row[key].workDays) / perWeek
+  }
+  return Math.round(((contractual * (weighted + yearDays - covered)) / yearDays) * 100) / 100
+}
+
 /** Vacation days of the life months that fall into a calendar year. */
 function plannedInYear(months: MonthRow[], key: ParentKey, year: number, perWeek: number): number {
   const first = `${year}-01-01`
@@ -195,10 +218,11 @@ export function computeVacation(
     const years: VacationYear[] = []
     for (let year = firstYear; year <= lastYear; year++) {
       const fullLeaveMonths = [...leaveMonths].filter((m) => m.startsWith(`${year}-`)).length
-      const reduction = config.employerReducesVacation ? (days * fullLeaveMonths) / 12 : 0
-      const entitlement = days - reduction
+      const annual = active ? annualEntitlement(months, key, year, days, perWeek) : days
+      const reduction = config.employerReducesVacation ? (annual * fullLeaveMonths) / 12 : 0
+      const entitlement = annual - reduction
       const plannedDays = active ? plannedInYear(months, key, year, perWeek) : 0
-      years.push({ year, contractual: days, fullLeaveMonths, reduction, entitlement, planned: plannedDays, remaining: entitlement - plannedDays })
+      years.push({ year, contractual: days, annual, fullLeaveMonths, reduction, entitlement, planned: plannedDays, remaining: entitlement - plannedDays })
     }
     const savedByAlignment = config.employerReducesVacation
       ? ranges.reduce((sum, r) => sum + ((r.lifeMonths - r.fullCalendarMonths) * days) / 12, 0)

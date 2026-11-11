@@ -48,6 +48,7 @@ function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
       from: cursor,
       to: cursor + plan.leaveMonths - 1,
       kind: 'leave',
+      workDays: null,
       vacationDays: null,
       hours: 0,
       allowance: plan.leaveAllowance,
@@ -60,6 +61,7 @@ function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
       from: cursor,
       to: cursor + plan.partTimeMonths - 1,
       kind: 'leave',
+      workDays: null,
       vacationDays: null,
       hours: plan.partTimeHours,
       allowance: plan.partTimeAllowance,
@@ -83,6 +85,7 @@ export function periodsFromOutline(outline: PlanOutline, relationship: Relations
       from: start,
       to: start + outline.bonusMonths - 1,
       kind: 'leave',
+      workDays: null,
       vacationDays: null,
       hours: outline.bonusHours,
       allowance: 'bonus',
@@ -98,6 +101,8 @@ export interface MonthPlan {
   /** Part of a vacation period: paid at contract hours. */
   vacation: boolean
   hours: number
+  /** Working days per week set for the period (null = as in the contract). */
+  workDays: number | null
   hoursMissing: boolean
   allowance: AllowanceType
   periodId: string | null
@@ -108,6 +113,7 @@ export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHo
     leave: false,
     vacation: false,
     hours: contractHours,
+    workDays: null,
     hoursMissing: false,
     allowance: 'none' as AllowanceType,
     periodId: null,
@@ -119,6 +125,7 @@ export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHo
         leave: period.kind === 'leave',
         vacation,
         hours: vacation ? contractHours : (period.hours ?? 0),
+        workDays: vacation ? null : period.workDays,
         hoursMissing: !vacation && period.hours === null,
         allowance: vacation ? 'none' : period.allowance,
         periodId: period.id,

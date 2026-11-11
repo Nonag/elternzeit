@@ -29,8 +29,8 @@ const allowanceOptions: { value: AllowanceType; label: string; short: string }[]
   { value: 'bonus', label: 'Partnerschaftsbonus', short: 'Bonus' },
 ]
 
-// Compact enough for two parents side by side (from ~54rem card width) without horizontal scrolling.
-const GRID = 'grid grid-cols-[3rem_3rem_6.25rem_3.75rem_minmax(0,1fr)_2rem] items-center gap-1.5'
+// Compact enough for two parents side by side (from ~58rem card width) without horizontal scrolling.
+const GRID = 'grid grid-cols-[3rem_3rem_6.25rem_3.75rem_2.75rem_minmax(0,1fr)_2rem] items-center gap-1.5'
 
 function periodsOf(key: ParentKey): PlanPeriod[] {
   return sortPeriods(config.value.periods[key])
@@ -49,7 +49,7 @@ function update(key: ParentKey, id: string, patch: Partial<PlanPeriod>) {
 function add(key: ParentKey) {
   const periods = config.value.periods[key]
   const start = periods.length ? Math.max(...periods.map((b) => b.to)) + 1 : 1
-  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, kind: 'leave', hours: 0, vacationDays: null, allowance: 'none' }
+  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'none' }
   config.value.periods[key] = normalizePeriods([...periods, period])
   selected.value = period.id
 }
@@ -61,6 +61,11 @@ function remove(key: ParentKey, id: string) {
 
 function vacationOf(key: ParentKey, period: PlanPeriod): VacationPeriodUse {
   return result.value.vacation[key].periods[period.id] ?? { available: 0, taken: 0 }
+}
+
+/** Working days of the contract are stored as null, so the period follows changes of the contract. */
+function updateWorkDays(key: ParentKey, period: PlanPeriod, days: number | null) {
+  update(key, period.id, { workDays: days === null || days === config.value.parents[key].workDaysPerWeek ? null : days })
 }
 
 /** All working days of the period are stored as null, so the vacation grows with the period. */
@@ -76,7 +81,7 @@ function hasError(key: ParentKey, period: PlanPeriod): boolean {
 
 <template>
   <div class="@container">
-    <div class="grid gap-6 @min-[54rem]:grid-cols-2 @min-[54rem]:gap-8">
+    <div class="grid gap-6 @min-[58rem]:grid-cols-2 @min-[58rem]:gap-8">
       <div v-for="key in parentKeys" :key="key" class="grid min-w-0 content-start gap-2">
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold">{{ result.parents[key].name }}</span>
@@ -99,6 +104,10 @@ Urlaub: bezahlter Urlaub, das Gehalt läuft weiter."
           <span class="flex items-center gap-1">
             Std.
             <InfoTip text="Arbeitsstunden pro Woche in diesem Zeitraum. 0 = gar nicht arbeiten." />
+          </span>
+          <span class="flex items-center gap-1">
+            Tage
+            <InfoTip text="Arbeitstage pro Woche. Wer an weniger Tagen arbeitet, hat entsprechend weniger Urlaubstage." />
           </span>
           <span class="flex items-center gap-1">
             Elterngeld
@@ -128,7 +137,7 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
             trigger-class="px-2 text-xs"
             @update:model-value="(v) => update(key, period.id, { kind: v as PeriodKind })"
           />
-          <div v-if="period.kind === 'vacation'" class="col-span-2 flex min-w-0 items-center gap-1.5">
+          <div v-if="period.kind === 'vacation'" class="col-span-3 flex min-w-0 items-center gap-1.5">
             <div class="w-24 shrink-0">
               <NumberInput
                 :model-value="vacationOf(key, period).taken"
@@ -156,6 +165,18 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
               :decimals="2"
               aria-label="Stunden pro Woche"
               @update:model-value="(v) => update(key, period.id, { hours: v })"
+            />
+            <NumberInput
+              :model-value="period.hours ? (period.workDays ?? config.parents[key].workDaysPerWeek) : null"
+              nullable
+              :disabled="!period.hours"
+              placeholder="–"
+              :min="0.5"
+              :max="7"
+              :step="0.5"
+              :decimals="1"
+              aria-label="Arbeitstage pro Woche"
+              @update:model-value="(v) => updateWorkDays(key, period, v)"
             />
             <SelectField
               :model-value="period.allowance"

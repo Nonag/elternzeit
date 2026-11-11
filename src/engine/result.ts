@@ -16,6 +16,8 @@ export interface ParentMonth {
   vacationShare: number
   /** Weekly working hours under the contract (0 while not working); vacation is paid at these hours. */
   hours: number
+  /** Working days per week, for the vacation entitlement. */
+  workDays: number
   allowance: AllowanceType
   maternityDays: number
   /** Allowance forced to Basiselterngeld because of Mutterschaftsleistungen. */

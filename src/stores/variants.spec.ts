@@ -36,8 +36,8 @@ describe('parsePlanning', () => {
     expect(variant).toMatchObject({ id: 's1', name: 'Variante A' })
     const { config } = variant
     expect(config.periods).toEqual({
-      a: [{ id: 'p1', from: 1, to: 12, kind: 'leave', hours: 0, vacationDays: null, allowance: 'basic' }],
-      b: [{ id: 'p2', from: 13, to: 14, kind: 'work', hours: 30, vacationDays: null, allowance: 'none' }],
+      a: [{ id: 'p1', from: 1, to: 12, kind: 'leave', hours: 0, workDays: null, vacationDays: null, allowance: 'basic' }],
+      b: [{ id: 'p2', from: 13, to: 14, kind: 'work', hours: 30, workDays: null, vacationDays: null, allowance: 'none' }],
     })
     expect(config.familyCare).toEqual([care])
     expect(config).toMatchObject({ fixedCosts: 1234, balanceAtBirth: 5678, childRaisingCreditTo: 'b' })
