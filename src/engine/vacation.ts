@@ -1,6 +1,6 @@
 import { daysInMonth, monthKey, parseIso, toIso, type IsoDate } from './dates'
 import type { MonthRow } from './result'
-import type { ParentKey, ScenarioConfig } from './types'
+import type { ParentKey, VariantConfig } from './types'
 
 export interface LeaveRange {
   start: IsoDate
@@ -87,7 +87,7 @@ export function leaveRanges(months: MonthRow[], key: ParentKey): LeaveRange[] {
  * § 17 BEEG: the employer may reduce the annual vacation by 1/12 for each full calendar month of
  * Elternzeit. Months with part-time work at the own employer and Mutterschutz do not count.
  */
-export function computeVacation(config: ScenarioConfig, months: MonthRow[], activeParents: ParentKey[]): Record<ParentKey, VacationSummary> {
+export function computeVacation(config: VariantConfig, months: MonthRow[], activeParents: ParentKey[]): Record<ParentKey, VacationSummary> {
   const firstYear = parseIso(months[0].start).year
   const lastYear = parseIso(months[months.length - 1].end).year
   const summaries = {} as Record<ParentKey, VacationSummary>

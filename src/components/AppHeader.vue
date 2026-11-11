@@ -36,10 +36,10 @@ import { confirmDialog, messageDialog, promptDialog } from '@/lib/dialogs'
 import { ApiError, type RemotePlanning } from '@/lib/planningApi'
 import { describeDifferences } from '@/lib/planningDiff'
 import { usePlanning, type PlanningDialogMode } from '@/stores/planning'
-import { parsePlanning, useScenarios } from '@/stores/scenarios'
+import { parsePlanning, useVariants } from '@/stores/variants'
 
-const store = useScenarios()
-const { state, current, dirty } = store
+const store = useVariants()
+const { state, current, unsaved } = store
 const planning = usePlanning()
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -71,7 +71,7 @@ function errorText(error: unknown): string {
 
 const dialog = reactive({ open: false, mode: 'open' as PlanningDialogMode, busy: false, error: null as string | null })
 const dialogWarning = computed(() =>
-  dialog.mode === 'open' && dirty.value ? `Nicht gespeicherte Änderungen an „${state.planning.name}“ gehen dabei verloren.` : null,
+  dialog.mode === 'open' && unsaved.value ? `Nicht gespeicherte Änderungen an „${state.planning.name}“ gehen dabei verloren.` : null,
 )
 
 /** What the password dialog continues with. */
@@ -109,7 +109,7 @@ async function save(force = false) {
       passwordPurpose.value = 'save'
       showDialog('password')
     } else if (outcome.status === 'conflict') {
-      const differences = describeDifferences(state.scenarios, parsePlanning(outcome.current.data))
+      const differences = describeDifferences(state.variants, parsePlanning(outcome.current.data))
       Object.assign(conflict, { open: true, current: outcome.current, differences })
     }
   } catch (error) {
@@ -186,20 +186,20 @@ async function upload(event: Event) {
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
-  let scenarios
+  let variants
   try {
-    scenarios = parsePlanning(JSON.parse(await file.text()))
+    variants = parsePlanning(JSON.parse(await file.text()))
   } catch {
     await messageDialog('Datei nicht lesbar', 'Die Datei enthält keine Planung aus dem Elternzeit-Planer.')
     return
   }
-  const count = scenarios.length === 1 ? 'Die Variante' : `Die ${scenarios.length} Varianten`
+  const count = variants.length === 1 ? 'Die Variante' : `Die ${variants.length} Varianten`
   const confirmed = await confirmDialog({
     title: 'Planung importieren?',
     description: `${count} aus der Datei ersetzen die Varianten in diesem Browser.`,
     confirmLabel: 'Importieren',
   })
-  if (confirmed) store.replaceScenarios(scenarios)
+  if (confirmed) store.replaceVariants(variants)
 }
 
 async function renameCurrent() {
@@ -217,14 +217,14 @@ async function removeCurrent() {
   if (confirmed) store.remove(current.value.id)
 }
 
-async function resetCurrent() {
+async function resetToExample() {
   const confirmed = await confirmDialog({
     title: 'Variante zurücksetzen?',
     description: `Alle Eingaben von „${current.value.name}“ werden durch die Beispielwerte ersetzt.`,
     confirmLabel: 'Zurücksetzen',
     destructive: true,
   })
-  if (confirmed) store.resetCurrent()
+  if (confirmed) store.resetToExample()
 }
 </script>
 
@@ -237,7 +237,7 @@ async function resetCurrent() {
         <span class="max-w-56 truncate font-medium" :class="state.planning.name ? '' : 'text-muted-foreground'">
           {{ state.planning.name ?? 'Neue Planung' }}
         </span>
-        <Badge v-if="dirty" variant="outline" class="border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400">
+        <Badge v-if="unsaved" variant="outline" class="border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400">
           nicht gespeichert
         </Badge>
       </div>
@@ -246,7 +246,7 @@ async function resetCurrent() {
           <SelectField
             label="Varianten"
             :model-value="state.currentId"
-            :options="state.scenarios.map((s) => ({ value: s.id, label: s.name }))"
+            :options="state.variants.map((s) => ({ value: s.id, label: s.name }))"
             @update:model-value="(id) => store.select(id)"
           />
         </div>
@@ -257,10 +257,10 @@ async function resetCurrent() {
           <DropdownMenuContent align="start" class="w-72">
             <DropdownMenuLabel>Variante</DropdownMenuLabel>
             <DropdownMenuItem @select="store.create()"><FilePlusIcon /> Neue Variante</DropdownMenuItem>
-            <DropdownMenuItem @select="store.duplicate()"><CopyIcon /> Variante kopieren</DropdownMenuItem>
+            <DropdownMenuItem @select="store.copy()"><CopyIcon /> Variante kopieren</DropdownMenuItem>
             <DropdownMenuItem @select="renameCurrent"><PencilIcon /> Variante umbenennen …</DropdownMenuItem>
-            <DropdownMenuItem @select="resetCurrent"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen …</DropdownMenuItem>
-            <DropdownMenuItem :disabled="state.scenarios.length <= 1" variant="destructive" @select="removeCurrent">
+            <DropdownMenuItem @select="resetToExample"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen …</DropdownMenuItem>
+            <DropdownMenuItem :disabled="state.variants.length <= 1" variant="destructive" @select="removeCurrent">
               <Trash2Icon /> Variante löschen …
             </DropdownMenuItem>
             <DropdownMenuSeparator />

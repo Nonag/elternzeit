@@ -6,7 +6,7 @@ import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import PromptDialog from '@/components/dialogs/PromptDialog.vue'
 import InputPanel from '@/components/inputs/InputPanel.vue'
 import PlanCard from '@/components/plan/PlanCard.vue'
-import AssumptionsPanel from '@/components/results/AssumptionsPanel.vue'
+import LegalBasisPanel from '@/components/results/LegalBasisPanel.vue'
 import BalanceChart from '@/components/results/BalanceChart.vue'
 import ComparePanel from '@/components/results/ComparePanel.vue'
 import DeadlinesPanel from '@/components/results/DeadlinesPanel.vue'
@@ -19,9 +19,9 @@ import VacationPanel from '@/components/results/VacationPanel.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { result, deadlines } = useScenarios()
+const { result, deadlines } = useVariants()
 const openIssues = computed(() => result.value.issues.filter((i) => i.severity === 'error' || i.severity === 'warning').length)
 const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === 'soon' || d.status === 'missed').length)
 </script>
@@ -73,14 +73,14 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
                   <TabsTrigger value="vacation">Urlaub</TabsTrigger>
                   <TabsTrigger value="longterm">Rente &amp; Vermögen</TabsTrigger>
                   <TabsTrigger value="compare">Vergleich</TabsTrigger>
-                  <TabsTrigger value="assumptions">Rechtsstand</TabsTrigger>
+                  <TabsTrigger value="legal-basis">Rechtsstand</TabsTrigger>
                 </TabsList>
                 <TabsContent value="issues" class="pt-4"><IssuesPanel /></TabsContent>
                 <TabsContent value="deadlines" class="pt-4"><DeadlinesPanel /></TabsContent>
                 <TabsContent value="vacation" class="pt-4"><VacationPanel /></TabsContent>
                 <TabsContent value="longterm" class="pt-4"><LongTermPanel /></TabsContent>
                 <TabsContent value="compare" class="pt-4"><ComparePanel /></TabsContent>
-                <TabsContent value="assumptions" class="pt-4"><AssumptionsPanel /></TabsContent>
+                <TabsContent value="legal-basis" class="pt-4"><LegalBasisPanel /></TabsContent>
               </Tabs>
             </CardContent>
           </Card>

@@ -1,28 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { defaultScenario } from './defaults'
+import { exampleConfig } from './example'
 import { computePayroll } from './payroll'
-import { generateQuickPlan, paintBlock, PLAN_PRESETS } from './plan'
+import { periodsFromOutline, paintPeriod, PLAN_PRESETS } from './plan'
 import { simulate } from './simulate'
 import { incomeTax } from './tax'
-import type { PlanBlock, ScenarioConfig } from './types'
+import type { PlanPeriod, VariantConfig } from './types'
 
 /** Worked example of the tests: due date and birth on 28.01.2027. */
-const exampleScenario = () => ({ ...defaultScenario(), dueDate: '2027-01-28' })
+const workedExample = () => ({ ...exampleConfig(), dueDate: '2027-01-28' })
 
-function scenario(patch: (config: ScenarioConfig) => void = () => {}): ScenarioConfig {
-  const config = exampleScenario()
+function variant(patch: (config: VariantConfig) => void = () => {}): VariantConfig {
+  const config = workedExample()
   patch(config)
   return config
 }
 
-function block(from: number, to: number, patch: Partial<PlanBlock> = {}): PlanBlock {
+function period(from: number, to: number, patch: Partial<PlanPeriod> = {}): PlanPeriod {
   return { id: `test-${from}-${to}`, from, to, leave: true, hours: 0, allowance: 'basic', ...patch }
 }
 
-describe('plan blocks', () => {
-  it('splits existing blocks when painting a new one', () => {
-    const blocks = paintBlock([block(1, 12)], block(5, 6, { hours: 30, allowance: 'plus' }))
-    expect(blocks.map((b) => [b.from, b.to])).toEqual([
+describe('plan periods', () => {
+  it('splits existing periods when painting a new one', () => {
+    const periods = paintPeriod([period(1, 12)], period(5, 6, { hours: 30, allowance: 'plus' }))
+    expect(periods.map((b) => [b.from, b.to])).toEqual([
       [1, 4],
       [5, 6],
       [7, 12],
@@ -31,7 +31,7 @@ describe('plan blocks', () => {
 
   it('places the Partnerschaftsbonus of a preset after both full-time leaves', () => {
     const preset = PLAN_PRESETS.find((p) => p.id === 'partnership')!
-    const plan = generateQuickPlan(preset.quick, 'married')
+    const plan = periodsFromOutline(preset.outline, 'married')
     expect(plan.b.at(-1)).toMatchObject({ from: 15, to: 18, allowance: 'bonus', hours: 30 })
   })
 })
@@ -67,8 +67,8 @@ describe('income tax tariff', () => {
 })
 
 describe('simulate', () => {
-  it('runs the default scenario without rule violations', () => {
-    const result = simulate(scenario())
+  it('runs the example without rule violations', () => {
+    const result = simulate(variant())
     expect(result.issues.filter((i) => i.severity === 'error')).toEqual([])
     expect(result.months).toHaveLength(36)
     expect(result.entitlement.available).toBe(14)
@@ -76,7 +76,7 @@ describe('simulate', () => {
   })
 
   it('locks the Mutterschutz months as Basis months and offsets Mutterschaftsleistungen per day', () => {
-    const result = simulate(scenario())
+    const result = simulate(variant())
     const [lm1, lm2, lm3] = result.months
     expect(lm1.a.maternityLocked).toBe(true)
     expect(lm2.a.maternityLocked).toBe(true)
@@ -88,28 +88,28 @@ describe('simulate', () => {
   })
 
   it('flags parallel Basiselterngeld when the father takes the first two months', () => {
-    const result = simulate(scenario((c) => (c.blocks.b = [block(1, 2)])))
+    const result = simulate(variant((c) => (c.periods.b = [period(1, 2)])))
     expect(result.issues.some((i) => i.id === 'parallel-basic')).toBe(true)
   })
 
   it('validates all presets', () => {
     for (const preset of PLAN_PRESETS) {
-      const result = simulate(scenario((c) => (c.blocks = generateQuickPlan(preset.quick, 'married'))))
+      const result = simulate(variant((c) => (c.periods = periodsFromOutline(preset.outline, 'married'))))
       const errors = result.issues.filter((i) => i.severity === 'error' && i.category === 'allowance')
       expect(errors, preset.id).toEqual([])
     }
   })
 
   it('reports missing weekly hours instead of guessing them', () => {
-    const result = simulate(scenario((c) => (c.blocks.b = [block(13, 14, { hours: null })])))
-    expect(result.issues.some((i) => i.severity === 'error' && i.id.startsWith('block-hours-'))).toBe(true)
+    const result = simulate(variant((c) => (c.periods.b = [period(13, 14, { hours: null })])))
+    expect(result.issues.some((i) => i.severity === 'error' && i.id.startsWith('period-hours-'))).toBe(true)
   })
 
   it('supports contracts with fractional hours', () => {
     const result = simulate(
-      scenario((c) => {
+      variant((c) => {
         c.parents.b.weeklyHours = 37.5
-        c.blocks.b = [block(13, 16, { hours: 18.75, allowance: 'plus' })]
+        c.periods.b = [period(13, 16, { hours: 18.75, allowance: 'plus' })]
       }),
     )
     const month = result.months[12].b
@@ -118,21 +118,21 @@ describe('simulate', () => {
   })
 
   it('pays the expected Kindergeld 2027 and books the birth month in LM 1', () => {
-    const result = simulate(scenario())
+    const result = simulate(variant())
     expect(result.months[0].childBenefit).toBe(534)
     expect(result.months[1].childBenefit).toBe(267)
     expect(result.months[12].childBenefit).toBe(272)
   })
 
   it('compares the household income with the net pay before the birth', () => {
-    const result = simulate(scenario())
+    const result = simulate(variant())
     const before = result.parents.a.realNetBefore + result.parents.b.realNetBefore
     expect(result.months[5].preBirthIncome).toBeCloseTo(before, 1)
     expect(result.months[5].delta).toBeCloseTo(result.months[5].income - before, 1)
   })
 
   it('charges Cologne Kita fees from the start month', () => {
-    const result = simulate(scenario())
+    const result = simulate(variant())
     const start = result.childcare.startMonthIndex!
     expect(start).toBe(19)
     expect(result.months[start - 2].childcareFee).toBe(0)
@@ -140,7 +140,7 @@ describe('simulate', () => {
   })
 
   it('computes a reduced Elterngeld with part-time income', () => {
-    const result = simulate(scenario((c) => (c.blocks.b = [block(13, 16, { hours: 20, allowance: 'plus' })])))
+    const result = simulate(variant((c) => (c.periods.b = [period(13, 16, { hours: 20, allowance: 'plus' })])))
     const month = result.months[12].b
     expect(month.hours).toBe(20)
     expect(month.netSalary).toBeGreaterThan(0)

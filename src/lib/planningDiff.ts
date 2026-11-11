@@ -1,27 +1,27 @@
-import type { ScenarioConfig } from '@/engine/types'
-import type { StoredScenario } from '@/stores/scenarios'
+import type { VariantConfig } from '@/engine/types'
+import type { Variant } from '@/stores/variants'
 import { stableStringify } from './json'
 
 /** Sections of the app, so differences can be named the way the user sees them. */
-const SECTIONS: { label: (config: ScenarioConfig) => string; pick: (config: ScenarioConfig) => unknown }[] = [
+const SECTIONS: { label: (config: VariantConfig) => string; pick: (config: VariantConfig) => unknown }[] = [
   {
     label: () => 'Familie & Termine',
     pick: (c) => [c.relationship, c.dueDate, c.birthDate, c.children, c.extendedMaternity, c.siblingBonus, c.horizonMonths],
   },
   { label: (c) => `${c.parents.a.name || 'Mutter'}: Job & Gehalt`, pick: (c) => [c.parents.a, c.churchTaxRate] },
   { label: (c) => `${c.parents.b.name || 'Vater'}: Job & Gehalt`, pick: (c) => [c.parents.b, c.churchTaxRate] },
-  { label: () => 'Plan', pick: (c) => c.blocks },
-  { label: () => 'Kosten & Rücklagen', pick: (c) => [c.fixedCostsBefore, c.childCosts, c.oneTimeCosts, c.startBalance, c.minReserve] },
+  { label: () => 'Plan', pick: (c) => c.periods },
+  { label: () => 'Kosten & Rücklagen', pick: (c) => [c.fixedCosts, c.childCosts, c.oneTimeCosts, c.balanceAtBirth, c.minReserve] },
   { label: () => 'Kita', pick: (c) => c.childcare },
-  { label: () => 'Familie & Freunde', pick: (c) => c.support },
-  { label: () => 'Urlaub, Rente & Vermögen', pick: (c) => [c.employerReducesVacation, c.pensionCreditTo, c.assumptions] },
+  { label: () => 'Familie & Freunde', pick: (c) => c.familyCare },
+  { label: () => 'Urlaub, Rente & Vermögen', pick: (c) => [c.employerReducesVacation, c.childRaisingCreditTo, c.assumptions] },
   { label: () => 'erledigte Fristen', pick: (c) => c.doneDeadlines },
 ]
 
 /** Short German list of what differs between the local variants and the ones on the server. */
-export function describeDifferences(local: StoredScenario[], remote: StoredScenario[]): string[] {
+export function describeDifferences(local: Variant[], remote: Variant[]): string[] {
   const unmatched = [...remote]
-  const take = (predicate: (r: StoredScenario) => boolean) => {
+  const take = (predicate: (r: Variant) => boolean) => {
     const index = unmatched.findIndex(predicate)
     return index < 0 ? undefined : unmatched.splice(index, 1)[0]
   }

@@ -70,8 +70,8 @@ function hashToken(token: string): string {
 
 /** A planning is the export format of the app: an object with a non-empty list of variants. */
 function serializeData(data: unknown): string {
-  const scenarios = (data as { scenarios?: unknown } | null)?.scenarios
-  if (!Array.isArray(scenarios) || !scenarios.length || scenarios.length > MAX_VARIANTS) throw new StoreError('invalid-data')
+  const variants = (data as { variants?: unknown } | null)?.variants
+  if (!Array.isArray(variants) || !variants.length || variants.length > MAX_VARIANTS) throw new StoreError('invalid-data')
   return JSON.stringify(data)
 }
 
@@ -159,7 +159,7 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
     },
 
     /** Checks name and password and returns a session token, or null. */
-    login(name: string, password: string): { name: string; token: string } | null {
+    openSession(name: string, password: string): { name: string; token: string } | null {
       const row = byName.get(name.trim()) as PlanningRow | undefined
       if (!row || !verifyPassword(password, row.password_hash)) return null
       return { name: row.name, token: issueToken(row.id) }

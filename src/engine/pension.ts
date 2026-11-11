@@ -2,7 +2,7 @@ import { addMonthsToKey, monthKey, parseIso } from './dates'
 import { CONTRIBUTION_RATES, PENSION, yearParameters } from './params'
 import { round2 } from './payroll'
 import type { MonthRow, ParentSummary } from './result'
-import type { ParentKey, ScenarioConfig } from './types'
+import type { ParentKey, VariantConfig } from './types'
 
 export interface PensionParent {
   parent: ParentKey
@@ -47,7 +47,7 @@ export interface LongTermResult {
  * contribution ceiling.
  */
 export function computeLongTerm(
-  config: ScenarioConfig,
+  config: VariantConfig,
   months: MonthRow[],
   parents: Record<ParentKey, ParentSummary>,
   activeParents: ParentKey[],
@@ -56,7 +56,7 @@ export function computeLongTerm(
   const birthMonth = monthKey(birth)
   const creditFrom = addMonthsToKey(birthMonth, 1)
   const creditTo = addMonthsToKey(birthMonth, 36)
-  const creditParent = activeParents.includes(config.pensionCreditTo) ? config.pensionCreditTo : 'a'
+  const creditParent = activeParents.includes(config.childRaisingCreditTo) ? config.childRaisingCreditTo : 'a'
 
   const pension = {} as Record<ParentKey, PensionParent>
   for (const key of ['a', 'b'] as ParentKey[]) {

@@ -1,6 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import * as api from '@/lib/planningApi'
-import { parsePlanning, useScenarios } from './scenarios'
+import { parsePlanning, useVariants } from './variants'
 
 const server = reactive<{ status: api.ServerStatus | null }>({ status: null })
 let statusRequested = false
@@ -30,7 +30,7 @@ export type SaveOutcome =
 
 /** Opening, saving and deleting the planning on the sync server. */
 export function usePlanning() {
-  const store = useScenarios()
+  const store = useVariants()
   if (!statusRequested) {
     statusRequested = true
     void refreshServerStatus()
@@ -44,7 +44,7 @@ export function usePlanning() {
 
   /** Replaces the local variants with the server state. */
   function adopt(remote: api.RemotePlanning) {
-    store.replaceScenarios(parsePlanning(remote.data))
+    store.replaceVariants(parsePlanning(remote.data))
     store.markSaved(remote.name, remote.version, remote.savedAt)
   }
 
@@ -55,7 +55,7 @@ export function usePlanning() {
     saveNeedsInput: computed(() => !currentSession.value),
 
     async open(name: string, password: string, remember: boolean) {
-      const opened = await api.login(name, password)
+      const opened = await api.openSession(name, password)
       const remote = await api.loadPlanning(opened.token)
       rememberSession(opened, remember)
       adopt(remote)
@@ -73,13 +73,13 @@ export function usePlanning() {
     async authenticate(password: string, remember: boolean) {
       const name = store.state.planning.name
       if (!name) throw new Error('No planning is open')
-      rememberSession(await api.login(name, password), remember)
+      rememberSession(await api.openSession(name, password), remember)
     },
 
     async save(force = false): Promise<SaveOutcome> {
       const { name, version } = store.state.planning
       if (!name || version === null) return { status: 'needs-name' }
-      if (!force && !store.dirty.value) return { status: 'unchanged' }
+      if (!force && !store.unsaved.value) return { status: 'unchanged' }
       const token = currentSession.value?.token
       if (!token) return { status: 'needs-password' }
       const snapshot = store.snapshot()

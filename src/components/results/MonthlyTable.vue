@@ -19,9 +19,9 @@ import { formatDate, formatMonthKey, formatShortDate } from '@/engine/dates'
 import type { MonthRow, ParentMonth } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
 import { euro, num, signedEuro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { result, config } = useScenarios()
+const { result, config } = useVariants()
 
 type View = 'compact' | 'details'
 const view = ref<View>('compact')

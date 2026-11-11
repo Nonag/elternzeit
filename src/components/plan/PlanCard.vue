@@ -13,33 +13,33 @@ import {
 } from '@/components/ui/dropdown-menu'
 import InfoTip from '@/components/fields/InfoTip.vue'
 import { confirmDialog } from '@/lib/dialogs'
-import { createId, generateQuickPlan, normalizeBlocks, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
+import { createId, periodsFromOutline, normalizePeriods, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
 import type { ParentKey } from '@/engine/types'
 import { num } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
-import BlockEditor from './BlockEditor.vue'
+import { useVariants } from '@/stores/variants'
+import PeriodEditor from './PeriodEditor.vue'
 import PlanTimeline from './PlanTimeline.vue'
 
-const { config, result } = useScenarios()
-const selectedBlock = ref<string | null>(null)
+const { config, result } = useVariants()
+const selectedPeriod = ref<string | null>(null)
 
-function onSelect(parent: ParentKey, from: number, to: number, blockId: string | null) {
-  if (blockId) {
-    selectedBlock.value = blockId
+function onSelect(parent: ParentKey, from: number, to: number, periodId: string | null) {
+  if (periodId) {
+    selectedPeriod.value = periodId
     return
   }
-  const block = { id: createId('block'), from, to, leave: true, hours: 0, allowance: 'none' as const }
-  config.value.blocks[parent] = normalizeBlocks([...config.value.blocks[parent], block])
-  selectedBlock.value = block.id
+  const period = { id: createId('period'), from, to, leave: true, hours: 0, allowance: 'none' as const }
+  config.value.periods[parent] = normalizePeriods([...config.value.periods[parent], period])
+  selectedPeriod.value = period.id
 }
 
 // Replacing an existing plan asks for confirmation first, hence the "…" on the presets.
-const hasPlan = computed(() => config.value.blocks.a.length + config.value.blocks.b.length > 0)
+const hasPlan = computed(() => config.value.periods.a.length + config.value.periods.b.length > 0)
 
 async function applyPreset(preset: PlanPreset) {
   if (hasPlan.value && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
-  config.value.blocks = generateQuickPlan(preset.quick, config.value.relationship)
-  selectedBlock.value = null
+  config.value.periods = periodsFromOutline(preset.outline, config.value.relationship)
+  selectedPeriod.value = null
 }
 </script>
 
@@ -82,12 +82,12 @@ async function applyPreset(preset: PlanPreset) {
       </CardAction>
     </CardHeader>
     <CardContent class="grid gap-6">
-      <PlanTimeline :selected-block-id="selectedBlock" @select="onSelect" />
+      <PlanTimeline :selected-period-id="selectedPeriod" @select="onSelect" />
       <div class="grid gap-4 border-t pt-5">
         <p class="text-muted-foreground text-xs">
           Außerhalb der Zeiträume wird normal gearbeitet. Ein Klick in den Zeitstrahl legt dort einen neuen Zeitraum an.
         </p>
-        <BlockEditor v-model:selected="selectedBlock" />
+        <PeriodEditor v-model:selected="selectedPeriod" />
       </div>
     </CardContent>
   </Card>

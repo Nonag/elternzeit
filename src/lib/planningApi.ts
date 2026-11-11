@@ -81,7 +81,7 @@ export const deletePlannings = (adminPassword: string, ids: number[]) =>
 export const createPlanning = (name: string, password: string, data: unknown) =>
   request<{ name: string; token: string; version: number; savedAt: string }>('POST', 'planning', { body: { name, password, data } })
 
-export const login = (name: string, password: string) =>
+export const openSession = (name: string, password: string) =>
   request<{ name: string; token: string }>('POST', 'planning/session', { body: { name, password } })
 
 export const loadPlanning = (token: string) => request<RemotePlanning>('GET', 'planning', { token })
@@ -91,7 +91,7 @@ export const savePlanning = (token: string, data: unknown, baseVersion: number, 
 
 export const deletePlanning = (token: string) => request<object>('DELETE', 'planning', { token })
 
-/** Server session of this browser; kept in localStorage if the user wants to stay signed in. */
+/** Server session of this browser; kept in localStorage if the password is remembered on this device. */
 export interface Session {
   name: string
   token: string

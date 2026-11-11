@@ -1,11 +1,10 @@
-import { generateQuickPlan, PLAN_PRESETS } from './plan'
-import type { ParentConfig, ScenarioConfig } from './types'
+import { periodsFromOutline, PLAN_PRESETS } from './plan'
+import type { ParentConfig, VariantConfig } from './types'
 
-export function defaultParent(name: string, grossMonthly: number): ParentConfig {
+export function exampleParent(name: string, grossMonthly: number): ParentConfig {
   return {
     name,
     grossMonthly,
-    allowanceGross: null,
     weeklyHours: 40,
     workDaysPerWeek: 5,
     taxClass: 4,
@@ -23,10 +22,9 @@ export function defaultParent(name: string, grossMonthly: number): ParentConfig 
   }
 }
 
-export function defaultScenario(): ScenarioConfig {
-  const classic = PLAN_PRESETS[0].quick
+export function exampleConfig(): VariantConfig {
+  const classic = PLAN_PRESETS[0].outline
   return {
-    version: 1,
     relationship: 'married',
     dueDate: '2027-01-01',
     birthDate: null,
@@ -35,12 +33,12 @@ export function defaultScenario(): ScenarioConfig {
     siblingBonus: false,
     churchTaxRate: 0.09,
     horizonMonths: 36,
-    blocks: generateQuickPlan(classic, 'married'),
+    periods: periodsFromOutline(classic, 'married'),
     parents: {
-      a: defaultParent('Mutter', 3800),
-      b: defaultParent('Vater', 4500),
+      a: exampleParent('Mutter', 3800),
+      b: exampleParent('Vater', 4500),
     },
-    fixedCostsBefore: 2800,
+    fixedCosts: 2800,
     childCosts: [
       { id: 'cost-diapers', label: 'Windeln & Pflege', monthly: 60, fromMonth: 1, toMonth: 30 },
       { id: 'cost-food', label: 'Babynahrung', monthly: 60, fromMonth: 1, toMonth: null },
@@ -56,11 +54,11 @@ export function defaultScenario(): ScenarioConfig {
       manualFee: 500,
       mealDaysPerWeek: 5,
     },
-    support: [],
-    startBalance: 15000,
+    familyCare: [],
+    balanceAtBirth: 15000,
     minReserve: 5000,
     employerReducesVacation: true,
-    pensionCreditTo: 'a',
+    childRaisingCreditTo: 'a',
     assumptions: { returnRate: 5, yearsToRetirement: 30, retirementYears: 20 },
     doneDeadlines: [],
   }

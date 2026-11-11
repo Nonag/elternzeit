@@ -2,7 +2,7 @@ import { addDays, addMonths, addMonthsToKey, lastDayOfMonth, monthKey, monthKeyT
 import { PARENTAL_LEAVE } from './params'
 import type { SimulationResult } from './result'
 import { consecutiveRuns } from './rules'
-import type { ParentKey, ScenarioConfig } from './types'
+import type { ParentKey, VariantConfig } from './types'
 
 export type DeadlineCategory = 'leave' | 'allowance' | 'benefits' | 'tax' | 'childcare' | 'family' | 'insurance' | 'event'
 export type DeadlineStatus = 'done' | 'missed' | 'soon' | 'upcoming' | 'past-event' | 'event'
@@ -31,8 +31,8 @@ function status(deadline: Omit<Deadline, 'status'>, today: IsoDate, done: Set<st
   return 'upcoming'
 }
 
-/** Deadlines and key dates derived from the plan (birth date, leave blocks, childcare). */
-export function computeDeadlines(config: ScenarioConfig, result: SimulationResult, today: IsoDate): Deadline[] {
+/** Deadlines and key dates derived from the plan (birth date, leave periods, childcare). */
+export function computeDeadlines(config: VariantConfig, result: SimulationResult, today: IsoDate): Deadline[] {
   const items: Omit<Deadline, 'status'>[] = []
   const { birth, maternity, months } = result
   const birthMonth = monthKey(birth)

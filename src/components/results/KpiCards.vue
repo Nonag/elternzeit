@@ -4,9 +4,9 @@ import { computed } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import InfoTip from '@/components/fields/InfoTip.vue'
 import { euro, formatDate, signedEuro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { result, deadlines } = useScenarios()
+const { result, deadlines } = useVariants()
 
 const totals = computed(() => result.value.totals)
 const errors = computed(() => result.value.issues.filter((i) => i.severity === 'error').length)

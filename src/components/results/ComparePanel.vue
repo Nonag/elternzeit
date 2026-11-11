@@ -6,14 +6,14 @@ import { ChartContainer, ChartCrosshair, ChartLegendContent, ChartTooltip, type 
 import { simulate } from '@/engine/simulate'
 import type { SimulationResult } from '@/engine/result'
 import { euro, num, signedEuro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { state } = useScenarios()
+const { state } = useVariants()
 
 const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
-const selectedIds = ref<string[]>(state.scenarios.slice(0, 4).map((s) => s.id))
+const selectedIds = ref<string[]>(state.variants.slice(0, 4).map((s) => s.id))
 watch(
-  () => state.scenarios.map((s) => s.id),
+  () => state.variants.map((s) => s.id),
   (ids, previous) => {
     const added = ids.filter((id) => !previous?.includes(id))
     selectedIds.value = [...selectedIds.value.filter((id) => ids.includes(id)), ...added].slice(-5)
@@ -27,7 +27,7 @@ function toggle(id: string, value: boolean) {
 }
 
 const compared = computed(() =>
-  state.scenarios
+  state.variants
     .filter((s) => selectedIds.value.includes(s.id))
     .map((s, i) => ({ id: s.id, name: s.name, color: COLORS[i % COLORS.length], result: simulate(s.config) })),
 )
@@ -117,11 +117,11 @@ function tooltip(d: Datum | undefined): string {
 <template>
   <div class="grid gap-4">
     <div class="flex flex-wrap gap-x-4 gap-y-2">
-      <label v-for="scenario in state.scenarios" :key="scenario.id" class="flex items-center gap-1.5 text-sm">
-        <Checkbox :model-value="selectedIds.includes(scenario.id)" @update:model-value="(v) => toggle(scenario.id, v === true)" />
-        {{ scenario.name }}
+      <label v-for="variant in state.variants" :key="variant.id" class="flex items-center gap-1.5 text-sm">
+        <Checkbox :model-value="selectedIds.includes(variant.id)" @update:model-value="(v) => toggle(variant.id, v === true)" />
+        {{ variant.name }}
       </label>
-      <span v-if="state.scenarios.length < 2" class="text-muted-foreground text-xs">
+      <span v-if="state.variants.length < 2" class="text-muted-foreground text-xs">
         Tipp: Mit „Variante“ oben eine Kopie anlegen, ändern und hier vergleichen.
       </span>
     </div>

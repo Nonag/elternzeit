@@ -5,13 +5,13 @@ import { formatDate, formatMonthKey } from '@/engine/dates'
 import type { MonthRow } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
 import { num } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 import { LEGEND, monthStyle } from './planStyle'
 
-const emit = defineEmits<{ select: [parent: ParentKey, from: number, to: number, blockId: string | null] }>()
-const props = defineProps<{ selectedBlockId?: string | null }>()
+const emit = defineEmits<{ select: [parent: ParentKey, from: number, to: number, periodId: string | null] }>()
+const props = defineProps<{ selectedPeriodId?: string | null }>()
 
-const { result, config } = useScenarios()
+const { result, config } = useVariants()
 
 interface Segment {
   key: string
@@ -22,7 +22,7 @@ interface Segment {
   color: string
   textClass: string
   striped?: boolean
-  blockId: string | null
+  periodId: string | null
 }
 
 function buildSegments(months: MonthRow[], pick: (row: MonthRow) => Omit<Segment, 'key' | 'from' | 'to'> | null): Segment[] {
@@ -31,7 +31,7 @@ function buildSegments(months: MonthRow[], pick: (row: MonthRow) => Omit<Segment
     const value = pick(row)
     if (!value) continue
     const last = segments[segments.length - 1]
-    if (last && last.to === row.index - 1 && last.short === value.short && last.color === value.color && last.blockId === value.blockId) {
+    if (last && last.to === row.index - 1 && last.short === value.short && last.color === value.color && last.periodId === value.periodId) {
       last.to = row.index
     } else {
       segments.push({ ...value, key: `${row.index}-${value.short}`, from: row.index, to: row.index })
@@ -50,7 +50,7 @@ const lanes = computed(() => {
     parent: key as ParentKey | null,
     segments: buildSegments(months.value, (row) => {
       const style = monthStyle(row[key])
-      return { ...style, blockId: row[key].blockId }
+      return { ...style, periodId: row[key].periodId }
     }),
   }))
   const family = buildSegments(months.value, (row) =>
@@ -60,7 +60,7 @@ const lanes = computed(() => {
           short: `${num(row.care.family)} h`,
           color: 'var(--plan-family)',
           textClass: 'text-foreground',
-          blockId: null,
+          periodId: null,
         }
       : null,
   )
@@ -71,7 +71,7 @@ const lanes = computed(() => {
           short: row.care.settlingIn ? 'Eingew.' : `Kita ${config.value.childcare.hoursPerWeek} h`,
           color: 'var(--plan-childcare)',
           textClass: 'text-foreground',
-          blockId: null,
+          periodId: null,
         }
       : null,
   )
@@ -82,7 +82,7 @@ const lanes = computed(() => {
           short: `Lücke`,
           color: 'var(--destructive)',
           textClass: 'text-white',
-          blockId: null,
+          periodId: null,
         }
       : null,
   )
@@ -115,7 +115,7 @@ function rangeLabel(segment: Segment): string {
 }
 
 function onClick(parent: ParentKey | null, segment: Segment) {
-  if (parent) emit('select', parent, segment.from, segment.to, segment.blockId)
+  if (parent) emit('select', parent, segment.from, segment.to, segment.periodId)
 }
 </script>
 
@@ -146,7 +146,7 @@ function onClick(parent: ParentKey | null, segment: Segment) {
                     segment.textClass,
                     segment.striped ? 'plan-stripes' : '',
                     lane.parent ? 'cursor-pointer hover:ring-2 hover:ring-ring' : 'cursor-default',
-                    props.selectedBlockId && segment.blockId === props.selectedBlockId ? 'ring-2 ring-foreground' : '',
+                    props.selectedPeriodId && segment.periodId === props.selectedPeriodId ? 'ring-2 ring-foreground' : '',
                     segment.color === 'var(--plan-work)' ? 'border border-dashed' : '',
                   ]"
                   :style="{ gridColumn: `${segment.from} / ${segment.to + 1}`, backgroundColor: segment.color }"

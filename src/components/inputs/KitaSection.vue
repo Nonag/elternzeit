@@ -5,9 +5,9 @@ import FormField from '@/components/fields/FormField.vue'
 import MonthInput from '@/components/fields/MonthInput.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SwitchField from '@/components/fields/SwitchField.vue'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { config, result } = useScenarios()
+const { config, result } = useVariants()
 const childcare = computed(() => config.value.childcare)
 </script>
 

@@ -5,14 +5,14 @@ import { computePayroll } from './payroll'
 import type { Issue, SimulationResult } from './result'
 import { formatMonthList } from './rules'
 import type { VacationSummary } from './vacation'
-import type { ParentKey, ScenarioConfig } from './types'
+import type { ParentKey, VariantConfig } from './types'
 
 const euro = (value: number) =>
   value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
 
 /** Synergies and missed opportunities, each with an estimated effect in euros where possible. */
 export function evaluateTips(
-  config: ScenarioConfig,
+  config: VariantConfig,
   result: SimulationResult,
   vacation: Record<ParentKey, VacationSummary>,
 ): Issue[] {

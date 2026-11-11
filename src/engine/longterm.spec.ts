@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { computeDeadlines } from './deadlines'
-import { defaultScenario } from './defaults'
+import { exampleConfig } from './example'
 import { simulate } from './simulate'
 import { fullCalendarMonths } from './vacation'
 
 /** Worked example of the tests: due date and birth on 28.01.2027. */
-const exampleScenario = () => ({ ...defaultScenario(), dueDate: '2027-01-28' })
+const workedExample = () => ({ ...exampleConfig(), dueDate: '2027-01-28' })
 
 describe('vacation (§ 17 BEEG)', () => {
   it('counts only full calendar months', () => {
@@ -14,7 +14,7 @@ describe('vacation (§ 17 BEEG)', () => {
   })
 
   it('reduces the father’s vacation by 1/12 for a two-month leave aligned with life months', () => {
-    const result = simulate(exampleScenario())
+    const result = simulate(workedExample())
     const father = result.vacation.b
     expect(father.ranges).toHaveLength(1)
     expect(father.ranges[0]).toMatchObject({ start: '2028-01-28', end: '2028-03-27', lifeMonths: 2, fullCalendarMonths: 1 })
@@ -25,7 +25,7 @@ describe('vacation (§ 17 BEEG)', () => {
 
 describe('long-term effects', () => {
   it('credits child-raising periods to the assigned parent', () => {
-    const result = simulate(exampleScenario())
+    const result = simulate(workedExample())
     const mother = result.longTerm.pension.a
     // 35 calendar months of the 36 credit months fall into the 36-month horizon (Feb 2027 – Dec 2029).
     expect(mother.pointsChildRaising).toBeGreaterThan(2.8)
@@ -37,8 +37,8 @@ describe('long-term effects', () => {
 
 describe('deadlines', () => {
   it('derives the key dates for a birth on 28.01.2027', () => {
-    const config = exampleScenario()
-    config.blocks.b = [{ id: 'b1', from: 1, to: 2, leave: true, hours: 0, allowance: 'plus' }]
+    const config = workedExample()
+    config.periods.b = [{ id: 'b1', from: 1, to: 2, leave: true, hours: 0, allowance: 'plus' }]
     const result = simulate(config)
     const deadlines = computeDeadlines(config, result, '2026-11-09')
     const byId = Object.fromEntries(deadlines.map((d) => [d.id, d]))
@@ -52,8 +52,8 @@ describe('deadlines', () => {
   })
 
   it('counts the mother’s two binding years from the birth when Elternzeit follows Mutterschutz', () => {
-    const config = exampleScenario()
-    config.blocks.a = [...config.blocks.a, { id: 'a-late', from: 25, to: 26, leave: true, hours: 0, allowance: 'none' }]
+    const config = workedExample()
+    config.periods.a = [...config.periods.a, { id: 'a-late', from: 25, to: 26, leave: true, hours: 0, allowance: 'none' }]
     const result = simulate(config)
     const first = computeDeadlines(config, result, '2026-11-09').find((d) => d.id === 'leave-a-3')!
     expect(first.detail).toContain('26.03.2027 – 27.01.2028')

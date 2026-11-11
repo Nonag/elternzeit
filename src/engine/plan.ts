@@ -1,4 +1,4 @@
-import type { AllowanceVariant, ParentKey, PlanBlock, QuickParentPlan, QuickPlan, RelationshipStatus } from './types'
+import type { AllowanceType, ParentKey, PlanPeriod, ParentPlanOutline, PlanOutline, RelationshipStatus } from './types'
 
 let idCounter = 0
 export function createId(prefix = 'id'): string {
@@ -6,45 +6,45 @@ export function createId(prefix = 'id'): string {
   return `${prefix}-${Date.now().toString(36)}-${idCounter.toString(36)}`
 }
 
-export function sortBlocks(blocks: PlanBlock[]): PlanBlock[] {
-  return [...blocks].sort((x, y) => x.from - y.from || x.to - y.to)
+export function sortPeriods(periods: PlanPeriod[]): PlanPeriod[] {
+  return [...periods].sort((x, y) => x.from - y.from || x.to - y.to)
 }
 
-/** Inserts a block and trims or splits existing blocks it overlaps ("painting"). */
-export function paintBlock(blocks: PlanBlock[], block: PlanBlock): PlanBlock[] {
-  const result: PlanBlock[] = []
-  for (const existing of blocks) {
-    if (existing.id === block.id) continue
-    if (existing.to < block.from || existing.from > block.to) {
+/** Inserts a period and trims or splits existing periods it overlaps ("painting"). */
+export function paintPeriod(periods: PlanPeriod[], period: PlanPeriod): PlanPeriod[] {
+  const result: PlanPeriod[] = []
+  for (const existing of periods) {
+    if (existing.id === period.id) continue
+    if (existing.to < period.from || existing.from > period.to) {
       result.push(existing)
       continue
     }
-    if (existing.from < block.from) result.push({ ...existing, to: block.from - 1 })
-    if (existing.to > block.to) {
-      result.push({ ...existing, id: existing.from < block.from ? createId('block') : existing.id, from: block.to + 1 })
+    if (existing.from < period.from) result.push({ ...existing, to: period.from - 1 })
+    if (existing.to > period.to) {
+      result.push({ ...existing, id: existing.from < period.from ? createId('period') : existing.id, from: period.to + 1 })
     }
   }
-  result.push(block)
-  return sortBlocks(result)
+  result.push(period)
+  return sortPeriods(result)
 }
 
-/** Removes overlaps (later blocks in the list win) and invalid ranges. */
-export function normalizeBlocks(blocks: PlanBlock[]): PlanBlock[] {
-  let result: PlanBlock[] = []
-  for (const block of blocks) {
-    const from = Math.max(1, Math.round(block.from))
-    const to = Math.max(from, Math.round(block.to))
-    result = paintBlock(result, { ...block, from, to })
+/** Removes overlaps (later periods in the list win) and invalid ranges. */
+export function normalizePeriods(periods: PlanPeriod[]): PlanPeriod[] {
+  let result: PlanPeriod[] = []
+  for (const period of periods) {
+    const from = Math.max(1, Math.round(period.from))
+    const to = Math.max(from, Math.round(period.to))
+    result = paintPeriod(result, { ...period, from, to })
   }
   return result
 }
 
-function quickParentBlocks(plan: QuickParentPlan): PlanBlock[] {
-  const blocks: PlanBlock[] = []
+function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
+  const periods: PlanPeriod[] = []
   let cursor = Math.max(1, plan.start)
   if (plan.leaveMonths > 0) {
-    blocks.push({
-      id: createId('block'),
+    periods.push({
+      id: createId('period'),
       from: cursor,
       to: cursor + plan.leaveMonths - 1,
       leave: true,
@@ -54,8 +54,8 @@ function quickParentBlocks(plan: QuickParentPlan): PlanBlock[] {
     cursor += plan.leaveMonths
   }
   if (plan.partTimeMonths > 0) {
-    blocks.push({
-      id: createId('block'),
+    periods.push({
+      id: createId('period'),
       from: cursor,
       to: cursor + plan.partTimeMonths - 1,
       leave: true,
@@ -63,29 +63,29 @@ function quickParentBlocks(plan: QuickParentPlan): PlanBlock[] {
       allowance: plan.partTimeAllowance,
     })
   }
-  return blocks
+  return periods
 }
 
-function fullLeaveEnd(plan: QuickParentPlan): number {
+function fullLeaveEnd(plan: ParentPlanOutline): number {
   return plan.leaveMonths > 0 ? Math.max(1, plan.start) + plan.leaveMonths - 1 : 0
 }
 
-/** Builds blocks from key figures (used for presets and to migrate old scenarios). */
-export function generateQuickPlan(quick: QuickPlan, relationship: RelationshipStatus): Record<ParentKey, PlanBlock[]> {
-  let a = quickParentBlocks(quick.a)
-  let b = relationship === 'single' ? [] : quickParentBlocks(quick.b)
-  if (quick.bonusMonths >= 2) {
-    const start = quick.bonusStart ?? Math.max(fullLeaveEnd(quick.a), fullLeaveEnd(quick.b)) + 1
-    const bonus = (): PlanBlock => ({
-      id: createId('block'),
+/** Builds periods from key figures (used for presets and to migrate old variants). */
+export function periodsFromOutline(outline: PlanOutline, relationship: RelationshipStatus): Record<ParentKey, PlanPeriod[]> {
+  let a = parentPeriodsFromOutline(outline.a)
+  let b = relationship === 'single' ? [] : parentPeriodsFromOutline(outline.b)
+  if (outline.bonusMonths >= 2) {
+    const start = outline.bonusStart ?? Math.max(fullLeaveEnd(outline.a), fullLeaveEnd(outline.b)) + 1
+    const bonus = (): PlanPeriod => ({
+      id: createId('period'),
       from: start,
-      to: start + quick.bonusMonths - 1,
+      to: start + outline.bonusMonths - 1,
       leave: true,
-      hours: quick.bonusHours,
+      hours: outline.bonusHours,
       allowance: 'bonus',
     })
-    a = paintBlock(a, bonus())
-    if (relationship !== 'single') b = paintBlock(b, bonus())
+    a = paintPeriod(a, bonus())
+    if (relationship !== 'single') b = paintPeriod(b, bonus())
   }
   return { a, b }
 }
@@ -94,26 +94,26 @@ export interface MonthPlan {
   leave: boolean
   hours: number
   hoursMissing: boolean
-  allowance: AllowanceVariant
-  blockId: string | null
+  allowance: AllowanceType
+  periodId: string | null
 }
 
-export function expandBlocks(blocks: PlanBlock[], horizon: number, contractHours: number): MonthPlan[] {
+export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHours: number): MonthPlan[] {
   const months: MonthPlan[] = Array.from({ length: horizon }, () => ({
     leave: false,
     hours: contractHours,
     hoursMissing: false,
-    allowance: 'none' as AllowanceVariant,
-    blockId: null,
+    allowance: 'none' as AllowanceType,
+    periodId: null,
   }))
-  for (const block of blocks) {
-    for (let m = Math.max(1, block.from); m <= Math.min(horizon, block.to); m++) {
+  for (const period of periods) {
+    for (let m = Math.max(1, period.from); m <= Math.min(horizon, period.to); m++) {
       months[m - 1] = {
-        leave: block.leave,
-        hours: block.hours ?? 0,
-        hoursMissing: block.hours === null,
-        allowance: block.allowance,
-        blockId: block.id,
+        leave: period.leave,
+        hours: period.hours ?? 0,
+        hoursMissing: period.hours === null,
+        allowance: period.allowance,
+        periodId: period.id,
       }
     }
   }
@@ -124,7 +124,7 @@ export interface PlanPreset {
   id: string
   label: string
   description: string
-  quick: QuickPlan
+  outline: PlanOutline
 }
 
 const noPartTime = { partTimeMonths: 0, partTimeHours: 30, partTimeAllowance: 'plus' as const }
@@ -134,7 +134,7 @@ export const PLAN_PRESETS: PlanPreset[] = [
     id: 'classic',
     label: 'Klassisch 12 + 2',
     description: 'Mutter 12 Monate Basiselterngeld, danach Vater 2 Monate.',
-    quick: {
+    outline: {
       a: { start: 1, leaveMonths: 12, leaveAllowance: 'basic', ...noPartTime },
       b: { start: 13, leaveMonths: 2, leaveAllowance: 'basic', ...noPartTime },
       bonusMonths: 0,
@@ -146,7 +146,7 @@ export const PLAN_PRESETS: PlanPreset[] = [
     id: 'start-together',
     label: 'Start zu zweit',
     description: 'Mutter 12 Monate Basiselterngeld, Vater die ersten 4 Monate mit ElterngeldPlus zu Hause.',
-    quick: {
+    outline: {
       a: { start: 1, leaveMonths: 12, leaveAllowance: 'basic', ...noPartTime },
       b: { start: 1, leaveMonths: 4, leaveAllowance: 'plus', ...noPartTime },
       bonusMonths: 0,
@@ -158,7 +158,7 @@ export const PLAN_PRESETS: PlanPreset[] = [
     id: 'equal',
     label: 'Halbe-Halbe 7 + 7',
     description: 'Mutter Monat 1–7, Vater Monat 8–14, jeweils Basiselterngeld.',
-    quick: {
+    outline: {
       a: { start: 1, leaveMonths: 7, leaveAllowance: 'basic', ...noPartTime },
       b: { start: 8, leaveMonths: 7, leaveAllowance: 'basic', ...noPartTime },
       bonusMonths: 0,
@@ -170,7 +170,7 @@ export const PLAN_PRESETS: PlanPreset[] = [
     id: 'plus-long',
     label: 'Länger mit Plus',
     description: 'Mutter 22 Monate mit ElterngeldPlus, danach Vater 4 Monate Teilzeit mit Plus.',
-    quick: {
+    outline: {
       a: { start: 1, leaveMonths: 22, leaveAllowance: 'plus', ...noPartTime },
       b: { start: 23, leaveMonths: 0, leaveAllowance: 'plus', partTimeMonths: 4, partTimeHours: 25, partTimeAllowance: 'plus' },
       bonusMonths: 0,
@@ -182,7 +182,7 @@ export const PLAN_PRESETS: PlanPreset[] = [
     id: 'partnership',
     label: 'Partnerschaftlich mit Bonus',
     description: 'Mutter Monat 1–10, Vater Monat 11–14, danach beide 4 Monate 30 Stunden mit Partnerschaftsbonus.',
-    quick: {
+    outline: {
       a: { start: 1, leaveMonths: 10, leaveAllowance: 'basic', ...noPartTime },
       b: { start: 11, leaveMonths: 4, leaveAllowance: 'basic', ...noPartTime },
       bonusMonths: 4,

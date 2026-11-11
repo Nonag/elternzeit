@@ -8,18 +8,18 @@ import FormField from '@/components/fields/FormField.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import { addMonths } from '@/engine/dates'
 import { createId } from '@/engine/plan'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { config, result } = useScenarios()
+const { config, result } = useVariants()
 
 // The calendar is limited to the planning period and marks where each life month starts.
 const lifeMonthStarts = computed(() => result.value.months.map((m) => m.start))
 const planEnd = computed(() => result.value.months[result.value.months.length - 1].end)
 
-function addSupport() {
+function addFamilyCare() {
   const birth = result.value.birth
-  config.value.support.push({
-    id: createId('support'),
+  config.value.familyCare.push({
+    id: createId('care'),
     label: 'Großeltern',
     from: addMonths(birth, 12).date,
     to: addMonths(birth, 18).date,
@@ -34,10 +34,10 @@ function addSupport() {
     <p class="text-muted-foreground text-xs leading-relaxed">
       Zeiten, in denen Großeltern oder Freunde das Kind betreuen, während ihr beide arbeitet.
     </p>
-    <div v-for="(period, i) in config.support" :key="period.id" class="grid gap-3 rounded-lg border p-3">
+    <div v-for="(period, i) in config.familyCare" :key="period.id" class="grid gap-3 rounded-lg border p-3">
       <div class="flex items-center gap-2">
         <Input v-model="period.label" class="h-9 flex-1" aria-label="Wer betreut?" />
-        <Button variant="ghost" size="icon" aria-label="Zeitraum entfernen" @click="config.support.splice(i, 1)"><Trash2Icon /></Button>
+        <Button variant="ghost" size="icon" aria-label="Zeitraum entfernen" @click="config.familyCare.splice(i, 1)"><Trash2Icon /></Button>
       </div>
       <FormField label="Zeitraum">
         <DateRangeInput
@@ -57,6 +57,6 @@ function addSupport() {
         </FormField>
       </div>
     </div>
-    <Button variant="outline" class="h-9 w-full" @click="addSupport"><PlusIcon /> Zeitraum hinzufügen</Button>
+    <Button variant="outline" class="h-9 w-full" @click="addFamilyCare"><PlusIcon /> Zeitraum hinzufügen</Button>
   </div>
 </template>

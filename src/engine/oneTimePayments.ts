@@ -18,7 +18,7 @@ import { CONTRIBUTION_RATES, yearParameters } from './params'
 import { maxPrivateEmployerSubsidy, PAP_YEAR, round2 } from './payroll'
 import type { OneTimePaymentResult, ParentMonth } from './result'
 import { annualWageTaxAdjustment, incomeTax } from './tax'
-import type { OneTimePayment, ParentConfig, ParentKey, ScenarioConfig } from './types'
+import type { OneTimePayment, ParentConfig, ParentKey, VariantConfig } from './types'
 
 /*
  * One-time payments from the employer (bonus, premium) are sonstige Bezüge:
@@ -29,7 +29,7 @@ import type { OneTimePayment, ParentConfig, ParentKey, ScenarioConfig } from './
  */
 
 export interface PaymentContext {
-  config: ScenarioConfig
+  config: VariantConfig
   birth: IsoDate
   maternity: MaternityPeriod
   /** Mutterschaftsgeld plus employer top-up per day. */

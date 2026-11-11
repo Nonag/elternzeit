@@ -6,9 +6,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { diffDays } from '@/engine/dates'
 import type { Deadline, DeadlineStatus } from '@/engine/deadlines'
 import { formatDate } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { deadlines, config, today, result } = useScenarios()
+const { deadlines, config, today, result } = useVariants()
 const hidePast = ref(false)
 
 const STATUS: Record<DeadlineStatus, { label: string; className: string; icon: typeof ClockIcon }> = {

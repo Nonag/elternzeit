@@ -4,15 +4,13 @@ export type ParentKey = 'a' | 'b'
 export type TaxClass = 1 | 2 | 3 | 4 | 5 | 6
 export type RelationshipStatus = 'married' | 'unmarried' | 'single'
 export type HealthInsurance = 'statutory' | 'statutoryVoluntary' | 'private'
-export type AllowanceVariant = 'none' | 'basic' | 'plus' | 'bonus'
-export type QuickAllowance = 'none' | 'basic' | 'plus'
+export type AllowanceType = 'none' | 'basic' | 'plus' | 'bonus'
+export type OutlineAllowance = 'none' | 'basic' | 'plus'
 
 export interface ParentConfig {
   name: string
   /** Regular monthly gross salary at contract hours (laufender Arbeitslohn). */
   grossMonthly: number
-  /** Average gross in the Bemessungszeitraum if it differs from `grossMonthly`. */
-  allowanceGross: number | null
   weeklyHours: number
   workDaysPerWeek: number
   /** Tax class valid during the Bemessungszeitraum (and until birth). */
@@ -42,7 +40,7 @@ export interface OneTimePayment {
   month: string
 }
 
-export interface PlanBlock {
+export interface PlanPeriod {
   id: string
   /** First life month (1-based). */
   from: number
@@ -52,28 +50,28 @@ export interface PlanBlock {
   leave: boolean
   /** Weekly working hours in this period (null = not entered yet). */
   hours: number | null
-  allowance: AllowanceVariant
+  allowance: AllowanceType
 }
 
-export interface QuickParentPlan {
+export interface ParentPlanOutline {
   start: number
   leaveMonths: number
-  leaveAllowance: QuickAllowance
+  leaveAllowance: OutlineAllowance
   partTimeMonths: number
   partTimeHours: number
-  partTimeAllowance: QuickAllowance
+  partTimeAllowance: OutlineAllowance
 }
 
-export interface QuickPlan {
-  a: QuickParentPlan
-  b: QuickParentPlan
+export interface PlanOutline {
+  a: ParentPlanOutline
+  b: ParentPlanOutline
   bonusMonths: number
   /** First life month of the Partnerschaftsbonus (null = directly after both full-time leaves). */
   bonusStart: number | null
   bonusHours: number
 }
 
-export interface SupportPeriod {
+export interface FamilyCarePeriod {
   id: string
   label: string
   from: IsoDate
@@ -111,8 +109,7 @@ export interface ChildcareConfig {
   mealDaysPerWeek: number
 }
 
-export interface ScenarioConfig {
-  version: 1
+export interface VariantConfig {
   relationship: RelationshipStatus
   dueDate: IsoDate
   /** Actual birth date once known; null = due date. */
@@ -124,18 +121,18 @@ export interface ScenarioConfig {
   siblingBonus: boolean
   churchTaxRate: number
   horizonMonths: number
-  blocks: Record<ParentKey, PlanBlock[]>
+  periods: Record<ParentKey, PlanPeriod[]>
   parents: Record<ParentKey, ParentConfig>
-  fixedCostsBefore: number
+  fixedCosts: number
   childCosts: CostItem[]
   oneTimeCosts: OneTimeCost[]
   childcare: ChildcareConfig
-  support: SupportPeriod[]
-  startBalance: number
+  familyCare: FamilyCarePeriod[]
+  balanceAtBirth: number
   minReserve: number
   employerReducesVacation: boolean
   /** Parent who receives the Kindererziehungszeiten (pension credits). */
-  pensionCreditTo: ParentKey
+  childRaisingCreditTo: ParentKey
   assumptions: LongTermAssumptions
   /** Ids of checklist deadlines marked as done. */
   doneDeadlines: string[]

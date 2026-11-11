@@ -6,9 +6,9 @@ import InfoTip from '@/components/fields/InfoTip.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import type { ParentKey } from '@/engine/types'
 import { euro, num, signedEuro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { result, config } = useScenarios()
+const { result, config } = useVariants()
 
 const longTerm = computed(() => result.value.longTerm)
 const parentOptions = computed(() => result.value.activeParents.map((k) => ({ value: k as ParentKey, label: result.value.parents[k].name })))
@@ -20,7 +20,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
   <div class="grid gap-5">
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <FormField label="Kindererziehungszeiten für" hint="Für die ersten drei Lebensjahre bekommt ein Elternteil zusätzliche Rentenpunkte, etwa einen pro Jahr – ohne Antrag die Mutter. Eine andere Aufteilung geht per gemeinsamer Erklärung, höchstens zwei Monate rückwirkend.">
-        <ChoiceToggle v-model="config.pensionCreditTo" :options="parentOptions" />
+        <ChoiceToggle v-model="config.childRaisingCreditTo" :options="parentOptions" />
       </FormField>
       <FormField label="Rendite Ersparnisse p. a.">
         <NumberInput v-model="config.assumptions.returnRate" :min="0" :max="12" :step="0.5" :decimals="1" unit="%" />

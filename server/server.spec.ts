@@ -11,7 +11,7 @@ let base: string
 
 beforeEach(async () => {
   store = openStore(':memory:', { maxPlannings: 3 })
-  server = createApp(store, { html: Buffer.from('<!doctype html><title>Elternzeit-Planer</title>'), failedLoginDelayMs: 0 })
+  server = createApp(store, { html: Buffer.from('<!doctype html><title>Elternzeit-Planer</title>'), unauthorizedDelayMs: 0 })
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
 })
@@ -40,7 +40,7 @@ function rawGet(path: string, headers: Record<string, string>): Promise<{ header
   })
 }
 
-const planning = (name = 'Variante A') => ({ app: 'elternzeit-planer', version: 1, scenarios: [{ id: 's1', name, config: {} }] })
+const planning = (name = 'Variante A') => ({ app: 'elternzeit-planer', version: 2, variants: [{ id: 's1', name, config: {} }] })
 
 describe('server', () => {
   it('serves the app for every path outside /api, compressed on request', async () => {

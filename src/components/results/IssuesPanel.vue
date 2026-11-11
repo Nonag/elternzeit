@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge'
 import type { IssueSeverity } from '@/engine/result'
 import { formatMonthList } from '@/engine/rules'
 import { signedEuro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { result } = useScenarios()
+const { result } = useVariants()
 
 const ORDER: IssueSeverity[] = ['error', 'warning', 'info', 'success']
 const META: Record<IssueSeverity, { icon: typeof InfoIcon; className: string }> = {

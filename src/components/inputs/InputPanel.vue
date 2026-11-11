@@ -6,10 +6,10 @@ import CostsSection from './CostsSection.vue'
 import FamilySection from './FamilySection.vue'
 import KitaSection from './KitaSection.vue'
 import ParentSection from './ParentSection.vue'
-import SupportSection from './SupportSection.vue'
-import { useScenarios } from '@/stores/scenarios'
+import FamilyCareSection from './FamilyCareSection.vue'
+import { useVariants } from '@/stores/variants'
 
-const { config } = useScenarios()
+const { config } = useVariants()
 const parentKeys = computed(() => (config.value.relationship === 'single' ? (['a'] as const) : (['a', 'b'] as const)))
 </script>
 
@@ -39,11 +39,11 @@ const parentKeys = computed(() => (config.value.relationship === 'single' ? (['a
       </AccordionTrigger>
       <AccordionContent class="px-5 pb-6"><KitaSection /></AccordionContent>
     </AccordionItem>
-    <AccordionItem value="support">
+    <AccordionItem value="family-care">
       <AccordionTrigger class="px-5 py-4 hover:no-underline">
         <span class="flex items-center gap-2.5"><UsersIcon class="size-4" /> Familie &amp; Freunde</span>
       </AccordionTrigger>
-      <AccordionContent class="px-5 pb-6"><SupportSection /></AccordionContent>
+      <AccordionContent class="px-5 pb-6"><FamilyCareSection /></AccordionContent>
     </AccordionItem>
   </Accordion>
 </template>

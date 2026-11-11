@@ -6,9 +6,9 @@ import FormField from '@/components/fields/FormField.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SwitchField from '@/components/fields/SwitchField.vue'
 import type { RelationshipStatus } from '@/engine/types'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { config } = useScenarios()
+const { config } = useVariants()
 
 const relationshipOptions: { value: RelationshipStatus; label: string }[] = [
   { value: 'married', label: 'Verheiratet' },

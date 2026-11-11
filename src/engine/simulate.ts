@@ -21,7 +21,7 @@ import {
 } from './parentalAllowance'
 import { computePayroll, round2, voluntaryMinimumContribution } from './payroll'
 import { computeLongTerm } from './pension'
-import { expandBlocks, normalizeBlocks, type MonthPlan } from './plan'
+import { expandPeriods, normalizePeriods, type MonthPlan } from './plan'
 import type {
   AllowanceCounts,
   CareCoverage,
@@ -34,7 +34,7 @@ import type {
 } from './result'
 import { evaluateRules } from './rules'
 import { evaluateTips } from './tips'
-import type { ParentConfig, ParentKey, PlanBlock, RelationshipStatus, ScenarioConfig, TaxClass } from './types'
+import type { ParentConfig, ParentKey, PlanPeriod, RelationshipStatus, VariantConfig, TaxClass } from './types'
 import { computeVacation } from './vacation'
 
 const PARENT_KEYS: ParentKey[] = ['a', 'b']
@@ -57,7 +57,7 @@ const EMPTY_MONTH: ParentMonth = {
   healthCosts: 0,
   fullTimeNet: 0,
   total: 0,
-  blockId: null,
+  periodId: null,
 }
 
 /** Kinderfreibetragszähler after birth (only affects Soli and church tax). */
@@ -85,19 +85,19 @@ function average(values: number[]): number | null {
   return values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : null
 }
 
-export function effectiveBlocks(config: ScenarioConfig): Record<ParentKey, PlanBlock[]> {
+export function effectivePeriods(config: VariantConfig): Record<ParentKey, PlanPeriod[]> {
   return {
-    a: normalizeBlocks(config.blocks.a),
-    b: config.relationship === 'single' ? [] : normalizeBlocks(config.blocks.b),
+    a: normalizePeriods(config.periods.a),
+    b: config.relationship === 'single' ? [] : normalizePeriods(config.periods.b),
   }
 }
 
 /** Rough zvE estimate for the income limit check (wages minus lump sums and social contributions). */
-function estimateTaxableIncome(config: ScenarioConfig, activeParents: ParentKey[]): number {
+function estimateTaxableIncome(config: VariantConfig, activeParents: ParentKey[]): number {
   let total = 0
   for (const key of activeParents) {
     const parent = config.parents[key]
-    const gross = parent.allowanceGross ?? parent.grossMonthly
+    const gross = parent.grossMonthly
     if (gross <= 0) continue
     const payroll = computePayroll({
       year: 2026,
@@ -118,13 +118,13 @@ function estimateTaxableIncome(config: ScenarioConfig, activeParents: ParentKey[
   return Math.round(total)
 }
 
-export function simulate(config: ScenarioConfig): SimulationResult {
+export function simulate(config: VariantConfig): SimulationResult {
   const birth = config.birthDate ?? config.dueDate
   const horizon = Math.min(96, Math.max(12, Math.round(config.horizonMonths)))
   const lms = lifeMonths(birth, horizon)
   const activeParents: ParentKey[] = config.relationship === 'single' ? ['a'] : ['a', 'b']
   const isActive = (key: ParentKey) => activeParents.includes(key)
-  const blocks = effectiveBlocks(config)
+  const periods = effectivePeriods(config)
   const children = Math.max(1, Math.round(config.children))
   const maternity = computeMaternityPeriod(config.dueDate, birth, config.extendedMaternity || children > 1)
   const supplements: AllowanceSupplements = { siblingBonus: config.siblingBonus, additionalChildren: children - 1 }
@@ -156,9 +156,9 @@ export function simulate(config: ScenarioConfig): SimulationResult {
         statutoryHealthCompulsory: parent.healthInsurance === 'statutory',
         pensionInsured: parent.pensionInsured,
       }
-      const allowanceNet = computeAllowanceNet({ ...allowanceNetInput, gross: parent.allowanceGross ?? parent.grossMonthly })
+      const allowanceNet = computeAllowanceNet({ ...allowanceNetInput, gross: parent.grossMonthly })
       const base = computeAllowanceBase(allowanceNet.net, supplements)
-      const plan: MonthPlan[] = expandBlocks(blocks[key], horizon, parent.weeklyHours)
+      const plan: MonthPlan[] = expandPeriods(periods[key], horizon, parent.weeklyHours)
       return [key, { parent, realNetBefore, allowanceNetInput, allowanceNet, base, plan }]
     }),
   ) as Record<
@@ -242,7 +242,7 @@ export function simulate(config: ScenarioConfig): SimulationResult {
         healthCosts: round2(healthCosts),
         fullTimeNet: reference.net,
         total: 0,
-        blockId: planMonth.blockId,
+        periodId: planMonth.periodId,
       })
     }
   }
@@ -398,7 +398,7 @@ export function simulate(config: ScenarioConfig): SimulationResult {
 
   // Household rows
   const initialBalance = round2(
-    config.startBalance -
+    config.balanceAtBirth -
       config.oneTimeCosts.filter((c) => c.month <= 0).reduce((sum, c) => sum + c.amount, 0) +
       oneTimePayments.filter((p) => p.lifeMonth === 0).reduce((sum, p) => sum + p.net, 0),
   )
@@ -413,11 +413,11 @@ export function simulate(config: ScenarioConfig): SimulationResult {
       .reduce((sum, c) => sum + c.monthly, 0)
     const oneTimeCosts = config.oneTimeCosts.filter((c) => c.month === lm.index).reduce((sum, c) => sum + c.amount, 0)
     const healthCosts = round2(a.healthCosts + b.healthCosts)
-    const expenses = round2(config.fixedCostsBefore + childCosts + childcareFee[i] + healthCosts + oneTimeCosts)
+    const expenses = round2(config.fixedCosts + childCosts + childcareFee[i] + healthCosts + oneTimeCosts)
     const balanceChange = round2(income - expenses)
     balance = round2(balance + balanceChange)
 
-    const familyHours = config.support.reduce((sum, period) => {
+    const familyHours = config.familyCare.reduce((sum, period) => {
       if (!period.from || !period.to) return sum
       const share = overlapDays(lm.start, lm.end, period.from, period.to) / lm.days
       return sum + share * period.daysPerWeek * period.hoursPerDay
@@ -455,7 +455,7 @@ export function simulate(config: ScenarioConfig): SimulationResult {
       income,
       preBirthIncome,
       delta: round2(income - preBirthIncome),
-      fixedCosts: config.fixedCostsBefore,
+      fixedCosts: config.fixedCosts,
       childCosts,
       childcareFee: round2(childcareFee[i]),
       healthCosts,
@@ -536,7 +536,7 @@ export function simulate(config: ScenarioConfig): SimulationResult {
     months,
     parents,
     activeParents,
-    blocks,
+    periods,
     entitlement,
     childcare: { startMonthIndex: childcareStartIndex, annualIncomeByYear },
     estimatedTaxableIncome,
@@ -562,7 +562,7 @@ export function simulate(config: ScenarioConfig): SimulationResult {
   result.issues = [
     ...evaluateRules({
       config,
-      blocks,
+      periods,
       months,
       activeParents,
       parents,

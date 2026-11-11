@@ -60,15 +60,15 @@ function credentials(req: IncomingMessage, scheme: 'Bearer' | 'Basic'): string {
 export interface AppOptions {
   /** The built single-file app, or null if it is missing (development). */
   html: Buffer | null
-  /** Delay before answering a failed login, against password guessing. */
-  failedLoginDelayMs?: number
+  /** Delay before every 401 answer, against password guessing. */
+  unauthorizedDelayMs?: number
 }
 
-export function createApp(store: Store, { html, failedLoginDelayMs = 1000 }: AppOptions): Server {
+export function createApp(store: Store, { html, unauthorizedDelayMs = 1000 }: AppOptions): Server {
   const gzippedHtml = html ? gzipSync(html) : null
 
   async function unauthorized(res: ServerResponse) {
-    await new Promise((resolve) => setTimeout(resolve, failedLoginDelayMs))
+    await new Promise((resolve) => setTimeout(resolve, unauthorizedDelayMs))
     send(res, 401, { error: 'unauthorized' })
   }
 
@@ -121,7 +121,7 @@ export function createApp(store: Store, { html, failedLoginDelayMs = 1000 }: App
 
       case 'POST /api/planning/session': {
         const { name, password } = await readJson(req)
-        const session = store.login(text(name), text(password))
+        const session = store.openSession(text(name), text(password))
         return session ? send(res, 200, session) : unauthorized(res)
       }
 

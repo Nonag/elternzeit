@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { defaultScenario } from './defaults'
+import { exampleConfig } from './example'
 import { simulate } from './simulate'
-import type { OneTimePayment, ParentKey, ScenarioConfig } from './types'
+import type { OneTimePayment, ParentKey, VariantConfig } from './types'
 
 /** Worked example of the tests: due date and birth on 28.01.2027. */
-const exampleScenario = () => ({ ...defaultScenario(), dueDate: '2027-01-28' })
+const workedExample = () => ({ ...exampleConfig(), dueDate: '2027-01-28' })
 
-function withPayments(key: ParentKey, payments: Omit<OneTimePayment, 'id' | 'label'>[], patch: (config: ScenarioConfig) => void = () => {}) {
-  const config = exampleScenario()
+function withPayments(key: ParentKey, payments: Omit<OneTimePayment, 'id' | 'label'>[], patch: (config: VariantConfig) => void = () => {}) {
+  const config = workedExample()
   config.parents[key].oneTimePayments = payments.map((p, i) => ({ id: `p${i + 1}`, label: 'Bonus', ...p }))
   patch(config)
   return simulate(config)
@@ -15,7 +15,7 @@ function withPayments(key: ParentKey, payments: Omit<OneTimePayment, 'id' | 'lab
 
 describe('one-time payments', () => {
   it('pays a bonus during Elternzeit without deductions and leaves Elterngeld unchanged', () => {
-    const base = simulate(exampleScenario())
+    const base = simulate(workedExample())
     const result = withPayments('a', [{ gross: 3000, month: '2027-05' }])
     const [payment] = result.oneTimePayments
     expect(payment).toMatchObject({ lifeMonth: 4, tax: 0, contributions: 0, net: 3000, contributionYear: 2027, betterMonth: null })
@@ -62,7 +62,7 @@ describe('one-time payments', () => {
   })
 
   it('adds a payout before the birth to the starting balance', () => {
-    const base = simulate(exampleScenario())
+    const base = simulate(workedExample())
     const result = withPayments('a', [{ gross: 1000, month: '2026-11' }])
     const [payment] = result.oneTimePayments
     expect(payment.lifeMonth).toBe(0)
@@ -71,7 +71,7 @@ describe('one-time payments', () => {
   })
 
   it('counts the gross amount for the Cologne Kita fee in the year of the payout', () => {
-    const base = simulate(exampleScenario())
+    const base = simulate(workedExample())
     const result = withPayments('a', [{ gross: 20000, month: '2028-09' }])
     expect(result.childcare.annualIncomeByYear[2028] - base.childcare.annualIncomeByYear[2028]).toBe(20000)
   })

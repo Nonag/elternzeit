@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import SwitchField from '@/components/fields/SwitchField.vue'
 import { formatDate, num } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { result, config } = useScenarios()
+const { result, config } = useVariants()
 </script>
 
 <template>

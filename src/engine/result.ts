@@ -2,7 +2,7 @@ import type { IsoDate } from './dates'
 import type { MaternityBenefitRate, MaternityPeriod } from './maternity'
 import type { AllowanceBase, AllowanceNetResult } from './parentalAllowance'
 import type { LongTermResult } from './pension'
-import type { AllowanceVariant, ParentKey, PlanBlock } from './types'
+import type { AllowanceType, ParentKey, PlanPeriod } from './types'
 import type { VacationSummary } from './vacation'
 
 export interface ParentMonth {
@@ -10,7 +10,7 @@ export interface ParentMonth {
   leave: boolean
   /** Weekly working hours (0 while not working). */
   hours: number
-  allowance: AllowanceVariant
+  allowance: AllowanceType
   maternityDays: number
   /** Allowance forced to Basiselterngeld because of Mutterschaftsleistungen. */
   maternityLocked: boolean
@@ -30,7 +30,7 @@ export interface ParentMonth {
   /** Net pay at contract hours after birth (used for the personal income loss). */
   fullTimeNet: number
   total: number
-  blockId: string | null
+  periodId: string | null
 }
 
 export interface OneTimePaymentResult {
@@ -165,7 +165,7 @@ export interface SimulationResult {
   months: MonthRow[]
   parents: Record<ParentKey, ParentSummary>
   activeParents: ParentKey[]
-  blocks: Record<ParentKey, PlanBlock[]>
+  periods: Record<ParentKey, PlanPeriod[]>
   entitlement: EntitlementSummary
   childcare: {
     startMonthIndex: number | null

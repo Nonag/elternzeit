@@ -6,16 +6,16 @@ import { Switch } from '@/components/ui/switch'
 import InfoTip from '@/components/fields/InfoTip.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SelectField from '@/components/fields/SelectField.vue'
-import { createId, normalizeBlocks, sortBlocks } from '@/engine/plan'
-import type { AllowanceVariant, ParentKey, PlanBlock } from '@/engine/types'
-import { useScenarios } from '@/stores/scenarios'
+import { createId, normalizePeriods, sortPeriods } from '@/engine/plan'
+import type { AllowanceType, ParentKey, PlanPeriod } from '@/engine/types'
+import { useVariants } from '@/stores/variants'
 
 const selected = defineModel<string | null>('selected', { default: null })
-const { config, result } = useScenarios()
+const { config, result } = useVariants()
 
 const parentKeys = computed<ParentKey[]>(() => result.value.activeParents)
 
-const allowanceOptions: { value: AllowanceVariant; label: string }[] = [
+const allowanceOptions: { value: AllowanceType; label: string }[] = [
   { value: 'none', label: 'kein Elterngeld' },
   { value: 'basic', label: 'Basiselterngeld' },
   { value: 'plus', label: 'ElterngeldPlus' },
@@ -25,35 +25,35 @@ const allowanceOptions: { value: AllowanceVariant; label: string }[] = [
 // Compact enough for two parents side by side (from ~54rem card width) without horizontal scrolling.
 const GRID = 'grid grid-cols-[3.25rem_3.25rem_2.5rem_4.25rem_minmax(0,1fr)_2rem] items-center gap-1.5'
 
-function blocksOf(key: ParentKey): PlanBlock[] {
-  return sortBlocks(config.value.blocks[key])
+function periodsOf(key: ParentKey): PlanPeriod[] {
+  return sortPeriods(config.value.periods[key])
 }
 
-/** Applies a change; the edited block wins overlaps with other blocks. Hours are never filled in automatically. */
-function update(key: ParentKey, id: string, patch: Partial<PlanBlock>) {
-  const blocks = config.value.blocks[key]
-  const block = blocks.find((b) => b.id === id)
-  if (!block) return
-  const edited = { ...block, ...patch }
+/** Applies a change; the edited period wins overlaps with other periods. Hours are never filled in automatically. */
+function update(key: ParentKey, id: string, patch: Partial<PlanPeriod>) {
+  const periods = config.value.periods[key]
+  const period = periods.find((b) => b.id === id)
+  if (!period) return
+  const edited = { ...period, ...patch }
   if (edited.to < edited.from) edited.to = edited.from
-  config.value.blocks[key] = normalizeBlocks([...blocks.filter((b) => b.id !== id), edited])
+  config.value.periods[key] = normalizePeriods([...periods.filter((b) => b.id !== id), edited])
 }
 
 function add(key: ParentKey) {
-  const blocks = config.value.blocks[key]
-  const start = blocks.length ? Math.max(...blocks.map((b) => b.to)) + 1 : 1
-  const block: PlanBlock = { id: createId('block'), from: start, to: start + 1, leave: true, hours: 0, allowance: 'none' }
-  config.value.blocks[key] = normalizeBlocks([...blocks, block])
-  selected.value = block.id
+  const periods = config.value.periods[key]
+  const start = periods.length ? Math.max(...periods.map((b) => b.to)) + 1 : 1
+  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, leave: true, hours: 0, allowance: 'none' }
+  config.value.periods[key] = normalizePeriods([...periods, period])
+  selected.value = period.id
 }
 
 function remove(key: ParentKey, id: string) {
-  config.value.blocks[key] = config.value.blocks[key].filter((b) => b.id !== id)
+  config.value.periods[key] = config.value.periods[key].filter((b) => b.id !== id)
   if (selected.value === id) selected.value = null
 }
 
-function hasError(key: ParentKey, block: PlanBlock): boolean {
-  return block.hours === null || (!block.leave && block.hours === 0) || result.value.issues.some((i) => i.id === `block-hours-${block.id}`)
+function hasError(key: ParentKey, period: PlanPeriod): boolean {
+  return period.hours === null || (!period.leave && period.hours === 0) || result.value.issues.some((i) => i.id === `period-hours-${period.id}`)
 }
 </script>
 
@@ -89,40 +89,40 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
           </span>
           <span />
         </div>
-        <p v-if="!blocksOf(key).length" class="text-muted-foreground px-1 py-2 text-xs">
+        <p v-if="!periodsOf(key).length" class="text-muted-foreground px-1 py-2 text-xs">
           Noch keine Zeiträume – {{ result.parents[key].name }} arbeitet durchgehend wie bisher.
         </p>
         <div
-          v-for="block in blocksOf(key)"
-          :key="block.id"
-          :class="[GRID, selected === block.id ? 'bg-accent ring-ring/40 ring-1' : '', hasError(key, block) ? 'bg-destructive/5' : '']"
+          v-for="period in periodsOf(key)"
+          :key="period.id"
+          :class="[GRID, selected === period.id ? 'bg-accent ring-ring/40 ring-1' : '', hasError(key, period) ? 'bg-destructive/5' : '']"
           class="rounded-lg p-1"
-          @click="selected = block.id"
+          @click="selected = period.id"
         >
-          <NumberInput :model-value="block.from" :min="1" :max="96" aria-label="von Monat" @update:model-value="(v) => update(key, block.id, { from: v ?? block.from })" />
-          <NumberInput :model-value="block.to" :min="1" :max="96" aria-label="bis Monat" @update:model-value="(v) => update(key, block.id, { to: v ?? block.to })" />
+          <NumberInput :model-value="period.from" :min="1" :max="96" aria-label="von Monat" @update:model-value="(v) => update(key, period.id, { from: v ?? period.from })" />
+          <NumberInput :model-value="period.to" :min="1" :max="96" aria-label="bis Monat" @update:model-value="(v) => update(key, period.id, { to: v ?? period.to })" />
           <div class="flex justify-center">
-            <Switch :model-value="block.leave" aria-label="Elternzeit" @update:model-value="(v: boolean) => update(key, block.id, { leave: v })" />
+            <Switch :model-value="period.leave" aria-label="Elternzeit" @update:model-value="(v: boolean) => update(key, period.id, { leave: v })" />
           </div>
           <NumberInput
-            :model-value="block.hours"
+            :model-value="period.hours"
             nullable
-            :invalid="block.hours === null || (!block.leave && block.hours === 0)"
+            :invalid="period.hours === null || (!period.leave && period.hours === 0)"
             placeholder="?"
             :min="0"
             :max="60"
             :step="0.5"
             :decimals="2"
             aria-label="Stunden pro Woche"
-            @update:model-value="(v) => update(key, block.id, { hours: v })"
+            @update:model-value="(v) => update(key, period.id, { hours: v })"
           />
           <SelectField
-            :model-value="block.allowance"
+            :model-value="period.allowance"
             :options="allowanceOptions"
             trigger-class="px-2 text-xs"
-            @update:model-value="(v) => update(key, block.id, { allowance: v as AllowanceVariant })"
+            @update:model-value="(v) => update(key, period.id, { allowance: v as AllowanceType })"
           />
-          <Button variant="ghost" size="icon" aria-label="Zeitraum löschen" @click.stop="remove(key, block.id)"><Trash2Icon /></Button>
+          <Button variant="ghost" size="icon" aria-label="Zeitraum löschen" @click.stop="remove(key, period.id)"><Trash2Icon /></Button>
         </div>
       </div>
     </div>

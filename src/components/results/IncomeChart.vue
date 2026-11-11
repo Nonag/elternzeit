@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { ChartContainer, ChartCrosshair, ChartLegendContent, ChartTooltip, type ChartConfig } from '@/components/ui/chart'
 import { formatDate } from '@/engine/dates'
 import { euro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
 interface Datum {
   x: number
@@ -20,7 +20,7 @@ interface Datum {
   period: string
 }
 
-const { result } = useScenarios()
+const { result } = useVariants()
 
 const data = computed<Datum[]>(() =>
   result.value.months.map((m) => ({

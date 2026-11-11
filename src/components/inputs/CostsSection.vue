@@ -8,9 +8,9 @@ import FormField from '@/components/fields/FormField.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SelectField from '@/components/fields/SelectField.vue'
 import { createId } from '@/engine/plan'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
-const { config, result } = useScenarios()
+const { config, result } = useVariants()
 
 const whenOptions = computed(() => [
   { value: 0, label: 'vor der Geburt' },
@@ -30,11 +30,11 @@ function addOneTime() {
   <div class="grid gap-6">
     <FieldGroup title="Haushalt">
       <FormField label="Fixkosten pro Monat" hint="Alle regelmäßigen Ausgaben ohne Kind, z. B. Miete, Lebensmittel, Versicherungen.">
-        <NumberInput v-model="config.fixedCostsBefore" unit="€" :step="50" />
+        <NumberInput v-model="config.fixedCosts" unit="€" :step="50" />
       </FormField>
       <div class="grid grid-cols-2 gap-4">
         <FormField label="Kontostand zur Geburt" hint="Startwert für die Kontostand-Grafik.">
-          <NumberInput v-model="config.startBalance" unit="€" :step="500" />
+          <NumberInput v-model="config.balanceAtBirth" unit="€" :step="500" />
         </FormField>
         <FormField label="Mindestreserve" hint="Fällt der Kontostand darunter, gibt es eine Warnung.">
           <NumberInput v-model="config.minReserve" unit="€" :step="500" />

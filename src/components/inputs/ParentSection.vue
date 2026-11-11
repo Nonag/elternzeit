@@ -16,10 +16,10 @@ import { createId } from '@/engine/plan'
 import type { OneTimePaymentResult } from '@/engine/result'
 import type { HealthInsurance, ParentKey, TaxClass } from '@/engine/types'
 import { euro, percent } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
 const props = defineProps<{ parentKey: ParentKey }>()
-const { config, result } = useScenarios()
+const { config, result } = useVariants()
 
 const parent = computed(() => config.value.parents[props.parentKey])
 const summary = computed(() => result.value.parents[props.parentKey])

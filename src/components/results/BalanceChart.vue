@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { ChartContainer, ChartCrosshair, ChartTooltip, type ChartConfig } from '@/components/ui/chart'
 import { formatDate } from '@/engine/dates'
 import { euro, signedEuro } from '@/lib/format'
-import { useScenarios } from '@/stores/scenarios'
+import { useVariants } from '@/stores/variants'
 
 interface Datum {
   x: number
@@ -13,7 +13,7 @@ interface Datum {
   period: string
 }
 
-const { result, config } = useScenarios()
+const { result, config } = useVariants()
 
 const data = computed<Datum[]>(() => [
   { x: 0, balance: result.value.totals.initialBalance, change: 0, period: 'Zur Geburt (nach Einmalkosten)' },

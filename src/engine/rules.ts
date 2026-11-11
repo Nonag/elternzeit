@@ -1,10 +1,10 @@
 import { PARENTAL_ALLOWANCE as PA, PARENTAL_LEAVE as PL } from './params'
 import type { EntitlementSummary, Issue, MonthRow, ParentMonth, ParentSummary } from './result'
-import type { ParentKey, PlanBlock, ScenarioConfig } from './types'
+import type { ParentKey, PlanPeriod, VariantConfig } from './types'
 
 export interface RuleContext {
-  config: ScenarioConfig
-  blocks: Record<ParentKey, PlanBlock[]>
+  config: VariantConfig
+  periods: Record<ParentKey, PlanPeriod[]>
   months: MonthRow[]
   activeParents: ParentKey[]
   parents: Record<ParentKey, ParentSummary>
@@ -36,31 +36,31 @@ function monthsWhere(rows: MonthRow[], key: ParentKey, predicate: (m: ParentMont
 
 export function evaluateRules(ctx: RuleContext): Issue[] {
   const issues: Issue[] = []
-  const { months, activeParents, parents, entitlement, config, blocks } = ctx
+  const { months, activeParents, parents, entitlement, config, periods } = ctx
   const twoParents = activeParents.length === 2
   const name = (key: ParentKey) => parents[key].name
   const add = (issue: Issue) => issues.push(issue)
 
   for (const key of activeParents) {
-    for (const block of blocks[key]) {
-      const range = block.from === block.to ? `Monat ${block.from}` : `Monat ${block.from}–${block.to}`
-      if (block.hours === null) {
+    for (const period of periods[key]) {
+      const range = period.from === period.to ? `Monat ${period.from}` : `Monat ${period.from}–${period.to}`
+      if (period.hours === null) {
         add({
-          id: `block-hours-${block.id}`,
+          id: `period-hours-${period.id}`,
           severity: 'error',
           category: 'leave',
           parent: key,
-          months: rangeOf(block),
+          months: rangeOf(period),
           title: `${name(key)}: Wochenstunden fehlen (${range})`,
           detail: 'Bitte eintragen, wie viele Stunden pro Woche in diesem Zeitraum gearbeitet wird – 0, wenn gar nicht.',
         })
-      } else if (!block.leave && block.hours === 0) {
+      } else if (!period.leave && period.hours === 0) {
         add({
-          id: `block-zero-${block.id}`,
+          id: `period-zero-${period.id}`,
           severity: 'error',
           category: 'leave',
           parent: key,
-          months: rangeOf(block),
+          months: rangeOf(period),
           title: `${name(key)}: 0 Stunden ohne Elternzeit (${range})`,
           detail: 'Wer nicht in Elternzeit ist, arbeitet. Für eine Auszeit mit Kind bitte Elternzeit einschalten.',
         })
@@ -418,8 +418,8 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
   return issues
 }
 
-function rangeOf(block: PlanBlock): number[] {
-  return Array.from({ length: block.to - block.from + 1 }, (_, i) => block.from + i)
+function rangeOf(period: PlanPeriod): number[] {
+  return Array.from({ length: period.to - period.from + 1 }, (_, i) => period.from + i)
 }
 
 function fmt(value: number): string {
