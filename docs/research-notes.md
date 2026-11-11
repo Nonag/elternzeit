@@ -162,15 +162,14 @@ Cologne Elternbeiträge (Satzung 2025-04-17, EUR/month):
 - Vaterschaftsanerkennung and Sorgeerklärung possible before birth (Jugendamt, free). Without Sorgeerklärung mother has sole custody; Elternzeit of non-custodial parent requires consent.
 
 ## 12. Existing tools – UX references
-- Official BMBFSFJ Elterngeldrechner mit Planer (familienportal.de; source: gitlab.opencode.de/digitalservicebund/elterngeldrechner, EUPL-1.2): LM × parent grid (Basis/Plus/Bonus), locked Mutterschutz months, "X von Y" counters, presets, validation messages, income per LM. Lacks household cash flow, costs, deadlines, vacation, pension, scenarios.
+- Official BMBFSFJ Elterngeldrechner mit Planer (familienportal.de; source: gitlab.opencode.de/digitalservicebund/elterngeldrechner, EUPL-1.2): LM × parent grid (Basis/Plus/Bonus), locked Mutterschutz months, "X von Y" counters, presets, validation messages, income per LM. Lacks household cash flow, costs, deadlines, vacation, pension, variants.
 - Budget spreadsheets: rows = LM, per-parent status/net/Elterngeld, household Kindergeld/costs/balance, red/green months, status-quo comparison; no Elterngeld calculation or rule checks.
-- Other ideas: deadline calculators with letter templates, optimizers (Basis vs Plus), side-by-side scenarios, starting balance and minimum reserve, ICS export.
+- Other ideas: deadline calculators with letter templates, optimizers (Basis vs Plus), side-by-side variants, starting balance and minimum reserve, ICS export.
 
 ## 13. Technical references
 - Lohnsteuer: npm `lohnsteuerrechner` (MIT, PAP 2025/2026, decimal.js, validated against BMF interface). PAP 2027 only draft (BMF letter 2026-10-08); final XML expected mid/late Nov 2026.
 - Official PAP XML 2026: https://www.bmf-steuerrechner.de/javax.faces.resource/daten/xmls/Lohnsteuer2026.xml.xhtml
 - Official Elterngeld engine + test cases (Excel): gitlab.opencode.de/digitalservicebund/elterngeldrechner (`src/elterngeldrechner`, `src/monatsplaner`, `src/lebensmonatrechner`).
-- PrimeVue 5 is no longer MIT (PrimeUI licence); 4.5.5 MIT but maintenance only. Element Plus 2.14 (MIT), ECharts 6 (Apache-2.0), vite-plugin-singlefile 2.3 (MIT).
 
 ## 14. One-time employer payments (bonus, premium)
 - **Elterngeld:** payments treated as sonstige Bezüge in payroll neither raise the Elterngeld (Bemessungszeitraum) nor

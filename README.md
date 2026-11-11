@@ -26,7 +26,8 @@ It serves the app and stores plannings in SQLite:
 
 - A planning is saved under a name and a password. Saving only works on top of the version that was loaded;
   otherwise the app shows what differs and lets the user take the server state or overwrite it.
-- "Passwort merken" keeps a session token in the browser (localStorage), otherwise it lasts for the tab only.
+- "Passwort auf diesem Gerät merken" keeps a session token in the browser (localStorage), otherwise it lasts for the
+  tab only.
 - Whoever has opened a planning can delete it ("Planung löschen …"); the variants stay in the browser.
 - On the first visit the app asks for an admin password. `/admin` lists all plannings (created, last opened, last
   saved) and deletes selected ones. At most `MAX_PLANNINGS` (default 50) plannings can exist.
