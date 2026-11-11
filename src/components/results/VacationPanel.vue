@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import SwitchField from '@/components/fields/SwitchField.vue'
 import type { ParentKey } from '@/engine/types'
-import { formatDate, num } from '@/lib/format'
+import { count, formatDate, num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
 
 const { result, config } = useVariants()
@@ -71,8 +71,8 @@ function vacationPeriods(key: ParentKey) {
         <p v-else class="text-muted-foreground text-xs">Keine Elternzeit ohne Arbeit, daher keine Kürzung.</p>
         <div v-if="vacationPeriods(key).length" class="text-muted-foreground grid gap-0.5 text-xs">
           <span v-for="period in vacationPeriods(key)" :key="period.id">
-            Urlaub {{ formatDate(period.from) }} – {{ formatDate(period.to) }}: {{ period.weeks }}
-            {{ period.weeks === 1 ? 'Woche' : 'Wochen' }}, {{ num(period.days) }} Tage
+            Urlaub {{ formatDate(period.from) }} – {{ formatDate(period.to) }}:
+            {{ count(period.weeks, 'Woche', 'Wochen') }}, {{ count(period.days, 'Tag', 'Tage') }}
           </span>
         </div>
       </div>

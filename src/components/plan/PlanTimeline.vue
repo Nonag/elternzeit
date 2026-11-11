@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { diffDays, formatDate, formatMonthKey } from '@/engine/dates'
 import type { MonthRow } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
-import { num } from '@/lib/format'
+import { count, num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
 import IssueMarker from './IssueMarker.vue'
 import { planIssues } from './planIssues'
@@ -121,7 +121,7 @@ const vacationBars = computed(() => {
             left,
             width: position(v.to, true) - left,
             dates: `${formatDate(v.from)} – ${formatDate(v.to)}`,
-            days: use ? `${use.weeks} ${use.weeks === 1 ? 'Woche' : 'Wochen'}, ${num(use.days)} Urlaubstage` : '',
+            days: use ? `${count(use.weeks, 'Woche', 'Wochen')}, ${count(use.days, 'Urlaubstag', 'Urlaubstage')}` : '',
           }
         }),
     ]),

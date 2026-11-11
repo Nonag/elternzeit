@@ -1,6 +1,7 @@
-import { parseIso } from '@/engine/dates'
+import { addDays, parseIso } from '@/engine/dates'
 import type { Issue, IssueCategory, SimulationResult } from '@/engine/result'
 import type { VariantConfig } from '@/engine/types'
+import { weekStart } from '@/engine/vacation'
 
 /** Inputs of a plan period that can be marked. */
 export type PeriodField = 'to' | 'kind' | 'hours' | 'allowance'
@@ -69,7 +70,9 @@ export function planIssues(result: SimulationResult, config: VariantConfig): Pla
     const own = withoutName(issue, result.parents[parent].name)
     if ('vacationYear' in target) {
       const year = Number(issue.id.slice(issue.id.lastIndexOf('-') + 1))
-      const rows = config.vacation[parent].filter((v) => v.from && v.to && parseIso(v.from).year <= year && parseIso(v.to).year >= year)
+      // The weekend after the last Friday may fall into the next year, but costs no vacation there.
+      const lastFriday = (to: string) => addDays(weekStart(to), 4)
+      const rows = config.vacation[parent].filter((v) => v.from && v.to && parseIso(v.from).year <= year && parseIso(lastFriday(v.to)).year >= year)
       rows.forEach((v) => add(marks.vacation, v.id, own))
       return rows.length > 0
     }

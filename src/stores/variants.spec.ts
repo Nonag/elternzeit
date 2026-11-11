@@ -23,7 +23,7 @@ describe('parsePlanning', () => {
           config: {
             version: 1,
             blocks: { a: [period], b: [work, removedKind] },
-            vacation: { a: [{ id: 'v1', from: '2027-06-07', to: '2027-06-18' }, { id: 'v2' }] },
+            vacation: { a: [{ id: 'v1', from: '2027-06-07', to: '2027-06-18' }, { id: 'v2' }, { id: 'v3', from: '', to: '' }] },
             support: [care],
             fixedCostsBefore: 1234,
             startBalance: 5678,
@@ -42,7 +42,7 @@ describe('parsePlanning', () => {
       b: [{ id: 'p2', from: 13, to: 14, kind: 'work', hours: 30, workDays: null, allowance: 'none' }],
     })
     expect(config.familyCare).toEqual([care])
-    expect(config.vacation).toEqual({ a: [{ id: 'v1', from: '2027-06-07', to: '2027-06-18' }], b: [] })
+    expect(config.vacation).toEqual({ a: [{ id: 'v1', from: '2027-06-07', to: '2027-06-20' }], b: [] })
     expect(config).toMatchObject({ fixedCosts: 1234, balanceAtBirth: 5678, childRaisingCreditTo: 'b' })
     expect(config.parents.a).toMatchObject({ name: 'Mama', grossMonthly: 3000 })
     expect(Object.keys(config).sort()).toEqual(Object.keys(exampleConfig()).sort())

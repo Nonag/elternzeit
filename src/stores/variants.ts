@@ -5,6 +5,7 @@ import { exampleConfig } from '@/engine/example'
 import { createId, periodsFromOutline } from '@/engine/plan'
 import { simulate } from '@/engine/simulate'
 import type { ParentKey, PlanOutline, PlanPeriod, VacationPeriod, VariantConfig } from '@/engine/types'
+import { weekEnd, weekStart } from '@/engine/vacation'
 import { stableStringify } from '@/lib/json'
 
 /** One complete set of inputs including its plan ("Variante"). All variants together form the "Planung". */
@@ -69,11 +70,12 @@ function migratePeriods(stored: unknown[] | undefined): PlanPeriod[] {
   })
 }
 
+/** Vacation periods used to end on Friday; they now run to Sunday. */
 function migrateVacation(stored: unknown[] | undefined): VacationPeriod[] {
   return (stored ?? []).flatMap((item) => {
     const raw = item as Partial<VacationPeriod> | null
-    if (typeof raw?.from !== 'string' || typeof raw.to !== 'string') return []
-    return [{ id: raw.id || createId('vacation'), from: raw.from, to: raw.to }]
+    if (typeof raw?.from !== 'string' || typeof raw.to !== 'string' || !raw.from || !raw.to) return []
+    return [{ id: raw.id || createId('vacation'), from: weekStart(raw.from), to: weekEnd(raw.to) }]
   })
 }
 

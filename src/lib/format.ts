@@ -21,6 +21,11 @@ export function num(value: number): string {
   return number1.format(value)
 }
 
+/** A number with its noun: "1 Woche", "3 Wochen", "2,5 Tage". */
+export function count(value: number, one: string, many: string): string {
+  return `${num(value)} ${value === 1 ? one : many}`
+}
+
 export function percent(value: number): string {
   return percent1.format(value)
 }

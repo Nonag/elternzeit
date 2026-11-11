@@ -19,7 +19,7 @@ import { formatDate, formatMonthKey, formatShortDate } from '@/engine/dates'
 import type { MonthRow, ParentMonth } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
 import { hoursWorked } from '@/engine/vacation'
-import { euro, num, signedEuro } from '@/lib/format'
+import { count, euro, num, signedEuro } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
 
 const { result, config } = useVariants()
@@ -75,7 +75,7 @@ function modelCell(month: ParentMonth) {
     },
     style.short,
   )
-  const note = [month.allowanceNote, month.vacationDays > 0 ? `Urlaub: ${num(month.vacationDays)} Tage` : ''].filter(Boolean).join('\n')
+  const note = [month.allowanceNote, month.vacationDays > 0 ? `Urlaub: ${count(month.vacationDays, 'Tag', 'Tage')}` : ''].filter(Boolean).join('\n')
   if (!note) return chip
   return h(Tooltip, null, {
     default: () => [

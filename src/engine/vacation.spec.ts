@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { exampleConfig } from './example'
 import { simulate } from './simulate'
 import type { ParentKey, PlanPeriod, VariantConfig } from './types'
-import { weekdays, weekEnd, weekStart } from './vacation'
+import { isoWeek, toggleVacationWeek, vacationDaysByYear, vacationWeeks, weekdays, weekEnd, weekStart, workMonths } from './vacation'
 
 /** Due date 01.01.2027: life month n is calendar month n of 2027, month 13 is January 2028. */
 function withPlan(patch: (config: VariantConfig) => void, dueDate = '2027-01-01'): VariantConfig {
@@ -30,7 +30,33 @@ describe('vacation', () => {
     expect(weekdays('2027-12-01', '2027-12-31')).toBe(23)
     expect(weekdays('2027-12-04', '2027-12-05')).toBe(0)
     expect(weekStart('2027-12-16')).toBe('2027-12-13')
-    expect(weekEnd('2027-12-19')).toBe('2027-12-17')
+    expect(weekEnd('2027-12-16')).toBe('2027-12-19')
+  })
+
+  it('numbers calendar weeks after ISO 8601', () => {
+    expect(isoWeek('2027-01-04')).toBe(1)
+    expect(isoWeek('2027-01-01')).toBe(53)
+    expect(isoWeek('2026-12-28')).toBe(53)
+    expect(isoWeek('2028-01-02')).toBe(52)
+    expect(isoWeek('2028-01-03')).toBe(1)
+  })
+
+  it('toggles single weeks: neighbours merge into one period, a week taken out of the middle splits it', () => {
+    let next = 0
+    const id = () => `n${++next}`
+    let periods = toggleVacationWeek([], '2027-06-07', id)
+    expect(periods).toEqual([{ id: 'n1', from: '2027-06-07', to: '2027-06-13' }])
+    periods = toggleVacationWeek(periods, '2027-06-21', id)
+    periods = toggleVacationWeek(periods, '2027-06-14', id)
+    expect(periods).toEqual([{ id: 'n1', from: '2027-06-07', to: '2027-06-27' }])
+    expect(vacationWeeks(periods[0])).toEqual(['2027-06-07', '2027-06-14', '2027-06-21'])
+    periods = toggleVacationWeek(periods, '2027-06-14', id)
+    expect(periods).toEqual([
+      { id: 'n1', from: '2027-06-07', to: '2027-06-13' },
+      { id: 'n3', from: '2027-06-21', to: '2027-06-27' },
+    ])
+    periods = toggleVacationWeek(periods, '2027-06-07', id)
+    expect(periods).toEqual([{ id: 'n3', from: '2027-06-21', to: '2027-06-27' }])
   })
 
   it('costs the working days of that time: none during Elternzeit without work and Mutterschutz', () => {
@@ -65,6 +91,7 @@ describe('vacation', () => {
     const years = result.vacation.b.years
     expect(years.find((y) => y.year === 2029)?.planned).toBe(1)
     expect(years.find((y) => y.year === 2030)?.planned).toBe(4)
+    expect(vacationDaysByYear(workMonths(result, 'b'), '2029-12-31', '2030-01-04', null)).toEqual(new Map([[2029, 1], [2030, 4]]))
   })
 
   it('prorates the entitlement for months with fewer working days per week', () => {

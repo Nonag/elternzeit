@@ -79,7 +79,7 @@ export interface VacationPeriod {
   id: string
   /** Monday of the first week. */
   from: IsoDate
-  /** Friday of the last week. */
+  /** Sunday of the last week; only Monday to Friday cost vacation days. */
   to: IsoDate
 }
 

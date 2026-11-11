@@ -66,18 +66,20 @@ function weekday(date: IsoDate): number {
   return (((toEpochDay(date) + 3) % 7) + 7) % 7
 }
 
-export function isWeekday(date: IsoDate): boolean {
-  return weekday(date) < 5
-}
-
 /** Monday of the week of a date. */
 export function weekStart(date: IsoDate): IsoDate {
   return addDays(date, -weekday(date))
 }
 
-/** Friday of the week of a date. */
+/** Sunday of the week of a date. */
 export function weekEnd(date: IsoDate): IsoDate {
-  return addDays(weekStart(date), 4)
+  return addDays(weekStart(date), 6)
+}
+
+/** Calendar week (KW) after ISO 8601: weeks start on Monday, week 1 holds the first Thursday of the year. */
+export function isoWeek(date: IsoDate): number {
+  const thursday = addDays(weekStart(date), 3)
+  return Math.floor(diffDays(`${parseIso(thursday).year}-01-01`, thursday) / 7) + 1
 }
 
 /** Monday to Friday from start to end, inclusive. */
@@ -113,7 +115,7 @@ export function workingDaysByYear(start: IsoDate, end: IsoDate, perWeek: number)
  * Vacation days one weekday costs: the working days per week of that time divided by five. Nothing during
  * Elternzeit without work and Mutterschutz, where no vacation can be taken, and outside the plan.
  */
-export function vacationDayCost(months: WorkMonth[], date: IsoDate, maternityEnd: IsoDate | null): number {
+function vacationDayCost(months: WorkMonth[], date: IsoDate, maternityEnd: IsoDate | null): number {
   const index = months.findIndex((m) => m.start <= date && date <= m.end)
   return index < 0 ? 0 : costIn(months[index], date, maternityEnd)
 }
@@ -123,11 +125,43 @@ function costIn(month: WorkMonth, date: IsoDate, maternityEnd: IsoDate | null): 
   return month.leave && month.hours === 0 ? 0 : month.workDays / 5
 }
 
-/** Vacation days that the weekdays from start to end cost. */
-export function vacationDays(months: WorkMonth[], start: IsoDate, end: IsoDate, maternityEnd: IsoDate | null): number {
-  let days = 0
-  for (let date = start; date <= end; date = addDays(date, 1)) days += vacationDayCost(months, date, maternityEnd)
-  return Math.round(days * 100) / 100
+/** Vacation days per calendar year that the weekdays from start to end cost. */
+export function vacationDaysByYear(months: WorkMonth[], start: IsoDate, end: IsoDate, maternityEnd: IsoDate | null): Map<number, number> {
+  const byYear = new Map<number, number>()
+  for (let date = start; date <= end; date = addDays(date, 1)) {
+    const cost = vacationDayCost(months, date, maternityEnd)
+    const year = parseIso(date).year
+    if (cost > 0) byYear.set(year, (byYear.get(year) ?? 0) + cost)
+  }
+  return byYear
+}
+
+/** Mondays of the weeks of a vacation period. */
+export function vacationWeeks(period: VacationPeriod): IsoDate[] {
+  const weeks: IsoDate[] = []
+  for (let monday = weekStart(period.from); monday <= period.to; monday = addDays(monday, 7)) weeks.push(monday)
+  return weeks
+}
+
+/**
+ * Adds the week of a Monday to the vacation or takes it out again. Weeks right after each other form one period;
+ * taking a week out of the middle splits it.
+ */
+export function toggleVacationWeek(periods: VacationPeriod[], monday: IsoDate, newId: () => string): VacationPeriod[] {
+  const byStart = (list: VacationPeriod[]) => list.sort((x, y) => x.from.localeCompare(y.from))
+  const containing = periods.find((p) => p.from <= weekEnd(monday) && monday <= p.to)
+  if (containing) {
+    const parts = [
+      { from: containing.from, to: addDays(monday, -1) },
+      { from: addDays(monday, 7), to: containing.to },
+    ].filter((part) => part.from <= part.to)
+    const split = parts.map((part, i) => ({ id: i === 0 ? containing.id : newId(), ...part }))
+    return byStart([...periods.filter((p) => p !== containing), ...split])
+  }
+  const before = periods.find((p) => p.to === addDays(monday, -1))
+  const after = periods.find((p) => p.from === addDays(monday, 7))
+  const merged = { id: before?.id ?? after?.id ?? newId(), from: before?.from ?? monday, to: after?.to ?? weekEnd(monday) }
+  return byStart([...periods.filter((p) => p !== before && p !== after), merged])
 }
 
 /** The work months of a parent from a simulation result. */
