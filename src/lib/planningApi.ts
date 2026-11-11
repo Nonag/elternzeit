@@ -89,6 +89,8 @@ export const loadPlanning = (token: string) => request<RemotePlanning>('GET', 'p
 export const savePlanning = (token: string, data: unknown, baseVersion: number, force = false) =>
   request<{ version: number; savedAt: string }>('PUT', 'planning', { token, body: { data, baseVersion, force } })
 
+export const deletePlanning = (token: string) => request<object>('DELETE', 'planning', { token })
+
 /** Server session of this browser; kept in localStorage if the user wants to stay signed in. */
 export interface Session {
   name: string

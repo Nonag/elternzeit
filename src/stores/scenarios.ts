@@ -180,6 +180,10 @@ export function useScenarios() {
       state.currentId = scenarios[0].id
     },
     snapshot: () => snapshotOf(state.scenarios),
+    /** Detaches the variants from the server planning, e.g. after it was deleted there. */
+    forgetPlanning() {
+      state.planning = { ...NO_PLANNING }
+    },
     /** Remembers the server state of the planning after opening or saving it. */
     markSaved(name: string, version: number, savedAt: string, snapshot = snapshotOf(state.scenarios)) {
       state.planning = { name, version, savedAt, snapshot }

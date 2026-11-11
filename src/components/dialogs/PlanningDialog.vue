@@ -23,6 +23,8 @@ const props = defineProps<{
   busy: boolean
   error: string | null
   warning: string | null
+  /** What the password is needed for (password mode). */
+  purpose: 'save' | 'delete'
 }>()
 const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ submit: [value: { name: string; password: string; remember: boolean }] }>()
@@ -53,8 +55,8 @@ const text = computed(() => {
     default:
       return {
         title: 'Passwort eingeben',
-        description: `Zum Speichern von „${props.name}“ wird das Passwort gebraucht.`,
-        action: 'Speichern',
+        description: `Zum ${props.purpose === 'delete' ? 'Löschen' : 'Speichern'} von „${props.name}“ wird das Passwort gebraucht.`,
+        action: props.purpose === 'delete' ? 'Löschen' : 'Speichern',
       }
   }
 })

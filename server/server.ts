@@ -137,6 +137,9 @@ export function createApp(store: Store, { html, failedLoginDelayMs = 1000 }: App
         return result.ok ? send(res, 200, { version: result.version, savedAt: result.savedAt }) : send(res, 409, { error: 'conflict', current: result.current })
       }
 
+      case 'DELETE /api/planning':
+        return store.removeByToken(credentials(req, 'Bearer')) ? send(res, 200, {}) : unauthorized(res)
+
       default:
         return send(res, 404, { error: 'not-found' })
     }

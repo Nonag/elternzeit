@@ -82,6 +82,15 @@ describe('server', () => {
     expect((await api('GET', '/api/planning', { token: 'unbekannt' })).status).toBe(401)
   })
 
+  it('lets the people who opened a planning delete it', async () => {
+    const created = await api('POST', '/api/planning', { body: { name: 'Familie', password: 'geheim1', data: planning() } })
+    const other = await api('POST', '/api/planning/session', { body: { name: 'Familie', password: 'geheim1' } })
+    expect((await api('DELETE', '/api/planning', { token: 'unbekannt' })).status).toBe(401)
+    expect((await api('DELETE', '/api/planning', { token: created.body.token })).status).toBe(200)
+    expect((await api('GET', '/api/planning', { token: other.body.token })).status).toBe(401)
+    expect((await api('GET', '/api/status')).body.count).toBe(0)
+  })
+
   it('limits the number of plannings', async () => {
     for (const name of ['A', 'B', 'C']) {
       expect((await api('POST', '/api/planning', { body: { name, password: 'geheim1', data: planning() } })).status).toBe(201)

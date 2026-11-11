@@ -183,6 +183,14 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
       return { ok: true, version: row.version + 1, savedAt }
     },
 
+    /** Deletes the planning a session belongs to; false if the token is unknown. */
+    removeByToken(token: string): boolean {
+      const row = byToken.get(hashToken(token)) as PlanningRow | undefined
+      if (!row) return false
+      db.prepare('DELETE FROM plannings WHERE id = ?').run(row.id)
+      return true
+    },
+
     list(): PlanningInfo[] {
       const rows = db.prepare('SELECT id, name, created_at, opened_at, saved_at FROM plannings ORDER BY name').all() as unknown as PlanningRow[]
       return rows.map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at, openedAt: r.opened_at, savedAt: r.saved_at }))

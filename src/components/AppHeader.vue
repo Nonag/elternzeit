@@ -7,6 +7,7 @@ import {
   FolderIcon,
   FolderOpenIcon,
   FolderPlusIcon,
+  FolderXIcon,
   MoonIcon,
   PencilIcon,
   RotateCcwIcon,
@@ -73,6 +74,9 @@ const dialogWarning = computed(() =>
   dialog.mode === 'open' && dirty.value ? `Nicht gespeicherte Änderungen an „${state.planning.name}“ gehen dabei verloren.` : null,
 )
 
+/** What the password dialog continues with. */
+const passwordPurpose = ref<'save' | 'delete'>('save')
+
 function showDialog(mode: PlanningDialogMode) {
   Object.assign(dialog, { open: true, mode, busy: false, error: null })
 }
@@ -92,7 +96,7 @@ async function submitDialog(value: { name: string; password: string; remember: b
   } finally {
     dialog.busy = false
   }
-  if (mode === 'password') await save()
+  if (mode === 'password') await (passwordPurpose.value === 'delete' ? removePlanning() : save())
 }
 
 const conflict = reactive({ open: false, current: null as RemotePlanning | null, differences: [] as string[] })
@@ -101,8 +105,10 @@ async function save(force = false) {
   try {
     const outcome = await planning.save(force)
     if (outcome.status === 'needs-name') showDialog('create')
-    else if (outcome.status === 'needs-password') showDialog('password')
-    else if (outcome.status === 'conflict') {
+    else if (outcome.status === 'needs-password') {
+      passwordPurpose.value = 'save'
+      showDialog('password')
+    } else if (outcome.status === 'conflict') {
       const differences = describeDifferences(state.scenarios, parsePlanning(outcome.current.data))
       Object.assign(conflict, { open: true, current: outcome.current, differences })
     }
@@ -115,11 +121,55 @@ function takeServerState() {
   if (conflict.current) planning.adopt(conflict.current)
 }
 
-const serverActions = [
-  { label: 'Planung öffnen …', icon: FolderOpenIcon, run: () => showDialog('open') },
-  { label: 'Planung speichern', icon: SaveIcon, run: () => save() },
-  { label: 'Als neue Planung speichern …', icon: FolderPlusIcon, run: () => showDialog('create') },
-]
+async function deleteCurrentPlanning() {
+  const name = state.planning.name
+  if (!name) return
+  const confirmed = await confirmDialog({
+    title: `Planung „${name}“ löschen?`,
+    description:
+      'Sie wird vom Server gelöscht und lässt sich danach von niemandem mehr öffnen. Die Varianten in diesem Browser bleiben als neue Planung erhalten.',
+    confirmLabel: 'Löschen',
+    destructive: true,
+  })
+  if (confirmed) await removePlanning()
+}
+
+async function removePlanning() {
+  try {
+    if ((await planning.remove()) === 'needs-password') {
+      passwordPurpose.value = 'delete'
+      showDialog('password')
+    }
+  } catch (error) {
+    await messageDialog('Löschen hat nicht geklappt', errorText(error))
+  }
+}
+
+// "…" marks every entry that asks for more input. Server entries stay visible and get a reason when disabled.
+const planningItems = computed(() => {
+  const offline = serverReady.value ? null : serverHint.value
+  return [
+    { id: 'open', label: 'Planung öffnen …', icon: FolderOpenIcon, run: () => showDialog('open'), hint: offline },
+    {
+      id: 'save',
+      label: planning.saveNeedsInput.value ? 'Planung speichern …' : 'Planung speichern',
+      icon: SaveIcon,
+      run: () => save(),
+      hint: offline,
+    },
+    { id: 'save-as', label: 'Als neue Planung speichern …', icon: FolderPlusIcon, run: () => showDialog('create'), hint: offline },
+    { id: 'export', label: 'Planung exportieren', icon: DownloadIcon, run: download, hint: null },
+    { id: 'import', label: 'Planung importieren …', icon: UploadIcon, run: () => fileInput.value?.click(), hint: null },
+    {
+      id: 'delete',
+      label: 'Planung löschen …',
+      icon: FolderXIcon,
+      run: deleteCurrentPlanning,
+      hint: offline ?? (state.planning.name ? null : 'Die Planung ist noch nicht auf dem Server gespeichert.'),
+      destructive: true,
+    },
+  ]
+})
 
 function download() {
   const blob = new Blob([JSON.stringify(store.planningData(), null, 2)], { type: 'application/json' })
@@ -209,24 +259,22 @@ async function resetCurrent() {
             <DropdownMenuItem @select="store.create()"><FilePlusIcon /> Neue Variante</DropdownMenuItem>
             <DropdownMenuItem @select="store.duplicate()"><CopyIcon /> Variante kopieren</DropdownMenuItem>
             <DropdownMenuItem @select="renameCurrent"><PencilIcon /> Variante umbenennen …</DropdownMenuItem>
-            <DropdownMenuItem @select="resetCurrent"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen</DropdownMenuItem>
+            <DropdownMenuItem @select="resetCurrent"><RotateCcwIcon /> Auf Beispielwerte zurücksetzen …</DropdownMenuItem>
             <DropdownMenuItem :disabled="state.scenarios.length <= 1" variant="destructive" @select="removeCurrent">
-              <Trash2Icon /> Variante löschen
+              <Trash2Icon /> Variante löschen …
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Planung</DropdownMenuLabel>
-            <Tooltip v-for="action in serverActions" :key="action.label" :disabled="serverReady">
+            <Tooltip v-for="item in planningItems" :key="item.id" :disabled="!item.hint">
               <TooltipTrigger as-child>
                 <div>
-                  <DropdownMenuItem :disabled="!serverReady" @select="action.run">
-                    <component :is="action.icon" /> {{ action.label }}
+                  <DropdownMenuItem :disabled="!!item.hint" :variant="item.destructive ? 'destructive' : 'default'" @select="item.run">
+                    <component :is="item.icon" /> {{ item.label }}
                   </DropdownMenuItem>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="right">{{ serverHint }}</TooltipContent>
+              <TooltipContent side="right">{{ item.hint }}</TooltipContent>
             </Tooltip>
-            <DropdownMenuItem @select="download"><DownloadIcon /> Planung exportieren</DropdownMenuItem>
-            <DropdownMenuItem @select="fileInput?.click()"><UploadIcon /> Planung importieren …</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="upload" />
@@ -250,6 +298,7 @@ async function resetCurrent() {
       :busy="dialog.busy"
       :error="dialog.error"
       :warning="dialogWarning"
+      :purpose="passwordPurpose"
       @submit="submitDialog"
     />
     <ConflictDialog

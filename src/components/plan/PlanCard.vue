@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { WandSparklesIcon } from '@lucide/vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -33,9 +33,11 @@ function onSelect(parent: ParentKey, from: number, to: number, blockId: string |
   selectedBlock.value = block.id
 }
 
+// Replacing an existing plan asks for confirmation first, hence the "…" on the presets.
+const hasPlan = computed(() => config.value.blocks.a.length + config.value.blocks.b.length > 0)
+
 async function applyPreset(preset: PlanPreset) {
-  const hasPlan = config.value.blocks.a.length + config.value.blocks.b.length > 0
-  if (hasPlan && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
+  if (hasPlan.value && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
   config.value.blocks = generateQuickPlan(preset.quick, config.value.relationship)
   selectedBlock.value = null
 }
@@ -72,7 +74,7 @@ async function applyPreset(preset: PlanPreset) {
             <DropdownMenuLabel>Plan aus Vorlage erstellen</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem v-for="preset in PLAN_PRESETS" :key="preset.id" class="flex flex-col items-start gap-0.5" @click="applyPreset(preset)">
-              <span class="font-medium">{{ preset.label }}</span>
+              <span class="font-medium">{{ preset.label }}{{ hasPlan ? ' …' : '' }}</span>
               <span class="text-muted-foreground text-xs">{{ preset.description }}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

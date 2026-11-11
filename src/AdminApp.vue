@@ -116,7 +116,8 @@ onMounted(() => {
             <CardDescription>{{ plannings.length }} von höchstens {{ limit }} auf diesem Server.</CardDescription>
             <CardAction>
               <Button variant="destructive" :disabled="!selected.length" @click="removeSelected">
-                <Trash2Icon /> Löschen{{ selected.length ? ` (${selected.length})` : '' }}
+                <Trash2Icon />
+                {{ !selected.length ? 'Auswahl löschen …' : selected.length === 1 ? '1 Planung löschen …' : `${selected.length} Planungen löschen …` }}
               </Button>
             </CardAction>
           </CardHeader>
