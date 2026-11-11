@@ -50,6 +50,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
               v-for="weekDate in weekDates"
               :key="weekDate.toString()"
               :date="weekDate"
+              :class="{ 'rounded-l-md': weekDate.day === 1, 'rounded-r-md': weekDate.add({ days: 1 }).month !== weekDate.month }"
             >
               <RangeCalendarCellTrigger
                 :day="weekDate"

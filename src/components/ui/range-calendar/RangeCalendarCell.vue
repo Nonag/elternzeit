@@ -17,6 +17,8 @@ const forwardedProps = useForwardProps(delegatedProps)
     data-slot="range-calendar-cell"
     :class="cn([
       'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
+      // Days of other months keep their place but are not shown
+      '[&:has([data-outside-view])]:invisible',
       // Selected range, and the preview while picking the end
       '[&:has([data-selected])]:bg-primary/20 [&:has([data-highlighted])]:bg-primary/15',
       'first:[&:has([data-selected])]:rounded-l-md last:[&:has([data-selected])]:rounded-r-md [&:has([data-selection-start])]:rounded-l-md [&:has([data-selection-end])]:rounded-r-md',

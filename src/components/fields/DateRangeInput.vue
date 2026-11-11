@@ -92,6 +92,7 @@ const hintText = computed(() => props.hint?.(draft.value.start?.toString() ?? nu
         locale="de-DE"
         :week-starts-on="1"
         :number-of-months="2"
+        fixed-weeks
         @update:model-value="update"
       />
       <p class="text-muted-foreground border-t px-3 py-2 text-xs">

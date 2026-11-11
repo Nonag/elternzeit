@@ -33,6 +33,7 @@ function update(date: DateValue | undefined) {
           locale="de-DE"
           :week-starts-on="1"
           layout="month-and-year"
+          fixed-weeks
           @update:model-value="(d) => update(d as DateValue | undefined)"
         />
       </PopoverContent>

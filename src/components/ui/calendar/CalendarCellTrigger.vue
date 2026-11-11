@@ -24,11 +24,9 @@ const forwardedProps = useForwardProps(delegatedProps)
       // Selected
       'data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:opacity-100 data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground data-[selected]:focus:bg-primary data-[selected]:focus:text-primary-foreground',
       // Disabled
-      'data-[disabled]:text-muted-foreground data-[disabled]:opacity-50',
+      'data-[disabled]:text-muted-foreground data-[disabled]:opacity-30',
       // Unavailable
       'data-[unavailable]:text-destructive-foreground data-[unavailable]:line-through',
-      // Outside months
-      'data-[outside-view]:text-muted-foreground',
       props.class,
     )"
     v-bind="forwardedProps"
