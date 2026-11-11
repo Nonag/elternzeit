@@ -38,12 +38,16 @@ src/
     payroll.ts, tax.ts gross → net (PAP 2026 via lohnsteuerrechner plus the draft 2027 tariff)
     parentalAllowance.ts, maternity.ts, oneTimePayments.ts, childcare.ts, vacation.ts, pension.ts
     plan.ts            plan periods and presets (PLAN_PRESETS)
-    rules.ts, tips.ts  rule checks and tips; deadlines.ts: Fristen; dates.ts: ISO dates and Lebensmonate
+    rules.ts, tips.ts  rule checks and tips; deadlines.ts: Fristen
+    dates.ts           ISO dates, weeks and Lebensmonate, date formatting
+    format.ts          German numbers and texts (euro, num, count, formatMonthList …) for the engine and the UI
+    math.ts            round2, cents, consecutiveRuns
   stores/variants.ts   variants of this browser (localStorage), current variant, file format and migration
   stores/planning.ts   open, create, save and delete the planning on the server
-  lib/                 planningApi.ts (HTTP client), planningDiff.ts (conflict summary), dialogs.ts, format.ts
-  components/          inputs/ (sidebar), plan/ (plan card), results/ (table, charts, tabs), dialogs/, fields/,
-                       ui/ (shadcn-vue, generated)
+  lib/                 planningApi.ts (HTTP client), planningDiff.ts (conflict summary), dialogs.ts, issues.ts
+                       (severity icons and colours), json.ts (stable JSON for comparisons)
+  components/          header/ (planning, variant, save/undo/redo), inputs/ (sidebar), plan/ (plan card),
+                       results/ (table, charts, tabs), dialogs/, fields/, ui/ (shadcn-vue, generated)
   App.vue, AdminApp.vue   main app and the /admin page; main.ts picks one by path
 server/                main.ts (environment), server.ts (HTTP API), store.ts (SQLite)
 docs/research-notes.md legal research with sources
@@ -94,6 +98,8 @@ docs/research-notes.md legal research with sources
   open until a click outside; monthly table with sticky header and 12 visible months; KPI cards wrap evenly; one open
   sidebar section at a time.
 - **Engine:** no Vue imports; components read `config` and `result` from `useVariants()`.
+- **Formatting:** numbers, amounts and dates go through `engine/format.ts` and `engine/dates.ts` (`euro`, `num`,
+  `count`, `formatDate`, `formatDateRange` …), not through inline `toLocaleString`.
 - **Law:** "voraussichtlich geltendes Recht" = enacted law plus `EXPECTED_CHANGES`. No full income tax assessment,
   only rough hints in the tips.
 - **Rules and tips:** the plan card marks issues at the field they concern (`TARGETS` in
