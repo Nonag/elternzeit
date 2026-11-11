@@ -1,27 +1,47 @@
 # Elternzeit-Planer
 
-Local planning tool for German parental allowance (Elterngeld) and parental leave (Elternzeit) for a child due on
-2027-01-28. All data stays in the browser (localStorage); there is no backend.
+Planning tool for German parental allowance (Elterngeld) and parental leave (Elternzeit) for a child due on
+2027-01-28. The browser keeps the working copy (localStorage). An optional small server stores plannings so several
+people can open and save them; without it the app runs as a single offline file.
+
+Wording: a **Plan** is the leave periods in the plan card, a **Variante** is one complete set of inputs including its
+plan, and a **Planung** is all variants together. A Planung is what gets exported or saved on the server.
 
 ## Usage
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173 with live reload
+npm run dev          # http://localhost:5173 with live reload; /api is proxied to localhost:8080
+npm run server       # sync server on http://localhost:8080 (serves dist/, data in ./elternzeit)
+npm run docker       # the same as a container under server conditions (.env.docker), data in ./elternzeit
 npm run build        # dist/index.html – single self-contained file, open it by double-click
-npm test             # engine unit tests (Vitest)
+npm test             # unit tests (Vitest) for engine, server and helpers
 npm run typecheck
 ```
 
-## Docker
+## Server and Docker
+
+`server/` is a small Node server without dependencies (Node 24: `node:sqlite`, `scrypt`, TypeScript type stripping).
+It serves the app and stores plannings in SQLite:
+
+- A planning is saved under a name and a password. Saving only works on top of the version that was loaded;
+  otherwise the app shows what differs and lets the user take the server state or overwrite it.
+- "Angemeldet bleiben" keeps a session token in the browser (localStorage), otherwise for the tab only.
+- On the first visit the app asks for an admin password. `/admin` lists all plannings (created, last opened, last
+  saved) and deletes selected ones. At most `MAX_PLANNINGS` (default 50) plannings can exist.
 
 Every push to `main` builds a multi-arch image (amd64, arm64) and pushes it to the GitHub Container Registry, tagged
-`latest` and `sha-<commit>` (`.github/workflows/docker.yml`). nginx serves the single `index.html`:
+`latest` and `sha-<commit>` (`.github/workflows/docker.yml`). To run it on a server, copy `docker-compose.yaml` into
+a folder and add a `.env` next to it:
 
 ```bash
-docker run -d --name elternzeit -p 8080:80 ghcr.io/nonag/elternzeit:latest   # http://localhost:8080
-docker build -t elternzeit .                                                  # local build incl. tests
+CONFIG_ROOT="/srv/elternzeit"   # data in ${CONFIG_ROOT}/elternzeit
+PORT=8080                       # host port
+MAX_PLANNINGS=50                # optional
 ```
+
+`docker-compose.override.yaml` is only used in this repository: it builds the image from the sources instead of
+pulling it. Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file.
 
 ## What it does
 
@@ -37,7 +57,7 @@ docker build -t elternzeit .                                                  # 
   sections, part-time claims, income limit) plus care gaps and reserve warnings.
 - **Shows** tips with an estimated euro effect, deadlines (with checklist), vacation reduction (§ 17 BEEG),
   pension points incl. Kindererziehungszeiten, lost savings and a 50/50 compensation proposal.
-- **Scenarios** can be saved, duplicated, exported/imported as JSON and compared.
+- **Variants** can be copied, compared and exported/imported as a JSON planning, or saved on the server.
 
 ## Structure
 
@@ -50,8 +70,9 @@ src/engine/        pure TypeScript calculation core (no Vue), unit-tested
   oneTimePayments.ts  bonus and other sonstige Bezüge (wage tax, social contributions, rough tax-return effect)
   simulate.ts      config → monthly rows, summaries, issues
   rules.ts, tips.ts, deadlines.ts, vacation.ts, pension.ts
-src/stores/        scenario store (localStorage, autosave)
+src/stores/        variant store (localStorage, autosave), server planning (open, save, conflicts)
 src/components/    inputs, plan timeline/editor, results (table, charts, panels); ui/ = shadcn-vue
+server/            sync server: HTTP API, SQLite store, static app
 docs/              research notes with sources
 ```
 
