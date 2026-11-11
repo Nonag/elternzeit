@@ -222,8 +222,18 @@ const deadlines = computed(() => computeDeadlines(calculable(config.value, today
 // (typing) become one step.
 const history = useManualRefHistory(toRef(state, 'variants'), { capacity: 100, dump: JSON.stringify, parse: JSON.parse })
 
-const commitChanges = () => {
-  if (JSON.stringify(state.variants) !== history.last.value.snapshot) history.commit()
+/** Takes the changes as a step. Changing something back by hand counts as undo (or redo), not as a new step. */
+function commitChanges() {
+  const snapshot = JSON.stringify(state.variants)
+  const { last, undoStack, redoStack } = history
+  if (snapshot === last.value.snapshot) return
+  if (undoStack.value[0]?.snapshot === snapshot) {
+    redoStack.value.unshift(last.value)
+    last.value = undoStack.value.shift()!
+  } else if (redoStack.value[0]?.snapshot === snapshot) {
+    undoStack.value.unshift(last.value)
+    last.value = redoStack.value.shift()!
+  } else history.commit()
 }
 watchDebounced(() => state.variants, commitChanges, { deep: true, debounce: 400 })
 

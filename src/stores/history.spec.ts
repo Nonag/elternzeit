@@ -43,6 +43,22 @@ describe('undo and redo', () => {
     expect(store.config.value.dueDate).toBe('2027-01-15')
   })
 
+  it('counts changing something back by hand as undo, and changing it again as redo', async () => {
+    const store = useVariants()
+    store.newPlanning()
+    await settle()
+    store.config.value.siblingBonus = true
+    await settle()
+    store.config.value.siblingBonus = false
+    await settle()
+    expect(store.canUndo.value).toBe(false)
+    expect(store.canRedo.value).toBe(true)
+    store.config.value.siblingBonus = true
+    await settle()
+    expect(store.canUndo.value).toBe(true)
+    expect(store.canRedo.value).toBe(false)
+  })
+
   it('switches to the variant that an undo or redo changes', async () => {
     const store = useVariants()
     store.newPlanning()
