@@ -199,10 +199,10 @@ function onClick(parent: ParentKey | null, segment: Segment) {
             <template v-if="lane.parent">
               <Tooltip v-for="bar in vacationBars[lane.parent]" :key="bar.id">
                 <TooltipTrigger as-child>
-                  <!-- A thick bottom border; the pseudo element enlarges the hover area without covering labels. -->
+                  <!-- A thick bottom border of the lane, so the labels stay readable. -->
                   <div
-                    class="absolute bottom-0 z-10 h-1 rounded-full before:absolute before:inset-x-0 before:-top-1.5 before:h-1.5 before:content-['']"
-                    :style="{ left: `${bar.left * 100}%`, width: `max(4px, ${bar.width * 100}%)`, backgroundColor: 'var(--plan-vacation)' }"
+                    class="absolute bottom-0 z-10 h-2.25 min-w-1 rounded-xs"
+                    :style="{ left: `${bar.left * 100}%`, width: `${bar.width * 100}%`, backgroundColor: 'var(--plan-vacation)' }"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -228,7 +228,7 @@ function onClick(parent: ParentKey | null, segment: Segment) {
     </div>
     <div class="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-[0.7rem]">
       <span v-for="item in LEGEND" :key="item.label" class="flex items-center gap-1.5">
-        <span class="inline-block" :class="[item.line ? 'h-1 w-3 rounded-full' : 'size-3 rounded-sm', item.striped ? 'plan-stripes' : '']" :style="{ backgroundColor: item.color }" />
+        <span class="inline-block" :class="[item.line ? 'h-2.25 w-4 rounded-xs' : 'size-3 rounded-sm', item.striped ? 'plan-stripes' : '']" :style="{ backgroundColor: item.color }" />
         {{ item.label }}
       </span>
       <span class="flex items-center gap-1.5"><span class="inline-block size-3 rounded-sm border border-dashed" /> Arbeit</span>
