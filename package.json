@@ -9,7 +9,7 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "server": "node --disable-warning=ExperimentalWarning server/main.ts",
-    "docker": "docker compose --env-file .env.docker up --build",
+    "docker": "docker build -t ghcr.io/nonag/elternzeit:latest . && docker compose --env-file .env.docker up",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "vue-tsc -b"

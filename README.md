@@ -1,7 +1,7 @@
 # Elternzeit-Planer
 
-Planning tool for German parental allowance (Elterngeld) and parental leave (Elternzeit) for a child due on
-2027-01-28. The browser keeps the working copy (localStorage). An optional small server stores plannings so several
+Planning tool for German parental allowance (Elterngeld) and parental leave (Elternzeit), built for births in 2027.
+The browser keeps the working copy (localStorage). An optional small server stores plannings so several
 people can open and save them; without it the app runs as a single offline file.
 
 Wording: a **Plan** is the leave periods in the plan card, a **Variante** is one complete set of inputs including its
@@ -13,7 +13,7 @@ plan, and a **Planung** is all variants together. A Planung is what gets exporte
 npm install
 npm run dev          # http://localhost:5173 with live reload; /api is proxied to localhost:8080
 npm run server       # sync server on http://localhost:8080 (serves dist/, data in ./elternzeit)
-npm run docker       # the same as a container under server conditions (.env.docker), data in ./elternzeit
+npm run docker       # builds the image from the sources and runs it with docker compose (.env.docker), port 8080
 npm run build        # dist/index.html – single self-contained file, open it by double-click
 npm test             # unit tests (Vitest) for engine, server and helpers
 npm run typecheck
@@ -26,7 +26,7 @@ It serves the app and stores plannings in SQLite:
 
 - A planning is saved under a name and a password. Saving only works on top of the version that was loaded;
   otherwise the app shows what differs and lets the user take the server state or overwrite it.
-- "Angemeldet bleiben" keeps a session token in the browser (localStorage), otherwise for the tab only.
+- "Passwort merken" keeps a session token in the browser (localStorage), otherwise it lasts for the tab only.
 - On the first visit the app asks for an admin password. `/admin` lists all plannings (created, last opened, last
   saved) and deletes selected ones. At most `MAX_PLANNINGS` (default 50) plannings can exist.
 
@@ -40,8 +40,7 @@ PORT=8080                       # host port
 MAX_PLANNINGS=50                # optional
 ```
 
-`docker-compose.override.yaml` is only used in this repository: it builds the image from the sources instead of
-pulling it. Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file.
+Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file.
 
 ## What it does
 
