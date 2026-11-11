@@ -1,0 +1,5 @@
+# Only for this repository (loaded automatically by docker compose): build the image from the sources.
+services:
+  elternzeit:
+    image: elternzeit:local
+    build: .

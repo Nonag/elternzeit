@@ -1,0 +1,16 @@
+services:
+  elternzeit:
+    image: ghcr.io/nonag/elternzeit:latest
+    container_name: elternzeit
+    environment:
+      - MAX_PLANNINGS=${MAX_PLANNINGS:-50}
+    volumes:
+      - ${CONFIG_ROOT:-.}/elternzeit:/data
+    ports:
+      - "${PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
