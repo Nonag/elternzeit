@@ -42,7 +42,7 @@ function update(key: ParentKey, id: string, patch: Partial<PlanPeriod>) {
 function add(key: ParentKey) {
   const periods = config.value.periods[key]
   const start = periods.length ? Math.max(...periods.map((b) => b.to)) + 1 : 1
-  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, leave: true, hours: 0, allowance: 'none' }
+  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, kind: 'leave', hours: 0, allowance: 'none' }
   config.value.periods[key] = normalizePeriods([...periods, period])
   selected.value = period.id
 }
@@ -53,7 +53,7 @@ function remove(key: ParentKey, id: string) {
 }
 
 function hasError(key: ParentKey, period: PlanPeriod): boolean {
-  return period.hours === null || (!period.leave && period.hours === 0) || result.value.issues.some((i) => i.id === `period-hours-${period.id}`)
+  return period.hours === null || (period.kind === 'work' && period.hours === 0) || result.value.issues.some((i) => i.id === `period-hours-${period.id}`)
 }
 </script>
 
@@ -102,12 +102,16 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
           <NumberInput :model-value="period.from" :min="1" :max="96" aria-label="von Monat" @update:model-value="(v) => update(key, period.id, { from: v ?? period.from })" />
           <NumberInput :model-value="period.to" :min="1" :max="96" aria-label="bis Monat" @update:model-value="(v) => update(key, period.id, { to: v ?? period.to })" />
           <div class="flex justify-center">
-            <Switch :model-value="period.leave" aria-label="Elternzeit" @update:model-value="(v: boolean) => update(key, period.id, { leave: v })" />
+            <Switch
+              :model-value="period.kind === 'leave'"
+              aria-label="Elternzeit"
+              @update:model-value="(v: boolean) => update(key, period.id, { kind: v ? 'leave' : 'work' })"
+            />
           </div>
           <NumberInput
             :model-value="period.hours"
             nullable
-            :invalid="period.hours === null || (!period.leave && period.hours === 0)"
+            :invalid="period.hours === null || (period.kind === 'work' && period.hours === 0)"
             placeholder="?"
             :min="0"
             :max="60"

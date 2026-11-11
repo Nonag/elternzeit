@@ -28,7 +28,7 @@ function onSelect(parent: ParentKey, from: number, to: number, periodId: string 
     selectedPeriod.value = periodId
     return
   }
-  const period = { id: createId('period'), from, to, leave: true, hours: 0, allowance: 'none' as const }
+  const period = { id: createId('period'), from, to, kind: 'leave' as const, hours: 0, allowance: 'none' as const }
   config.value.periods[parent] = normalizePeriods([...config.value.periods[parent], period])
   selectedPeriod.value = period.id
 }

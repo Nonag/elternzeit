@@ -9,6 +9,7 @@ const withoutIds = (periods: PlanPeriod[]) => periods.map(({ id: _id, ...rest })
 describe('parsePlanning', () => {
   it('migrates version 1 files with their old field names', () => {
     const period = { id: 'p1', from: 1, to: 12, leave: true, hours: 0, allowance: 'basic' }
+    const work = { id: 'p2', from: 13, to: 14, leave: false, hours: 30, allowance: 'none' }
     const care = { id: 'c1', label: 'Großeltern', from: '2028-01-01', to: '2028-03-31', daysPerWeek: 2, hoursPerDay: 8 }
     const [variant] = parsePlanning({
       app: 'elternzeit-planer',
@@ -20,7 +21,7 @@ describe('parsePlanning', () => {
           updatedAt: '2026-01-01T00:00:00Z',
           config: {
             version: 1,
-            blocks: { a: [period], b: [] },
+            blocks: { a: [period], b: [work] },
             support: [care],
             fixedCostsBefore: 1234,
             startBalance: 5678,
@@ -34,7 +35,10 @@ describe('parsePlanning', () => {
 
     expect(variant).toMatchObject({ id: 's1', name: 'Variante A' })
     const { config } = variant
-    expect(config.periods).toEqual({ a: [period], b: [] })
+    expect(config.periods).toEqual({
+      a: [{ id: 'p1', from: 1, to: 12, kind: 'leave', hours: 0, allowance: 'basic' }],
+      b: [{ id: 'p2', from: 13, to: 14, kind: 'work', hours: 30, allowance: 'none' }],
+    })
     expect(config.familyCare).toEqual([care])
     expect(config).toMatchObject({ fixedCosts: 1234, balanceAtBirth: 5678, childRaisingCreditTo: 'b' })
     expect(config.parents.a).toMatchObject({ name: 'Mama', grossMonthly: 3000 })

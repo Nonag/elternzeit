@@ -54,7 +54,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
           title: `${name(key)}: Wochenstunden fehlen (${range})`,
           detail: 'Bitte eintragen, wie viele Stunden pro Woche in diesem Zeitraum gearbeitet wird – 0, wenn gar nicht.',
         })
-      } else if (!period.leave && period.hours === 0) {
+      } else if (period.kind === 'work' && period.hours === 0) {
         add({
           id: `period-zero-${period.id}`,
           severity: 'error',

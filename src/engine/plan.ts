@@ -47,7 +47,7 @@ function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
       id: createId('period'),
       from: cursor,
       to: cursor + plan.leaveMonths - 1,
-      leave: true,
+      kind: 'leave',
       hours: 0,
       allowance: plan.leaveAllowance,
     })
@@ -58,7 +58,7 @@ function parentPeriodsFromOutline(plan: ParentPlanOutline): PlanPeriod[] {
       id: createId('period'),
       from: cursor,
       to: cursor + plan.partTimeMonths - 1,
-      leave: true,
+      kind: 'leave',
       hours: plan.partTimeHours,
       allowance: plan.partTimeAllowance,
     })
@@ -80,7 +80,7 @@ export function periodsFromOutline(outline: PlanOutline, relationship: Relations
       id: createId('period'),
       from: start,
       to: start + outline.bonusMonths - 1,
-      leave: true,
+      kind: 'leave',
       hours: outline.bonusHours,
       allowance: 'bonus',
     })
@@ -109,7 +109,7 @@ export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHo
   for (const period of periods) {
     for (let m = Math.max(1, period.from); m <= Math.min(horizon, period.to); m++) {
       months[m - 1] = {
-        leave: period.leave,
+        leave: period.kind === 'leave',
         hours: period.hours ?? 0,
         hoursMissing: period.hours === null,
         allowance: period.allowance,

@@ -16,7 +16,7 @@ function variant(patch: (config: VariantConfig) => void = () => {}): VariantConf
 }
 
 function period(from: number, to: number, patch: Partial<PlanPeriod> = {}): PlanPeriod {
-  return { id: `test-${from}-${to}`, from, to, leave: true, hours: 0, allowance: 'basic', ...patch }
+  return { id: `test-${from}-${to}`, from, to, kind: 'leave', hours: 0, allowance: 'basic', ...patch }
 }
 
 describe('plan periods', () => {
