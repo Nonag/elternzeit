@@ -4,7 +4,7 @@ import type { VariantConfig } from '@/engine/types'
 import { weekStart } from '@/engine/vacation'
 
 /** Inputs of a plan period that can be marked. */
-export type PeriodField = 'to' | 'kind' | 'hours' | 'allowance'
+export type PeriodField = 'to' | 'kind' | 'hours' | 'workDays' | 'allowance'
 /** Counters in the header of the plan card. */
 export type Counter = 'allowance' | 'bonus' | 'leave'
 
@@ -14,6 +14,7 @@ type Target = { fields: PeriodField[] } | { vacationYear: true } | { counter: Co
 const TARGETS: [id: string, target: Target][] = [
   ['period-hours', { fields: ['hours'] }],
   ['period-zero', { fields: ['kind', 'hours'] }],
+  ['period-day-hours', { fields: ['hours', 'workDays'] }],
   ['hours', { fields: ['hours'] }],
   ['bonus-hours', { fields: ['hours'] }],
   ['parttime-max', { fields: ['hours'] }],

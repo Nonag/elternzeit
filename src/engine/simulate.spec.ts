@@ -105,6 +105,16 @@ describe('simulate', () => {
     expect(result.issues.some((i) => i.severity === 'error' && i.id.startsWith('period-hours-'))).toBe(true)
   })
 
+  it('flags more than 8 hours per working day', () => {
+    const issue = (hours: number, workDays: number) =>
+      simulate(variant((c) => (c.periods.b = [period(13, 14, { kind: 'work', hours, workDays, allowance: 'none' })]))).issues.find(
+        (i) => i.id === 'period-day-hours-test-13-14',
+      )
+    expect(issue(25, 1)).toMatchObject({ severity: 'error', months: [13, 14] })
+    expect(issue(30, 3)?.detail).toContain('10 Stunden pro Tag')
+    expect(issue(24, 3)).toBeUndefined()
+  })
+
   it('supports contracts with fractional hours', () => {
     const result = simulate(
       variant((c) => {

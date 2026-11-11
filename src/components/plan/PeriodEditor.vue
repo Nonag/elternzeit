@@ -67,7 +67,7 @@ function updateWorkDays(key: ParentKey, period: PlanPeriod, days: number | null)
 
 const marks = computed(() => planIssues(result.value, config.value))
 const NONE: Issue[] = []
-const FIELDS: PeriodField[] = ['to', 'kind', 'hours', 'allowance']
+const FIELDS: PeriodField[] = ['to', 'kind', 'hours', 'workDays', 'allowance']
 
 function issuesAt(period: PlanPeriod, field: PeriodField): Issue[] {
   return marks.value.fields.get(`${period.id}:${field}`) ?? NONE
@@ -161,18 +161,21 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
               @update:model-value="(v) => update(key, period.id, { hours: v })"
             />
           </IssueTip>
-          <NumberInput
-            :model-value="period.hours ? (period.workDays ?? config.parents[key].workDaysPerWeek) : null"
-            nullable
-            :disabled="!period.hours"
-            placeholder="–"
-            :min="0.5"
-            :max="7"
-            :step="0.5"
-            :decimals="1"
-            aria-label="Arbeitstage pro Woche"
-            @update:model-value="(v) => updateWorkDays(key, period, v)"
-          />
+          <IssueTip v-slot="{ tone }" :issues="issuesAt(period, 'workDays')">
+            <NumberInput
+              :model-value="period.hours ? (period.workDays ?? config.parents[key].workDaysPerWeek) : null"
+              nullable
+              :disabled="!period.hours"
+              :tone="tone"
+              placeholder="–"
+              :min="0.5"
+              :max="7"
+              :step="0.5"
+              :decimals="1"
+              aria-label="Arbeitstage pro Woche"
+              @update:model-value="(v) => updateWorkDays(key, period, v)"
+            />
+          </IssueTip>
           <IssueTip v-slot="{ tone }" :issues="issuesAt(period, 'allowance')">
             <SelectField
               :model-value="period.allowance"

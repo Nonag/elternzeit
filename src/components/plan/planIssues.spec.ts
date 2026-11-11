@@ -27,6 +27,14 @@ describe('planIssues', () => {
     expect(fields.get('leave:allowance')).toBeUndefined()
   })
 
+  it('marks hours and working days of a period with more than 8 hours per day', () => {
+    const config = fewHours()
+    config.periods.b[1] = { ...config.periods.b[1], hours: 25, workDays: 1 }
+    const { fields } = planIssues(simulate(config), config)
+    expect(ids(fields.get('work:hours'))).toContain('period-day-hours-work')
+    expect(ids(fields.get('work:workDays'))).toEqual(['period-day-hours-work'])
+  })
+
   it('drops the name in front of the title, which is redundant in the rows of a parent', () => {
     const config = fewHours()
     const [issue] = planIssues(simulate(config), config).fields.get('leave:hours') ?? []

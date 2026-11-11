@@ -165,6 +165,11 @@ export const PARENTAL_LEAVE = {
   partTimeClaims: 2,
 } as const
 
+/** A regular working day (§ 3 ArbZG). */
+export const WORKING_TIME = {
+  regularDailyHours: 8,
+} as const
+
 export const MATERNITY = {
   weeksBefore: 6,
   weeksAfter: 8,

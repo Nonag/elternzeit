@@ -1,4 +1,4 @@
-import { PARENTAL_ALLOWANCE as PA, PARENTAL_LEAVE as PL } from './params'
+import { PARENTAL_ALLOWANCE as PA, PARENTAL_LEAVE as PL, WORKING_TIME } from './params'
 import type { EntitlementSummary, Issue, MonthRow, ParentMonth, ParentSummary } from './result'
 import type { ParentKey, PlanPeriod, VariantConfig } from './types'
 import type { VacationSummary } from './vacation'
@@ -66,6 +66,20 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
           title: `${name(key)}: 0 Stunden ohne Elternzeit (${range})`,
           detail: 'Wer nicht in Elternzeit ist, arbeitet. Für eine Auszeit mit Kind bitte Elternzeit einschalten.',
         })
+      } else if (period.hours > 0) {
+        const workDays = period.workDays ?? config.parents[key].workDaysPerWeek
+        const perDay = period.hours / workDays
+        if (perDay > WORKING_TIME.regularDailyHours + 0.001) {
+          add({
+            id: `period-day-hours-${period.id}`,
+            severity: 'error',
+            category: 'general',
+            parent: key,
+            months: rangeOf(period),
+            title: `${name(key)}: mehr als ${WORKING_TIME.regularDailyHours} Stunden pro Arbeitstag (${range})`,
+            detail: `${fmt(period.hours)} Stunden an ${fmt(workDays)} ${workDays === 1 ? 'Tag' : 'Tagen'} pro Woche sind ${fmt(perDay)} Stunden pro Tag, mehr als ein normaler Arbeitstag mit ${WORKING_TIME.regularDailyHours} Stunden.`,
+          })
+        }
       }
     }
 
