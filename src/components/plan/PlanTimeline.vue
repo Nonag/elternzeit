@@ -83,7 +83,7 @@ const lanes = computed(() => {
     row.care.gap > 0.5
       ? {
           label: `Betreuungslücke: ${num(row.care.gap)} h/Woche`,
-          short: `Lücke`,
+          short: `${num(row.care.gap)} h`,
           color: 'var(--destructive)',
           textClass: 'text-white',
           periodId: null,
