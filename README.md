@@ -55,8 +55,9 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
 - **One-time payments** from the employer (bonus, premium) per parent and calendar month: wage tax with the annual
   table, social contributions per § 23a SGB IV incl. März-Klausel; Elterngeld stays unchanged (§ 2c BEEG).
 - **Checks** Elterngeld and Elternzeit rules (parallel Basis, LM 14/32 limits, continuity, Partnerschaftsbonus,
-  sections, part-time claims, income limit) plus working days over 8 hours, care gaps and reserve warnings; the plan
-  card marks the fields concerned and explains them in a tooltip.
+  sections, part-time claims, income limit) plus working days over 8 hours, care gaps (day by day, with the working
+  days of both parents placed apart) and reserve warnings; the plan card marks the fields concerned and explains them
+  in a tooltip.
 - **Shows** tips with an estimated euro effect, deadlines (with checklist), vacation per calendar year (reduction
   per § 17 BEEG, planned vacation, fewer working days in part-time),
   pension points incl. Kindererziehungszeiten, lost savings and a 50/50 compensation proposal.

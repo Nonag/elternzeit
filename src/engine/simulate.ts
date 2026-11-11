@@ -11,7 +11,7 @@ import {
 } from './dates'
 import { computeMaternityPeriod, maternityBenefitRate } from './maternity'
 import { computeOneTimePayments } from './oneTimePayments'
-import { PARENTAL_ALLOWANCE as PA, yearParameters } from './params'
+import { PARENTAL_ALLOWANCE as PA, WORKING_TIME, yearParameters } from './params'
 import {
   basicWithIncome,
   computeAllowanceBase,
@@ -35,7 +35,7 @@ import type {
 import { evaluateRules } from './rules'
 import { evaluateTips } from './tips'
 import type { ParentConfig, ParentKey, PlanPeriod, RelationshipStatus, VariantConfig, TaxClass } from './types'
-import { computeVacation, hoursWorked, planVacation, type PlannedVacation, type WorkMonth } from './vacation'
+import { computeVacation, planVacation, type PlannedVacation, type WorkMonth } from './vacation'
 
 const PARENT_KEYS: ParentKey[] = ['a', 'b']
 
@@ -86,6 +86,32 @@ function contractGross(parent: ParentConfig, hours: number): number {
 
 function average(values: number[]): number | null {
   return values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : null
+}
+
+/**
+ * Care per week, day by day. Parents place their working days so that as few as possible fall on the same weekday;
+ * on those shared days (every working day of a single parent) the child needs care for the shorter working day.
+ * The Kita spreads its hours over the weekdays, family and friends come on whole days, and both only help there.
+ */
+function careCoverage(parents: ParentMonth[], family: { days: number; hours: number }, childcare: number, settlingIn: boolean): CareCoverage {
+  const working = parents.map((m) => (m.hours > 0 ? { days: m.workDays * (1 - m.vacationShare), perDay: m.hours / m.workDays } : { days: 0, perDay: 0 }))
+  const [first, second] = working
+  const days = second ? Math.min(Math.max(0, first.days + second.days - WORKING_TIME.weekdays), first.days, second.days) : first.days
+  const perDay = days > 0 ? Math.min(...working.map((w) => w.perDay)) : 0
+  const childcarePerDay = Math.min(perDay, childcare / WORKING_TIME.weekdays)
+  const familyPerDay = family.days > 0 ? Math.min(perDay - childcarePerDay, family.hours / family.days) : 0
+  const need = days * perDay
+  const childcareCovered = days * childcarePerDay
+  const familyCovered = Math.min(days, family.days) * familyPerDay
+  return {
+    need: round2(need),
+    family: round2(family.hours),
+    childcare,
+    familyCovered: round2(familyCovered),
+    childcareCovered: round2(childcareCovered),
+    gap: round2(Math.max(0, need - childcareCovered - familyCovered)),
+    settlingIn,
+  }
 }
 
 export function effectivePeriods(config: VariantConfig): Record<ParentKey, PlanPeriod[]> {
@@ -436,24 +462,20 @@ export function simulate(config: VariantConfig): SimulationResult {
     const balanceChange = round2(income - expenses)
     balance = round2(balance + balanceChange)
 
-    const familyHours = config.familyCare.reduce((sum, period) => {
-      if (!period.from || !period.to) return sum
-      const share = overlapDays(lm.start, lm.end, period.from, period.to) / lm.days
-      return sum + share * period.daysPerWeek * period.hoursPerDay
-    }, 0)
+    const family = config.familyCare.reduce(
+      (sum, period) => {
+        if (!period.from || !period.to) return sum
+        const share = overlapDays(lm.start, lm.end, period.from, period.to) / lm.days
+        return { days: sum.days + share * period.daysPerWeek, hours: sum.hours + share * period.daysPerWeek * period.hoursPerDay }
+      },
+      { days: 0, hours: 0 },
+    )
     const settlingIn = childcareStartIndex === lm.index
     const childcareHours =
       childcareStartIndex !== null && lm.index >= childcareStartIndex
         ? config.childcare.hoursPerWeek * (settlingIn ? 0.5 : 1)
         : 0
-    const need = activeParents.length === 1 ? hoursWorked(a) : Math.min(hoursWorked(a), hoursWorked(b))
-    const care: CareCoverage = {
-      need: round2(need),
-      family: round2(familyHours),
-      childcare: childcareHours,
-      gap: round2(Math.max(0, need - familyHours - childcareHours)),
-      settlingIn,
-    }
+    const care = careCoverage(activeParents.length === 1 ? [a] : [a, b], family, childcareHours, settlingIn)
 
     const markers: MonthMarker[] = []
     if (a.maternityDays > 0) markers.push('maternity')

@@ -165,9 +165,10 @@ export const PARENTAL_LEAVE = {
   partTimeClaims: 2,
 } as const
 
-/** A regular working day (§ 3 ArbZG). */
+/** A regular working day (§ 3 ArbZG); working days fall on Monday to Friday. */
 export const WORKING_TIME = {
   regularDailyHours: 8,
+  weekdays: 5,
 } as const
 
 export const MATERNITY = {

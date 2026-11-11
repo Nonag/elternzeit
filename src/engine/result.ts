@@ -70,8 +70,12 @@ export interface OneTimePaymentResult {
 export interface CareCoverage {
   /** Hours per week in which both parents work at the same time. */
   need: number
+  /** Planned hours per week of family and friends, and of the Kita. */
   family: number
   childcare: number
+  /** The part of the need that family and friends, and the Kita, cover. */
+  familyCovered: number
+  childcareCovered: number
   gap: number
   settlingIn: boolean
 }

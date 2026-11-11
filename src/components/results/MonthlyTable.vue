@@ -168,14 +168,14 @@ const columns = computed<ColumnDef<MonthRow, unknown>[]>(() => [
       column.display({
         id: 'care-family',
         header: 'Familie',
-        cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.care.family ? num(row.original.care.family) : '–'),
-        meta: { align: 'right', csv: (row: MonthRow) => num(row.care.family), csvHeader: 'Familie h/Woche' } satisfies ColumnMeta,
+        cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.care.familyCovered ? num(row.original.care.familyCovered) : '–'),
+        meta: { align: 'right', csv: (row: MonthRow) => num(row.care.familyCovered), csvHeader: 'Familie h/Woche' } satisfies ColumnMeta,
       }),
       column.display({
         id: 'care-childcare',
         header: 'Kita',
-        cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.care.childcare ? num(row.original.care.childcare) : '–'),
-        meta: { align: 'right', csv: (row: MonthRow) => num(row.care.childcare), csvHeader: 'Kita h/Woche' } satisfies ColumnMeta,
+        cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.care.childcareCovered ? num(row.original.care.childcareCovered) : '–'),
+        meta: { align: 'right', csv: (row: MonthRow) => num(row.care.childcareCovered), csvHeader: 'Kita h/Woche' } satisfies ColumnMeta,
       }),
       column.display({
         id: 'care-gap',

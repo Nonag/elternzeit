@@ -105,7 +105,10 @@ Arbeit: andere Wochenstunden ohne Elternzeit."
           </span>
           <span class="flex items-center gap-1">
             Tage
-            <InfoTip text="Arbeitstage pro Woche. Wer an weniger Tagen arbeitet, hat entsprechend weniger Urlaubstage." />
+            <InfoTip
+              text="Arbeitstage pro Woche. Wer an weniger Tagen arbeitet, hat entsprechend weniger Urlaubstage.
+Betreuung braucht es nur an Tagen, an denen ihr beide arbeitet. Gerechnet wird so, als legt ihr eure Arbeitstage möglichst nicht auf dieselben Tage."
+            />
           </span>
           <span class="flex items-center gap-1">
             Elterngeld

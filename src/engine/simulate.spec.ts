@@ -158,3 +158,35 @@ describe('simulate', () => {
     expect(month.parentalAllowance).toBeLessThanOrEqual(result.parents.b.base.plusFull)
   })
 })
+
+describe('care', () => {
+  const care = (patch: (config: VariantConfig) => void, month: number) => simulate(variant(patch)).months[month - 1].care
+  const work = (hours: number, workDays: number | null) => [period(13, 24, { hours, workDays, allowance: 'none' })]
+
+  it('needs no care when the working days of both parents fit into one week', () => {
+    const result = care((c) => {
+      c.periods.a = work(24, 3)
+      c.periods.b = work(16, 2)
+    }, 13)
+    expect(result).toMatchObject({ need: 0, gap: 0 })
+  })
+
+  it('needs care for the shorter working day on shared days; family and friends cover whole days', () => {
+    const result = care((c) => {
+      c.periods.a = work(24, null)
+      c.periods.b = work(18, 3)
+      c.familyCare = [{ id: 'f', label: 'Oma', from: '2028-01-28', to: '2028-12-31', daysPerWeek: 1, hoursPerDay: 8 }]
+    }, 14)
+    // Three shared days with 4.8 hours each; family and friends cover one of them.
+    expect(result).toMatchObject({ need: 14.4, family: 8, familyCovered: 4.8, gap: 9.6 })
+  })
+
+  it('spreads the Kita hours over the weekdays, so they only help on shared days', () => {
+    const result = care((c) => {
+      c.periods.b = work(24, 3)
+      c.childcare.hoursPerWeek = 35
+    }, 22)
+    // Three shared days with 8 hours each; the Kita covers 7 hours of each.
+    expect(result).toMatchObject({ need: 24, childcare: 35, childcareCovered: 21, gap: 3 })
+  })
+})
