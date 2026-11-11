@@ -124,14 +124,17 @@ function onClick(parent: ParentKey | null, segment: Segment) {
     <div class="overflow-x-auto pb-1">
       <div class="relative grid gap-y-1.5" :style="gridStyle">
         <div class="text-muted-foreground sticky left-0 z-10 bg-card text-[0.65rem]">Lebensmonat</div>
-        <div
-          v-for="row in months"
-          :key="`h-${row.index}`"
-          class="text-muted-foreground text-center text-[0.65rem] tabular-nums"
-          :title="`${formatDate(row.start)} – ${formatDate(row.end)} (${formatMonthKey(row.calendarMonth)})`"
-        >
-          {{ row.index }}
-        </div>
+        <Tooltip v-for="row in months" :key="`h-${row.index}`">
+          <TooltipTrigger as-child>
+            <div class="text-muted-foreground cursor-default text-center text-[0.65rem] tabular-nums">{{ row.index }}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div class="grid gap-0.5">
+              <span class="font-medium">Monat {{ row.index }}</span>
+              <span class="opacity-80">{{ formatDate(row.start) }} – {{ formatDate(row.end) }} ({{ formatMonthKey(row.calendarMonth) }})</span>
+            </div>
+          </TooltipContent>
+        </Tooltip>
 
         <template v-for="lane in lanes" :key="lane.id">
           <div class="sticky left-0 z-10 flex items-center truncate bg-card pr-2 text-xs font-medium">{{ lane.title }}</div>
