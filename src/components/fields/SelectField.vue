@@ -4,7 +4,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 
 const model = defineModel<T>({ required: true })
 const props = defineProps<{
-  options: { value: T; label: string }[]
+  /** `short` replaces the label in the closed field, e.g. in narrow table columns. */
+  options: { value: T; label: string; short?: string }[]
   placeholder?: string
   triggerClass?: string
   /** Heading above the options in the opened list. */
@@ -15,7 +16,10 @@ const NULL_KEY = '__null__'
 const key = (value: T) => (value === null ? NULL_KEY : String(value))
 const selected = computed(() => key(model.value))
 // Rendered explicitly, so renamed options (e.g. variants) update the trigger immediately.
-const selectedLabel = computed(() => props.options.find((o) => key(o.value) === selected.value)?.label)
+const selectedLabel = computed(() => {
+  const option = props.options.find((o) => key(o.value) === selected.value)
+  return option?.short ?? option?.label
+})
 
 function update(value: unknown) {
   const option = props.options.find((o) => key(o.value) === value)

@@ -49,8 +49,11 @@ const lanes = computed(() => {
     title: result.value.parents[key].name,
     parent: key as ParentKey | null,
     segments: buildSegments(months.value, (row) => {
-      const style = monthStyle(row[key])
-      return { ...style, periodId: row[key].periodId }
+      const month = row[key]
+      const style = monthStyle(month)
+      const vacation = month.vacation && !month.maternityLocked && month.periodId ? result.value.vacation[key].periods[month.periodId] : undefined
+      const label = vacation ? `Urlaub: ${num(vacation.taken)} von ${num(vacation.available)} Arbeitstagen` : style.label
+      return { ...style, label, periodId: month.periodId }
     }),
   }))
   const family = buildSegments(months.value, (row) =>

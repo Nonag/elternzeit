@@ -56,7 +56,7 @@ function pick<T extends object>(base: T, stored: unknown): T {
   return Object.fromEntries(Object.keys(base).map((key) => [key, merged[key as keyof T]])) as T
 }
 
-const PERIOD: PlanPeriod = { id: '', from: 1, to: 1, kind: 'leave', hours: 0, allowance: 'none' }
+const PERIOD: PlanPeriod = { id: '', from: 1, to: 1, kind: 'leave', hours: 0, vacationDays: null, allowance: 'none' }
 
 /** Version 1 had an Elternzeit switch ("leave") instead of the kind of period. */
 function migratePeriod(stored: unknown): PlanPeriod {

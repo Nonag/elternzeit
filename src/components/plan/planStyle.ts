@@ -13,6 +13,9 @@ export function monthStyle(month: ParentMonth): PlanStyle {
   if (month.maternityLocked) {
     return { label: 'Mutterschutz (zählt als Basis)', short: 'Mutterschutz', color: 'var(--plan-maternity)', textClass: 'text-white' }
   }
+  if (month.vacation) {
+    return { label: 'Urlaub', short: 'Urlaub', color: 'var(--plan-vacation)', textClass: 'text-white' }
+  }
   const hours = month.hours > 0 ? ` ${formatHours(month.hours)} h` : ''
   switch (month.allowance) {
     case 'basic':
@@ -58,6 +61,7 @@ export const LEGEND: { label: string; color: string; striped?: boolean }[] = [
   { label: 'Partnerschaftsbonus', color: 'var(--plan-bonus)' },
   { label: 'Elternzeit ohne Elterngeld', color: 'var(--plan-leave)', striped: true },
   { label: 'Teilzeit in Elternzeit', color: 'var(--plan-parttime)' },
+  { label: 'Urlaub', color: 'var(--plan-vacation)' },
   { label: 'Familie/Freunde', color: 'var(--plan-family)' },
   { label: 'Kita', color: 'var(--plan-childcare)' },
 ]

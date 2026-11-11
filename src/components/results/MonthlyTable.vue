@@ -18,6 +18,7 @@ import { monthStyle } from '@/components/plan/planStyle'
 import { formatDate, formatMonthKey, formatShortDate } from '@/engine/dates'
 import type { MonthRow, ParentMonth } from '@/engine/result'
 import type { ParentKey } from '@/engine/types'
+import { hoursWorked } from '@/engine/vacation'
 import { euro, num, signedEuro } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
 
@@ -108,8 +109,8 @@ function parentColumns(key: ParentKey): ColumnDef<MonthRow, unknown>[] {
     column.display({
       id: `${key}-hours`,
       header: 'Std.',
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original[key].hours ? num(row.original[key].hours) : '–'),
-      meta: { align: 'right', csv: (row: MonthRow) => num(row[key].hours), csvHeader: `${name} Stunden` } satisfies ColumnMeta,
+      cell: ({ row }) => h('span', { class: 'tabular-nums' }, hoursWorked(row.original[key]) ? num(hoursWorked(row.original[key])) : '–'),
+      meta: { align: 'right', csv: (row: MonthRow) => num(hoursWorked(row[key])), csvHeader: `${name} Stunden` } satisfies ColumnMeta,
     }),
     moneyColumn(`${key}-net`, 'Netto-Lohn', (row) => row[key].netSalary, { csvHeader: `${name} Netto-Lohn` }),
     {

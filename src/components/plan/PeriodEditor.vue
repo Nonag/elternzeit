@@ -2,12 +2,13 @@
 import { PlusIcon, Trash2Icon } from '@lucide/vue'
 import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import InfoTip from '@/components/fields/InfoTip.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
 import SelectField from '@/components/fields/SelectField.vue'
 import { createId, normalizePeriods, sortPeriods } from '@/engine/plan'
-import type { AllowanceType, ParentKey, PlanPeriod } from '@/engine/types'
+import type { AllowanceType, ParentKey, PeriodKind, PlanPeriod } from '@/engine/types'
+import type { VacationPeriodUse } from '@/engine/vacation'
+import { num } from '@/lib/format'
 import { useVariants } from '@/stores/variants'
 
 const selected = defineModel<string | null>('selected', { default: null })
@@ -15,15 +16,21 @@ const { config, result } = useVariants()
 
 const parentKeys = computed<ParentKey[]>(() => result.value.activeParents)
 
-const allowanceOptions: { value: AllowanceType; label: string }[] = [
-  { value: 'none', label: 'kein Elterngeld' },
-  { value: 'basic', label: 'Basiselterngeld' },
-  { value: 'plus', label: 'ElterngeldPlus' },
-  { value: 'bonus', label: 'Partnerschaftsbonus' },
+const kindOptions: { value: PeriodKind; label: string }[] = [
+  { value: 'leave', label: 'Elternzeit' },
+  { value: 'work', label: 'Arbeit' },
+  { value: 'vacation', label: 'Urlaub' },
+]
+
+const allowanceOptions: { value: AllowanceType; label: string; short: string }[] = [
+  { value: 'none', label: 'kein Elterngeld', short: 'kein' },
+  { value: 'basic', label: 'Basiselterngeld', short: 'Basis' },
+  { value: 'plus', label: 'ElterngeldPlus', short: 'Plus' },
+  { value: 'bonus', label: 'Partnerschaftsbonus', short: 'Bonus' },
 ]
 
 // Compact enough for two parents side by side (from ~54rem card width) without horizontal scrolling.
-const GRID = 'grid grid-cols-[3.25rem_3.25rem_2.5rem_4.25rem_minmax(0,1fr)_2rem] items-center gap-1.5'
+const GRID = 'grid grid-cols-[3rem_3rem_6.25rem_3.75rem_minmax(0,1fr)_2rem] items-center gap-1.5'
 
 function periodsOf(key: ParentKey): PlanPeriod[] {
   return sortPeriods(config.value.periods[key])
@@ -42,7 +49,7 @@ function update(key: ParentKey, id: string, patch: Partial<PlanPeriod>) {
 function add(key: ParentKey) {
   const periods = config.value.periods[key]
   const start = periods.length ? Math.max(...periods.map((b) => b.to)) + 1 : 1
-  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, kind: 'leave', hours: 0, allowance: 'none' }
+  const period: PlanPeriod = { id: createId('period'), from: start, to: start + 1, kind: 'leave', hours: 0, vacationDays: null, allowance: 'none' }
   config.value.periods[key] = normalizePeriods([...periods, period])
   selected.value = period.id
 }
@@ -52,7 +59,17 @@ function remove(key: ParentKey, id: string) {
   if (selected.value === id) selected.value = null
 }
 
+function vacationOf(key: ParentKey, period: PlanPeriod): VacationPeriodUse {
+  return result.value.vacation[key].periods[period.id] ?? { available: 0, taken: 0 }
+}
+
+/** All working days of the period are stored as null, so the vacation grows with the period. */
+function updateVacationDays(key: ParentKey, period: PlanPeriod, days: number | null) {
+  update(key, period.id, { vacationDays: days === null || days >= vacationOf(key, period).available ? null : days })
+}
+
 function hasError(key: ParentKey, period: PlanPeriod): boolean {
+  if (period.kind === 'vacation') return false
   return period.hours === null || (period.kind === 'work' && period.hours === 0) || result.value.issues.some((i) => i.id === `period-hours-${period.id}`)
 }
 </script>
@@ -72,8 +89,12 @@ function hasError(key: ParentKey, period: PlanPeriod): boolean {
           </span>
           <span>bis</span>
           <span class="flex items-center gap-1">
-            EZ
-            <InfoTip text="Elternzeit: unbezahlte Freistellung mit Kündigungsschutz. Bis zu 32 Stunden Arbeit pro Woche sind dabei möglich." />
+            Art
+            <InfoTip
+              text="Elternzeit: unbezahlte Freistellung mit Kündigungsschutz. Bis zu 32 Stunden Arbeit pro Woche sind dabei möglich.
+Arbeit: andere Wochenstunden ohne Elternzeit.
+Urlaub: bezahlter Urlaub, das Gehalt läuft weiter."
+            />
           </span>
           <span class="flex items-center gap-1">
             Std.
@@ -101,31 +122,48 @@ Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 S
         >
           <NumberInput :model-value="period.from" :min="1" :max="96" aria-label="von Monat" @update:model-value="(v) => update(key, period.id, { from: v ?? period.from })" />
           <NumberInput :model-value="period.to" :min="1" :max="96" aria-label="bis Monat" @update:model-value="(v) => update(key, period.id, { to: v ?? period.to })" />
-          <div class="flex justify-center">
-            <Switch
-              :model-value="period.kind === 'leave'"
-              aria-label="Elternzeit"
-              @update:model-value="(v: boolean) => update(key, period.id, { kind: v ? 'leave' : 'work' })"
-            />
-          </div>
-          <NumberInput
-            :model-value="period.hours"
-            nullable
-            :invalid="period.hours === null || (period.kind === 'work' && period.hours === 0)"
-            placeholder="?"
-            :min="0"
-            :max="60"
-            :step="0.5"
-            :decimals="2"
-            aria-label="Stunden pro Woche"
-            @update:model-value="(v) => update(key, period.id, { hours: v })"
-          />
           <SelectField
-            :model-value="period.allowance"
-            :options="allowanceOptions"
+            :model-value="period.kind"
+            :options="kindOptions"
             trigger-class="px-2 text-xs"
-            @update:model-value="(v) => update(key, period.id, { allowance: v as AllowanceType })"
+            @update:model-value="(v) => update(key, period.id, { kind: v as PeriodKind })"
           />
+          <div v-if="period.kind === 'vacation'" class="col-span-2 flex min-w-0 items-center gap-1.5">
+            <div class="w-24 shrink-0">
+              <NumberInput
+                :model-value="vacationOf(key, period).taken"
+                :min="0"
+                :max="vacationOf(key, period).available"
+                :step="0.5"
+                :decimals="1"
+                unit="Tage"
+                aria-label="Urlaubstage"
+                @update:model-value="(v) => updateVacationDays(key, period, v)"
+              />
+            </div>
+            <span class="text-muted-foreground truncate text-xs">von {{ num(vacationOf(key, period).available) }}</span>
+            <InfoTip text="Bezahlte Urlaubstage in diesem Zeitraum, höchstens so viele wie Arbeitstage. Feiertage sind nicht abgezogen." />
+          </div>
+          <template v-else>
+            <NumberInput
+              :model-value="period.hours"
+              nullable
+              :invalid="period.hours === null || (period.kind === 'work' && period.hours === 0)"
+              placeholder="?"
+              :min="0"
+              :max="60"
+              :step="0.5"
+              :decimals="2"
+              aria-label="Stunden pro Woche"
+              @update:model-value="(v) => update(key, period.id, { hours: v })"
+            />
+            <SelectField
+              :model-value="period.allowance"
+              :options="allowanceOptions"
+              trigger-class="px-2 text-xs"
+              @update:model-value="(v) => update(key, period.id, { allowance: v as AllowanceType })"
+            />
+          </template>
           <Button variant="ghost" size="icon" aria-label="Zeitraum löschen" @click.stop="remove(key, period.id)"><Trash2Icon /></Button>
         </div>
       </div>

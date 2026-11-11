@@ -43,6 +43,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
 
   for (const key of activeParents) {
     for (const period of periods[key]) {
+      if (period.kind === 'vacation') continue
       const range = period.from === period.to ? `Monat ${period.from}` : `Monat ${period.from}–${period.to}`
       if (period.hours === null) {
         add({

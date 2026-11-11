@@ -6,8 +6,8 @@ export type RelationshipStatus = 'married' | 'unmarried' | 'single'
 export type HealthInsurance = 'statutory' | 'statutoryVoluntary' | 'private'
 export type AllowanceType = 'none' | 'basic' | 'plus' | 'bonus'
 export type OutlineAllowance = 'none' | 'basic' | 'plus'
-/** "Art" of a plan period: Elternzeit or work with other hours. */
-export type PeriodKind = 'leave' | 'work'
+/** "Art" of a plan period: Elternzeit, work with other hours, or paid vacation. */
+export type PeriodKind = 'leave' | 'work' | 'vacation'
 
 export interface ParentConfig {
   name: string
@@ -49,8 +49,10 @@ export interface PlanPeriod {
   /** Last life month (inclusive). */
   to: number
   kind: PeriodKind
-  /** Weekly working hours in this period (null = not entered yet). */
+  /** Weekly working hours in this period (null = not entered yet); vacation keeps the contract hours. */
   hours: number | null
+  /** Vacation days taken in a vacation period (null = all working days). */
+  vacationDays: number | null
   allowance: AllowanceType
 }
 

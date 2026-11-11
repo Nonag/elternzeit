@@ -8,7 +8,13 @@ import type { VacationSummary } from './vacation'
 export interface ParentMonth {
   active: boolean
   leave: boolean
-  /** Weekly working hours (0 while not working). */
+  /** Part of a vacation period. */
+  vacation: boolean
+  /** Vacation days taken in this month. */
+  vacationDays: number
+  /** Share of the working days spent on vacation (0–1). */
+  vacationShare: number
+  /** Weekly working hours under the contract (0 while not working); vacation is paid at these hours. */
   hours: number
   allowance: AllowanceType
   maternityDays: number

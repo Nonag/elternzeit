@@ -35,13 +35,16 @@ import type {
 import { evaluateRules } from './rules'
 import { evaluateTips } from './tips'
 import type { ParentConfig, ParentKey, PlanPeriod, RelationshipStatus, VariantConfig, TaxClass } from './types'
-import { computeVacation } from './vacation'
+import { computeVacation, hoursWorked, planVacation, type PlannedVacation } from './vacation'
 
 const PARENT_KEYS: ParentKey[] = ['a', 'b']
 
 const EMPTY_MONTH: ParentMonth = {
   active: false,
   leave: false,
+  vacation: false,
+  vacationDays: 0,
+  vacationShare: 0,
   hours: 0,
   allowance: 'none',
   maternityDays: 0,
@@ -175,6 +178,14 @@ export function simulate(config: VariantConfig): SimulationResult {
 
   const maternityRate = maternityBenefitRate(setup.a.realNetBefore, config.parents.a.healthInsurance)
 
+  // Paid vacation, spread over the working days of each vacation period (none during Mutterschutz)
+  const plannedVacation = Object.fromEntries(
+    PARENT_KEYS.map((key) => [
+      key,
+      planVacation(periods[key], lms, config.parents[key].workDaysPerWeek, (lm) => key === 'a' && overlapDays(lm.start, lm.end, birth, maternity.end) > 0),
+    ]),
+  ) as Record<ParentKey, PlannedVacation>
+
   // Pass 1: work, salary, maternity benefits
   const parentMonths: Record<ParentKey, ParentMonth[]> = { a: [], b: [] }
   for (const key of PARENT_KEYS) {
@@ -227,6 +238,9 @@ export function simulate(config: VariantConfig): SimulationResult {
       parentMonths[key].push({
         active: true,
         leave: planMonth.leave,
+        vacation: planMonth.vacation,
+        vacationDays: round2(plannedVacation[key].days[lm.index - 1]),
+        vacationShare: plannedVacation[key].shares[lm.index - 1],
         hours: round2(hours * workFraction),
         allowance: maternityLocked ? 'basic' : planMonth.allowance,
         maternityDays,
@@ -427,7 +441,7 @@ export function simulate(config: VariantConfig): SimulationResult {
       childcareStartIndex !== null && lm.index >= childcareStartIndex
         ? config.childcare.hoursPerWeek * (settlingIn ? 0.5 : 1)
         : 0
-    const need = activeParents.length === 1 ? a.hours : Math.min(a.hours, b.hours)
+    const need = activeParents.length === 1 ? hoursWorked(a) : Math.min(hoursWorked(a), hoursWorked(b))
     const care: CareCoverage = {
       need: round2(need),
       family: round2(familyHours),
@@ -541,7 +555,7 @@ export function simulate(config: VariantConfig): SimulationResult {
     childcare: { startMonthIndex: childcareStartIndex, annualIncomeByYear },
     estimatedTaxableIncome,
     oneTimePayments,
-    vacation: computeVacation(config, months, activeParents),
+    vacation: computeVacation(config, months, activeParents, plannedVacation),
     longTerm: computeLongTerm(config, months, parents, activeParents, birth),
     totals: {
       income: total((m) => m.income),
