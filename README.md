@@ -60,22 +60,9 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
   pension points incl. Kindererziehungszeiten, lost savings and a 50/50 compensation proposal.
 - **Variants** can be copied, compared and exported/imported as a JSON planning, or saved on the server.
 
-## Structure
+## Development
 
-```
-src/engine/        pure TypeScript calculation core (no Vue), unit-tested
-  params.ts        legal parameters per year, enacted or expected (see EXPECTED_CHANGES)
-  dates.ts         ISO date helpers, Lebensmonate
-  payroll.ts       gross → net (wage tax, Soli, church tax, social contributions, Midijob)
-  parentalAllowance.ts, maternity.ts, plan.ts, childcare.ts
-  oneTimePayments.ts  bonus and other sonstige Bezüge (wage tax, social contributions, rough tax-return effect)
-  simulate.ts      config → monthly rows, summaries, issues
-  rules.ts, tips.ts, deadlines.ts, vacation.ts, pension.ts
-src/stores/        variant store (localStorage, autosave), server planning (open, save, conflicts)
-src/components/    inputs, plan timeline/editor, results (table, charts, panels); ui/ = shadcn-vue
-server/            sync server: HTTP API, SQLite store, static app
-docs/              research notes with sources
-```
+Code structure, the code names of the UI terms, conventions and checks are in [AGENTS.md](AGENTS.md).
 
 ## Legal basis
 
