@@ -15,7 +15,13 @@ const forwardedProps = useForwardProps(delegatedProps)
 <template>
   <RangeCalendarCell
     data-slot="range-calendar-cell"
-    :class="cn('relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([data-selected])]:bg-accent first:[&:has([data-selected])]:rounded-l-md last:[&:has([data-selected])]:rounded-r-md [&:has([data-selected][data-selection-end])]:rounded-r-md [&:has([data-selected][data-selection-start])]:rounded-l-md', props.class)"
+    :class="cn([
+      'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
+      // Selected range, and the preview while picking the end
+      '[&:has([data-selected])]:bg-primary/20 [&:has([data-highlighted])]:bg-primary/15',
+      'first:[&:has([data-selected])]:rounded-l-md last:[&:has([data-selected])]:rounded-r-md [&:has([data-selection-start])]:rounded-l-md [&:has([data-selection-end])]:rounded-r-md',
+      'first:[&:has([data-highlighted])]:rounded-l-md last:[&:has([data-highlighted])]:rounded-r-md [&:has([data-highlighted-start])]:rounded-l-md [&:has([data-highlighted-end])]:rounded-r-md',
+    ], props.class)"
     v-bind="forwardedProps"
   >
     <slot />

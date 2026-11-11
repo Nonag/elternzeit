@@ -4,7 +4,6 @@ import type { HTMLAttributes } from 'vue'
 import { reactiveOmit } from '@vueuse/core'
 import { cn } from 'cn'
 import { RangeCalendarCellTrigger, useForwardProps } from 'reka-ui'
-import { buttonVariants } from '@/components/ui/button'
 
 const props = withDefaults(defineProps<RangeCalendarCellTriggerProps & { class?: HTMLAttributes['class'] }>(), {
   as: 'button',
@@ -19,8 +18,8 @@ const forwardedProps = useForwardProps(delegatedProps)
   <RangeCalendarCellTrigger
     data-slot="range-calendar-trigger"
     :class="cn(
-      buttonVariants({ variant: 'ghost' }),
-      'h-8 w-8 p-0 font-normal data-[selected]:opacity-100',
+      // Own day style instead of the ghost button: its dark-mode hover hid the selected days.
+      'inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-transparent p-0 text-sm font-normal whitespace-nowrap outline-none select-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 hover:bg-primary/25',
       '[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground',
       // Selection Start
       'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground data-[selection-start]:hover:bg-primary data-[selection-start]:hover:text-primary-foreground data-[selection-start]:focus:bg-primary data-[selection-start]:focus:text-primary-foreground',
