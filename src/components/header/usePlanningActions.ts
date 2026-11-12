@@ -3,6 +3,7 @@ import { formatRecentTimestamp, formatTimestamp } from '@/engine/format'
 import { confirmDialog, messageDialog } from '@/lib/dialogs'
 import { notify } from '@/lib/toasts'
 import { ApiError } from '@/lib/planningApi'
+import { applyMerge, planMerge } from '@/lib/planningMerge'
 import { usePlanning, type MergeInput, type PlanningDialogMode, type SaveOutcome } from '@/stores/planning'
 import { usePresence } from '@/stores/presence'
 import { parsePlanning, useVariants, type Variant } from '@/stores/variants'
@@ -104,7 +105,7 @@ export function usePlanningActions() {
     }
   }
 
-  function handle(outcome: SaveOutcome, previous?: MergeInput) {
+  async function handle(outcome: SaveOutcome, previous?: MergeInput) {
     if (outcome.status === 'saved') notify('Gespeichert', { type: 'success' })
     else if (outcome.status === 'needs-name') showDialog('create')
     else if (outcome.status === 'needs-password') {
@@ -114,6 +115,10 @@ export function usePlanningActions() {
       const input = planning.mergeInput(outcome.current)
       // Saved again elsewhere while merging: the state merged with is now the shared one.
       if (previous) input.base = previous.remote
+      // Nothing to show, e.g. the same change on both sides: saved without asking.
+      if (!planMerge(input.base, input.local, input.remote).variants.length) {
+        return saveOnTopOf(input, applyMerge(input.base, input.local, input.remote, {}))
+      }
       Object.assign(conflict, { open: true, input })
     }
   }
@@ -121,7 +126,16 @@ export function usePlanningActions() {
   async function save() {
     if (loadsNewer.value) return loadNewer()
     try {
-      handle(await planning.save())
+      await handle(await planning.save())
+    } catch (error) {
+      notify('Speichern fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
+    }
+  }
+
+  /** Saves merged variants on top of the server state they were merged with. */
+  async function saveOnTopOf(input: MergeInput, variants: Variant[]) {
+    try {
+      await handle(await planning.saveMerged(variants, input.current), input)
     } catch (error) {
       notify('Speichern fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
     }
@@ -132,11 +146,7 @@ export function usePlanningActions() {
     const input = conflict.input
     if (!input) return
     conflict.open = false
-    try {
-      handle(await planning.saveMerged(variants, input.current), input)
-    } catch (error) {
-      notify('Speichern fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
-    }
+    await saveOnTopOf(input, variants)
   }
 
   async function removePlanning() {

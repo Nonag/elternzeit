@@ -122,7 +122,6 @@ function save() {
             </Collapsible>
           </template>
         </div>
-        <p v-if="!plan.variants.length" class="text-muted-foreground text-sm">Keine Unterschiede.</p>
       </div>
 
       <DialogFooter class="items-center">

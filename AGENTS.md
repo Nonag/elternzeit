@@ -136,7 +136,7 @@ properties, imports with `.ts`. The Dockerfile copies the server files one by on
 | `GET /api/admin/plannings`, `POST /api/admin/plannings/delete` | admin page, Basic auth |
 | `POST /api/planning` | creates a planning (name, password, data), returns a session token |
 | `POST /api/planning/session` | opens a planning with name and password, returns a session token |
-| `GET`, `PUT`, `DELETE /api/planning` | load, save, delete with the Bearer token; `PUT` sends `baseVersion` and `savedBy` and gets 409 with the server state when it is not the newest; the app then merges in the conflict dialog |
+| `GET`, `PUT`, `DELETE /api/planning` | load, save, delete with the Bearer token; `PUT` sends `baseVersion` and `savedBy` and gets 409 with the server state when it is not the newest; the app then merges, in the conflict dialog unless there is nothing to show |
 | `POST /api/planning/presence` | with the Bearer token: reports this browser (`client`, `name`, `leave`) and returns the other browsers with the planning open plus the saved `version`, `savedAt`, `savedBy`; kept in memory. Every 15 s, every 5 s with others |
 
 Other paths serve `dist/index.html`. Environment: `PORT` (8080), `DATA_DIR` (`./elternzeit`), `MAX_PLANNINGS` (50).
