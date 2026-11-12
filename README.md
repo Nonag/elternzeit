@@ -33,7 +33,7 @@ It serves the app and stores plannings in SQLite:
   elsewhere puts a dot on the save button; without own changes it loads the new state.
 - Whoever has opened a planning can delete it ("Planung löschen …"); the variants stay in the browser.
 - On the first visit the app asks for an admin password. `/admin` lists all plannings (created, last opened, last
-  saved) and deletes selected ones. At most `MAX_PLANNINGS` (default 50) plannings can exist.
+  saved and by whom) and deletes selected ones. At most `MAX_PLANNINGS` (default 50) plannings can exist.
 
 Every push to `main` builds a multi-arch image (amd64, arm64) and pushes it to the GitHub Container Registry, tagged
 `latest` and `sha-<commit>` (`.github/workflows/docker.yml`). To run it on a server, copy `docker-compose.yaml` into

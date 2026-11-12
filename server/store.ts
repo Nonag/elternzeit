@@ -49,6 +49,7 @@ export interface PlanningInfo {
   createdAt: string
   openedAt: string | null
   savedAt: string
+  savedBy: string | null
 }
 
 export type SaveResult = { ok: true; version: number; savedAt: string } | { ok: false; current: PlanningRecord }
@@ -221,8 +222,8 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
     },
 
     list(): PlanningInfo[] {
-      const rows = db.prepare('SELECT id, name, created_at, opened_at, saved_at FROM plannings ORDER BY name').all() as unknown as PlanningRow[]
-      return rows.map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at, openedAt: r.opened_at, savedAt: r.saved_at }))
+      const rows = db.prepare('SELECT id, name, created_at, opened_at, saved_at, saved_by FROM plannings ORDER BY name').all() as unknown as PlanningRow[]
+      return rows.map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at, openedAt: r.opened_at, savedAt: r.saved_at, savedBy: r.saved_by }))
     },
 
     remove(ids: number[]): number {

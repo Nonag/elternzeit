@@ -149,7 +149,9 @@ onMounted(() => {
                   <TableCell class="font-medium">{{ planning.name }}</TableCell>
                   <TableCell class="text-muted-foreground">{{ formatTime(planning.createdAt) }}</TableCell>
                   <TableCell class="text-muted-foreground">{{ formatTime(planning.openedAt) }}</TableCell>
-                  <TableCell class="text-muted-foreground">{{ formatTime(planning.savedAt) }}</TableCell>
+                  <TableCell class="text-muted-foreground">
+                    {{ formatTime(planning.savedAt) }}<template v-if="planning.savedBy"> von {{ planning.savedBy }}</template>
+                  </TableCell>
                 </TableRow>
                 <TableRow v-if="!plannings.length">
                   <TableCell colspan="5" class="text-muted-foreground py-6 text-center">Noch keine Planungen gespeichert.</TableCell>

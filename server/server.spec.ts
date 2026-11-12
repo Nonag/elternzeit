@@ -107,11 +107,11 @@ describe('server', () => {
     expect((await api('POST', '/api/admin/setup', { body: { password: 'anderes-geheim' } })).body.error).toBe('admin-exists')
     expect((await api('GET', '/api/status')).body.adminConfigured).toBe(true)
 
-    const created = await api('POST', '/api/planning', { body: { name: 'Familie', password: 'geheim1', data: planning() } })
+    const created = await api('POST', '/api/planning', { body: { name: 'Familie', password: 'geheim1', data: planning(), savedBy: 'Anna' } })
     expect((await api('GET', '/api/admin/plannings', { admin: 'falsch' })).status).toBe(401)
     const list = await api('GET', '/api/admin/plannings', { admin: 'admin-geheim' })
     expect(list.body.plannings).toHaveLength(1)
-    expect(list.body.plannings[0]).toMatchObject({ name: 'Familie' })
+    expect(list.body.plannings[0]).toMatchObject({ name: 'Familie', savedBy: 'Anna' })
     expect(list.body.plannings[0].createdAt).toBeTruthy()
 
     const deleted = await api('POST', '/api/admin/plannings/delete', { admin: 'admin-geheim', body: { ids: [list.body.plannings[0].id] } })

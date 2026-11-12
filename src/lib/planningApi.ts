@@ -22,6 +22,8 @@ export interface AdminPlanning {
   createdAt: string
   openedAt: string | null
   savedAt: string
+  /** Name of the person who saved last, if they gave one. */
+  savedBy: string | null
 }
 
 export class ApiError extends Error {
