@@ -59,7 +59,7 @@ docs/research-notes.md legal research with sources
 |---|---|
 | Planung: all variants, exported or saved on the server | `PlanningData`, `usePlanning()` |
 | Variante | `Variant` with `config: VariantConfig`, `useVariants()` |
-| Plan (periods in the plan card) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline` |
+| Elternzeit & Elterngeld (card with the periods, "plan card" in code) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline` |
 | Vorlage | `PLAN_PRESETS[].outline` (`PlanOutline`), `periodsFromOutline()` |
 | Basiselterngeld / ElterngeldPlus / Partnerschaftsbonus | `allowance: AllowanceType` = `basic` / `plus` / `bonus` |
 | Art: Elternzeit / Arbeit | `PlanPeriod.kind` = `leave` / `work` |
@@ -73,7 +73,7 @@ docs/research-notes.md legal research with sources
 | Kita | `childcare` |
 | Familie & Freunde | `familyCare` (`FamilyCarePeriod`) |
 | Einmalzahlungen | `oneTimePayments` |
-| Monatsplan | `MonthlyTable`, `result.months` |
+| Monatsübersicht | `MonthlyTable`, `result.months` |
 | Hinweise & Tipps | `IssuesPanel`, `result.issues` from `rules.ts` and `tips.ts` |
 | Fristen | `DeadlinesPanel`, `computeDeadlines()`, ticked off in `config.doneDeadlines` |
 | Rente & Vermögen | `LongTermPanel`, `result.longTerm`; Kindererziehungszeiten für = `childRaisingCreditTo` |

@@ -21,7 +21,7 @@ describe('describeDifferences', () => {
     remote[0].config.periods.b = []
 
     expect(describeDifferences(local, remote)).toEqual([
-      '„Variante A“: Mutter: Job & Gehalt, Plan',
+      '„Variante A“: Mutter: Job & Gehalt, Elternzeit & Elterngeld',
       '„Teilzeit“ heißt auf dem Server „Teilzeit 30 h“',
       '„Nur lokal“ gibt es nur bei dir',
       '„Nur Server“ gibt es nur auf dem Server',

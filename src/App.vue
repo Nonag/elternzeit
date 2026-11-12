@@ -61,15 +61,15 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
           <PlanCard />
           <Card>
             <CardHeader>
-              <CardTitle>Monatsplan</CardTitle>
+              <CardTitle>Monatsübersicht</CardTitle>
               <CardDescription>Einnahmen, Ausgaben und Betreuung für jeden Lebensmonat des Kindes.</CardDescription>
             </CardHeader>
             <CardContent><MonthlyTable /></CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Haushaltseinkommen pro Monat</CardTitle>
-              <CardDescription>Einnahmen nach Quelle. Gestrichelt: euer gemeinsames Netto vor der Geburt. Rot: Ausgaben.</CardDescription>
+              <CardTitle>Haushaltseinkommen</CardTitle>
+              <CardDescription>Einnahmen pro Monat nach Quelle. Gestrichelt: euer gemeinsames Netto vor der Geburt. Rot: Ausgaben.</CardDescription>
             </CardHeader>
             <CardContent><IncomeChart /></CardContent>
           </Card>

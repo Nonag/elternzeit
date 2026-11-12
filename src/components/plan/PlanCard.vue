@@ -37,7 +37,7 @@ async function applyPreset(preset: PlanPreset) {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Plan</CardTitle>
+      <CardTitle>Elternzeit & Elterngeld</CardTitle>
       <div class="text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
         <span class="flex items-center gap-1">
           Elterngeld

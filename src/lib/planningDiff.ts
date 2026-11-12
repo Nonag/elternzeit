@@ -10,7 +10,7 @@ const SECTIONS: { label: (config: VariantConfig) => string; pick: (config: Varia
   },
   { label: (c) => `${c.parents.a.name || 'Mutter'}: Job & Gehalt`, pick: (c) => [c.parents.a, c.churchTaxRate] },
   { label: (c) => `${c.parents.b.name || 'Vater'}: Job & Gehalt`, pick: (c) => [c.parents.b, c.churchTaxRate] },
-  { label: () => 'Plan', pick: (c) => [c.periods, c.vacation] },
+  { label: () => 'Elternzeit & Elterngeld', pick: (c) => [c.periods, c.vacation] },
   { label: () => 'Kosten & Rücklagen', pick: (c) => [c.fixedCosts, c.childCosts, c.oneTimeCosts, c.balanceAtBirth, c.minReserve] },
   { label: () => 'Kita', pick: (c) => c.childcare },
   { label: () => 'Familie & Freunde', pick: (c) => c.familyCare },

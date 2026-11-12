@@ -4,7 +4,7 @@ Planning tool for German parental allowance (Elterngeld) and parental leave (Elt
 The browser keeps the working copy (localStorage). An optional small server stores plannings so several
 people can open and save them; without it the app runs as a single offline file.
 
-Wording: a **Plan** is the periods in the plan card, a **Variante** is one complete set of inputs including its
+Wording: the **plan** is the periods in the card "Elternzeit & Elterngeld", a **Variante** is one complete set of inputs including its
 plan, and a **Planung** is all variants together. A Planung is what gets exported or saved on the server.
 
 ## Usage
