@@ -65,8 +65,8 @@ function moneyColumn(
   })
 }
 
-function modelCell(month: ParentMonth) {
-  const style = monthStyle(month)
+function modelCell(month: ParentMonth, key: ParentKey) {
+  const style = monthStyle(month, config.value.parents[key].weeklyHours)
   const chip = h(
     'span',
     {
@@ -104,8 +104,8 @@ function parentColumns(key: ParentKey): ColumnDef<MonthRow, unknown>[] {
     column.display({
       id: `${key}-model`,
       header: 'Modell',
-      cell: ({ row }) => modelCell(row.original[key]),
-      meta: { csv: (row: MonthRow) => monthStyle(row[key]).short, csvHeader: `${name} Modell` } satisfies ColumnMeta,
+      cell: ({ row }) => modelCell(row.original[key], key),
+      meta: { csv: (row: MonthRow) => monthStyle(row[key], config.value.parents[key].weeklyHours).short, csvHeader: `${name} Modell` } satisfies ColumnMeta,
     }),
     column.display({
       id: `${key}-hours`,

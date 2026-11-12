@@ -22,6 +22,8 @@ interface Segment {
   to: number
   label: string
   short: string
+  /** Shown when the segment is one life month wide. */
+  tiny: string
   color: string
   textClass: string
   striped?: boolean
@@ -53,26 +55,35 @@ const lanes = computed(() => {
     title: result.value.parents[key].name,
     parent: key as ParentKey | null,
     segments: buildSegments(months.value, (row) => {
-      const style = monthStyle(row[key])
+      const style = monthStyle(row[key], config.value.parents[key].weeklyHours)
       return { ...style, periodId: row[key].periodId }
     }),
   }))
-  const family = buildSegments(months.value, (row) =>
-    row.care.family > 0.5
-      ? {
-          label: `Familie/Freunde: ${num(row.care.family)} h/Woche`,
-          short: `${num(row.care.family)} h`,
+  // Family and friends by name, e.g. "Claudia 8 h"; one life month shows the hours only.
+  const familyNames = (row: MonthRow) =>
+    config.value.familyCare
+      .filter((p) => p.from && p.to && p.daysPerWeek && p.hoursPerDay && p.from <= row.end && row.start <= p.to && p.label.trim())
+      .map((p) => p.label.trim())
+      .join(' + ')
+  const family = buildSegments(months.value, (row) => {
+    if (row.care.family <= 0.5) return null
+    const names = familyNames(row)
+    const hours = `${num(row.care.family)} h`
+    return {
+          label: `${names || 'Familie/Freunde'}: ${hours}/Woche`,
+          short: names ? `${names} ${hours}` : hours,
+          tiny: hours,
           color: 'var(--plan-family)',
           textClass: 'text-foreground',
           periodId: null,
         }
-      : null,
-  )
+  })
   const childcare = buildSegments(months.value, (row) =>
     row.care.childcare > 0
       ? {
           label: row.care.settlingIn ? 'Kita-Eingewöhnung' : `Kita ${config.value.childcare.hoursPerWeek} h/Woche`,
-          short: row.care.settlingIn ? 'Eingew.' : `Kita ${config.value.childcare.hoursPerWeek} h`,
+          short: row.care.settlingIn ? 'Kita' : `Kita ${config.value.childcare.hoursPerWeek} h`,
+          tiny: 'Kita',
           color: 'var(--plan-childcare)',
           textClass: 'text-foreground',
           periodId: null,
@@ -84,6 +95,7 @@ const lanes = computed(() => {
       ? {
           label: `Betreuungslücke: ${num(row.care.gap)} h/Woche`,
           short: `${num(row.care.gap)} h`,
+          tiny: `${num(row.care.gap)} h`,
           color: 'var(--destructive)',
           textClass: 'text-white',
           periodId: null,
@@ -176,8 +188,9 @@ function rangeLabel(segment: Segment): string {
               <TooltipTrigger as-child>
                 <button
                   type="button"
-                  class="row-start-1 mx-px flex items-center overflow-hidden rounded px-1 text-[0.65rem] font-medium whitespace-nowrap transition-shadow"
+                  class="row-start-1 mx-px flex items-center overflow-hidden rounded text-[0.65rem] font-medium whitespace-nowrap transition-shadow"
                   :class="[
+                    segment.to > segment.from ? 'px-1' : 'justify-center px-0.5',
                     segment.textClass,
                     segment.striped ? 'plan-stripes' : '',
                     lane.parent ? 'hover:ring-2 hover:ring-ring' : '',
@@ -188,7 +201,7 @@ function rangeLabel(segment: Segment): string {
                   :style="{ gridColumn: `${segment.from} / ${segment.to + 1}`, backgroundColor: segment.color }"
                   @click="segment.periodId && lane.parent && emit('select', segment.periodId)"
                 >
-                  <span v-if="segment.to - segment.from >= 1" class="truncate">{{ segment.short }}</span>
+                  <span class="truncate">{{ segment.to > segment.from ? segment.short : segment.tiny }}</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent>
