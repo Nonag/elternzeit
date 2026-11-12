@@ -71,7 +71,7 @@ const hovered = ref<string | null>(null)
 
 const open = ref(false)
 /** First visible month. */
-const placeholder = shallowRef<DateValue>(parseDate(todayIso()))
+const visibleMonth = shallowRef<DateValue>(parseDate(todayIso()))
 const monthCount = computed(() => (props.mode === 'single' ? 1 : 2))
 const calendar = useTemplateRef<{ $el: HTMLElement }>('calendar')
 let openAt: string | undefined
@@ -84,15 +84,16 @@ function firstPickable(): string | undefined {
   return props.min
 }
 
+const picked = () => (props.mode === 'single' ? date.value : props.mode === 'range' ? from.value : props.weeks.at(-1)?.from) || undefined
+
 /** The day the calendar opens at: the current choice, else the start day or the first day that can be picked. */
 function initialDay(): string {
-  const picked = props.mode === 'single' ? date.value : props.mode === 'range' ? from.value : props.weeks.at(-1)?.from
-  return picked || props.start || firstPickable() || todayIso()
+  return picked() || props.start || firstPickable() || todayIso()
 }
 
 /** Opens the calendar at the given day, or at the current choice. */
 function show(at?: string) {
-  if (open.value) placeholder.value = parseDate(at ?? initialDay())
+  if (open.value) visibleMonth.value = parseDate(at ?? initialDay())
   else {
     openAt = at
     open.value = true
@@ -103,12 +104,14 @@ defineExpose({ show })
 watch(open, async (isOpen) => {
   if (!isOpen) return
   const day = openAt ?? initialDay()
-  placeholder.value = parseDate(day)
+  visibleMonth.value = parseDate(day)
   openAt = undefined
   draft.value = null
-  // Keyboard users start at that day.
+  // Keyboard users start at the current choice; without one no day is focused, so none looks picked.
+  const current = picked()
+  if (!current) return
   await nextTick()
-  calendar.value?.$el.querySelector<HTMLElement>(`[data-value="${day}"]:not([data-outside-view])`)?.focus()
+  calendar.value?.$el.querySelector<HTMLElement>(`[data-value="${current}"]:not([data-outside-view])`)?.focus()
 })
 
 function pick(value: DateValue | DateValue[] | undefined) {
@@ -160,7 +163,10 @@ function triggerClass(value: DateValue): string[] {
   const band = bandAt(day)
   const edge = band && (band.preview ? day === draft.value : day === band.from || day === band.to)
   return [
-    edge ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground' : '',
+    edge
+      ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+      : // Today is not highlighted, so it never looks picked.
+        '[&[data-today]:not([data-selected])]:bg-transparent [&[data-today]:not([data-selected])]:text-foreground [&[data-today]:not([data-selected])]:hover:bg-accent',
     marked.value.has(day) ? 'ring-primary/50 ring-1 ring-inset' : '',
   ]
 }
@@ -170,7 +176,7 @@ const label = computed(() => {
   if (props.mode === 'range') return from.value && to.value ? formatDateRange(from.value, to.value) : ''
   return ''
 })
-const hintText = computed(() => (typeof props.hint === 'function' ? props.hint(monthKey(placeholder.value.toString())) : props.hint))
+const hintText = computed(() => (typeof props.hint === 'function' ? props.hint(monthKey(visibleMonth.value.toString())) : props.hint))
 
 // Header: one month has selects for month and year; two months show as text with a year select next to them.
 // Months that min and max leave out cannot be shown.
@@ -187,11 +193,11 @@ function canShow(year: number, month: number): boolean {
 /** Shows the month first, as close as min and max allow. */
 function showMonth(year: number, month: number) {
   const first = Math.min(Math.max(monthIndex(year, month), minIndex.value), maxIndex.value - monthCount.value + 1)
-  placeholder.value = placeholder.value.set({ year: Math.floor(first / 12), month: (first % 12) + 1, day: 1 })
+  visibleMonth.value = visibleMonth.value.set({ year: Math.floor(first / 12), month: (first % 12) + 1, day: 1 })
 }
 
 const heading = computed(() => {
-  const first = placeholder.value
+  const first = visibleMonth.value
   const last = first.add({ months: monthCount.value - 1 })
   return first.year === last.year
     ? `${monthName(first.month)} – ${monthName(last.month)} ${last.year}`
@@ -199,7 +205,7 @@ const heading = computed(() => {
 })
 
 const years = computed(() => {
-  const visible = placeholder.value.year
+  const visible = visibleMonth.value.year
   const today = parseIso(todayIso()).year
   const first = props.min ? parseIso(props.min).year : Math.min(visible, today) - 1
   const last = props.max ? parseIso(props.max).year : Math.max(visible + monthCount.value - 1, today) + 3
@@ -224,7 +230,7 @@ const CAPTION_SELECT = 'h-7 gap-1 border-transparent bg-transparent px-2 font-me
         <CalendarRoot
           ref="calendar"
           v-slot="{ grid, weekDays }"
-          v-model:placeholder="placeholder"
+          v-model:placeholder="visibleMonth"
           class="p-3"
           multiple
           fixed-weeks
@@ -242,18 +248,18 @@ const CAPTION_SELECT = 'h-7 gap-1 border-transparent bg-transparent px-2 font-me
           <div class="flex items-center justify-between gap-1">
             <CalendarPrevButton />
             <div class="flex items-center gap-0.5">
-              <Select v-if="monthCount === 1" :model-value="String(placeholder.month)" @update:model-value="(m) => showMonth(placeholder.year, Number(m))">
+              <Select v-if="monthCount === 1" :model-value="String(visibleMonth.month)" @update:model-value="(m) => showMonth(visibleMonth.year, Number(m))">
                 <SelectTrigger size="sm" :class="CAPTION_SELECT" aria-label="Monat">
-                  <SelectValue>{{ monthName(placeholder.month) }}</SelectValue>
+                  <SelectValue>{{ monthName(visibleMonth.month) }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem v-for="m in 12" :key="m" :value="String(m)" :disabled="!canShow(placeholder.year, m)">{{ monthName(m) }}</SelectItem>
+                  <SelectItem v-for="m in 12" :key="m" :value="String(m)" :disabled="!canShow(visibleMonth.year, m)">{{ monthName(m) }}</SelectItem>
                 </SelectContent>
               </Select>
               <span v-else class="px-1 text-sm font-medium">{{ heading }}</span>
-              <Select :model-value="String(placeholder.year)" @update:model-value="(y) => showMonth(Number(y), placeholder.month)">
+              <Select :model-value="String(visibleMonth.year)" @update:model-value="(y) => showMonth(Number(y), visibleMonth.month)">
                 <SelectTrigger v-if="monthCount === 1" size="sm" :class="CAPTION_SELECT" aria-label="Jahr">
-                  <SelectValue>{{ placeholder.year }}</SelectValue>
+                  <SelectValue>{{ visibleMonth.year }}</SelectValue>
                 </SelectTrigger>
                 <SelectTriggerPrimitive v-else as-child>
                   <Button variant="ghost" size="icon-sm" class="text-muted-foreground hover:text-foreground" aria-label="Jahr wählen">
