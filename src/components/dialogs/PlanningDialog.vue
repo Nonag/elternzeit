@@ -105,7 +105,7 @@ function submit() {
         <div v-if="mode !== 'password'" class="grid gap-2">
           <Label for="planning-user">Dein Name</Label>
           <Input id="planning-user" v-model="form.userName" autocomplete="nickname" />
-          <p class="text-muted-foreground text-xs">Sehen alle, die die Planung zur gleichen Zeit offen haben.</p>
+          <p class="text-muted-foreground text-xs">Wird anderen angezeigt, die die Planung gleichzeitig geöffnet haben.</p>
         </div>
         <Label class="font-normal"><Checkbox v-model="form.remember" /> Passwort auf diesem Gerät merken</Label>
         <p v-if="warning" class="text-sm text-amber-700 dark:text-amber-400">{{ warning }}</p>

@@ -1,5 +1,5 @@
 import { computed, reactive, ref } from 'vue'
-import { formatTimestamp } from '@/engine/format'
+import { formatRecentTimestamp, formatTimestamp } from '@/engine/format'
 import { confirmDialog, messageDialog } from '@/lib/dialogs'
 import { notify } from '@/lib/toasts'
 import { ApiError } from '@/lib/planningApi'
@@ -16,7 +16,7 @@ const ERROR_TEXT: Record<string, string> = {
 }
 
 function errorText(error: unknown): string {
-  if (error instanceof ApiError) return ERROR_TEXT[error.message] ?? 'Das hat nicht geklappt. Bitte später noch einmal versuchen.'
+  if (error instanceof ApiError) return ERROR_TEXT[error.message] ?? 'Bitte später noch einmal versuchen.'
   return 'Der Server ist nicht erreichbar.'
 }
 
@@ -61,7 +61,7 @@ export function usePlanningActions() {
   /** Who saved the newer state on the server, and when. */
   const newerText = computed(() => {
     const newer = newerOnServer.value
-    return newer ? `${newer.savedBy || 'Jemand'} hat am ${formatTimestamp(newer.savedAt)} einen neueren Stand gespeichert` : null
+    return newer ? `${newer.savedBy || 'Jemand'} hat ${formatRecentTimestamp(newer.savedAt)} gespeichert` : null
   })
 
   const dialogWarning = computed(() =>
@@ -100,7 +100,7 @@ export function usePlanningActions() {
         showDialog('password')
       } else notify('Neuen Stand geladen', { type: 'success' })
     } catch (error) {
-      notify('Laden hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
+      notify('Laden fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
@@ -123,7 +123,7 @@ export function usePlanningActions() {
     try {
       handle(await planning.save())
     } catch (error) {
-      notify('Speichern hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
+      notify('Speichern fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
@@ -135,7 +135,7 @@ export function usePlanningActions() {
     try {
       handle(await planning.saveMerged(variants, input.current), input)
     } catch (error) {
-      notify('Speichern hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
+      notify('Speichern fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
@@ -146,7 +146,7 @@ export function usePlanningActions() {
         showDialog('password')
       }
     } catch (error) {
-      notify('Löschen hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
+      notify('Löschen fehlgeschlagen', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 

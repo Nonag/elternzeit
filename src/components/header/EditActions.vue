@@ -43,7 +43,7 @@ watch([newerText, loadsNewer], ([text]) => {
   notify(text, {
     id: 'newer',
     persistent: true,
-    action: { label: loadsNewer.value ? 'Laden' : 'Speichern …', onClick: () => void save() },
+    action: { label: loadsNewer.value ? 'Laden' : 'Zusammenführen …', onClick: () => void save() },
   })
 })
 

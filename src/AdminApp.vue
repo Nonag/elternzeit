@@ -67,7 +67,7 @@ async function removeSelected() {
     await deletePlannings(password.value, selected.value)
     selected.value = []
   } catch {
-    await messageDialog('Löschen hat nicht geklappt', 'Der Server ist nicht erreichbar.')
+    await messageDialog('Löschen fehlgeschlagen', 'Der Server ist nicht erreichbar.')
   }
   await load()
 }

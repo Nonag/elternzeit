@@ -57,9 +57,17 @@ export function percent(value: number): string {
 }
 
 /** "11.11.2026 um 17:30" */
+const clockTime = (date: Date) => date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+
 export function formatTimestamp(iso: string): string {
   const date = new Date(iso)
-  return `${date.toLocaleDateString('de-DE')} um ${date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
+  return `${date.toLocaleDateString('de-DE')} um ${clockTime(date)}`
+}
+
+/** "um 11:36" for a time today, otherwise "am 12.11.2026 um 11:36". */
+export function formatRecentTimestamp(iso: string, now = new Date()): string {
+  const date = new Date(iso)
+  return date.toDateString() === now.toDateString() ? `um ${clockTime(date)}` : `am ${formatTimestamp(iso)}`
 }
 
 /** Life months: "Monat 3" or "Monat 3–12". */

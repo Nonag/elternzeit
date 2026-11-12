@@ -28,7 +28,7 @@ async function submit() {
     error.value =
       e instanceof ApiError && e.message === 'admin-exists'
         ? 'Inzwischen wurde schon ein Admin-Passwort festgelegt.'
-        : 'Das hat nicht geklappt. Ist der Server erreichbar?'
+        : 'Festlegen fehlgeschlagen. Ist der Server erreichbar?'
   } finally {
     busy.value = false
     await refreshServerStatus()
