@@ -90,8 +90,8 @@ export const openSession = (name: string, password: string) =>
 
 export const loadPlanning = (token: string) => request<RemotePlanning>('GET', 'planning', { token })
 
-export const savePlanning = (token: string, data: unknown, baseVersion: number, savedBy: string, force = false) =>
-  request<{ version: number; savedAt: string }>('PUT', 'planning', { token, body: { data, baseVersion, force, savedBy } })
+export const savePlanning = (token: string, data: unknown, baseVersion: number, savedBy: string) =>
+  request<{ version: number; savedAt: string }>('PUT', 'planning', { token, body: { data, baseVersion, savedBy } })
 
 export const deletePlanning = (token: string) => request<object>('DELETE', 'planning', { token })
 

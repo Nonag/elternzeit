@@ -25,7 +25,8 @@ npm run typecheck
 It serves the app and stores plannings in SQLite:
 
 - A planning is saved under a name and a password. Saving only works on top of the version that was loaded;
-  otherwise the app shows what differs and lets the user take the server state or overwrite it.
+  otherwise the app merges: new, renamed or one-sided changes are taken over, and where both sides changed or
+  deleted the same variant, the user picks per variant or per section.
 - "Passwort auf diesem Gerät merken" keeps a session token in the browser (localStorage), otherwise it lasts for the
   tab only.
 - The header shows who else has the planning open, with the name entered when opening or saving it. A save from

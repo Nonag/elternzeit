@@ -27,7 +27,7 @@ const {
   showDialog,
   submitDialog,
   save,
-  takeServerState,
+  saveMerged,
   deletePlanning,
   newPlanning,
   exportPlanning,
@@ -103,13 +103,5 @@ const items = computed(() => {
     :purpose="passwordPurpose"
     @submit="submitDialog"
   />
-  <ConflictDialog
-    v-if="conflict.current"
-    v-model:open="conflict.open"
-    :name="conflict.current.name"
-    :saved-at="conflict.current.savedAt"
-    :differences="conflict.differences"
-    @load-server="takeServerState"
-    @overwrite="save(true)"
-  />
+  <ConflictDialog v-if="conflict.input" v-model:open="conflict.open" :input="conflict.input" @save="saveMerged" />
 </template>

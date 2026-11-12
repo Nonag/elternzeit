@@ -388,6 +388,17 @@ export function useVariants() {
       state.planning = { ...NO_PLANNING }
     },
     snapshot: () => snapshotOf(state.variants),
+    /** The variants as last opened or saved on the server, the shared state for merging. */
+    savedVariants(): Variant[] {
+      return state.planning.snapshot ? migrateVariants(JSON.parse(state.planning.snapshot) as unknown[]) : []
+    },
+    /** Takes the merged variants as one undo step. */
+    applyMerged(variants: Variant[]) {
+      commitChanges()
+      state.variants = variants
+      if (!variants.some((v) => v.id === state.currentId)) state.currentId = variants[0].id
+      history.commit()
+    },
     /** Detaches the variants from the server planning, e.g. after it was deleted there. */
     forgetPlanning() {
       state.planning = { ...NO_PLANNING }

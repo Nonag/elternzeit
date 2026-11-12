@@ -44,7 +44,7 @@ src/
     math.ts            round2, cents, consecutiveRuns
   stores/variants.ts   variants of this browser (localStorage), current variant, file format and migration
   stores/planning.ts   open, create, save and delete the planning on the server
-  lib/                 planningApi.ts (HTTP client), planningDiff.ts (conflict summary), dialogs.ts, issues.ts
+  lib/                 planningApi.ts (HTTP client), planningMerge.ts (three-way merge for the conflict dialog), dialogs.ts, issues.ts
                        (severity icons and colours), json.ts (stable JSON for comparisons)
   components/          header/ (planning, variant, save/undo/redo), inputs/ (sidebar), plan/ (plan card),
                        results/ (table, charts, tabs), dialogs/, fields/, ui/ (shadcn-vue, generated)
@@ -136,7 +136,7 @@ properties, imports with `.ts`. The Dockerfile copies the server files one by on
 | `GET /api/admin/plannings`, `POST /api/admin/plannings/delete` | admin page, Basic auth |
 | `POST /api/planning` | creates a planning (name, password, data), returns a session token |
 | `POST /api/planning/session` | opens a planning with name and password, returns a session token |
-| `GET`, `PUT`, `DELETE /api/planning` | load, save, delete with the Bearer token; `PUT` sends `baseVersion` and gets 409 with the server state on conflicts, `force` overwrites |
+| `GET`, `PUT`, `DELETE /api/planning` | load, save, delete with the Bearer token; `PUT` sends `baseVersion` and `savedBy` and gets 409 with the server state when it is not the newest; the app then merges in the conflict dialog |
 | `POST /api/planning/presence` | with the Bearer token: reports this browser (`client`, `name`, `leave`) and returns the other browsers with the planning open plus the saved `version`, `savedAt`, `savedBy`; kept in memory. Every 15 s, every 5 s with others |
 
 Other paths serve `dist/index.html`. Environment: `PORT` (8080), `DATA_DIR` (`./elternzeit`), `MAX_PLANNINGS` (50).

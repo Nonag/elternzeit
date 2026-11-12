@@ -3,9 +3,8 @@ import { toast } from 'vue-sonner'
 import { formatTimestamp } from '@/engine/format'
 import { confirmDialog, messageDialog } from '@/lib/dialogs'
 import { PERSISTENT } from '@/lib/toasts'
-import { ApiError, type RemotePlanning } from '@/lib/planningApi'
-import { describeDifferences } from '@/lib/planningDiff'
-import { usePlanning, type PlanningDialogMode } from '@/stores/planning'
+import { ApiError } from '@/lib/planningApi'
+import { usePlanning, type MergeInput, type PlanningDialogMode, type SaveOutcome } from '@/stores/planning'
 import { usePresence } from '@/stores/presence'
 import { parsePlanning, useVariants, type Variant } from '@/stores/variants'
 
@@ -26,7 +25,7 @@ function errorText(error: unknown): string {
 const dialog = reactive({ open: false, mode: 'open' as PlanningDialogMode, busy: false, error: null as string | null })
 /** What the password dialog continues with. */
 const passwordPurpose = ref<'save' | 'delete'>('save')
-const conflict = reactive({ open: false, current: null as RemotePlanning | null, differences: [] as string[] })
+const conflict = reactive({ open: false, input: null as MergeInput | null })
 
 /** Opening, saving, importing and deleting the planning, with the dialogs and toasts they need. */
 export function usePlanningActions() {
@@ -106,26 +105,39 @@ export function usePlanningActions() {
     }
   }
 
-  async function save(force = false) {
-    if (loadsNewer.value && !force) return loadNewer()
+  function handle(outcome: SaveOutcome, previous?: MergeInput) {
+    if (outcome.status === 'saved') toast.success('Gespeichert')
+    else if (outcome.status === 'needs-name') showDialog('create')
+    else if (outcome.status === 'needs-password') {
+      passwordPurpose.value = 'save'
+      showDialog('password')
+    } else if (outcome.status === 'conflict') {
+      const input = planning.mergeInput(outcome.current)
+      // Saved again elsewhere while merging: the state merged with is now the shared one.
+      if (previous) input.base = previous.remote
+      Object.assign(conflict, { open: true, input })
+    }
+  }
+
+  async function save() {
+    if (loadsNewer.value) return loadNewer()
     try {
-      const outcome = await planning.save(force)
-      if (outcome.status === 'saved') toast.success('Gespeichert')
-      else if (outcome.status === 'needs-name') showDialog('create')
-      else if (outcome.status === 'needs-password') {
-        passwordPurpose.value = 'save'
-        showDialog('password')
-      } else if (outcome.status === 'conflict') {
-        const differences = describeDifferences(state.variants, parsePlanning(outcome.current.data))
-        Object.assign(conflict, { open: true, current: outcome.current, differences })
-      }
+      handle(await planning.save())
     } catch (error) {
       toast.error('Speichern hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
     }
   }
 
-  function takeServerState() {
-    if (conflict.current) planning.adopt(conflict.current)
+  /** Saves the variants merged in the conflict dialog. */
+  async function saveMerged(variants: Variant[]) {
+    const input = conflict.input
+    if (!input) return
+    conflict.open = false
+    try {
+      handle(await planning.saveMerged(variants, input.current), input)
+    } catch (error) {
+      toast.error('Speichern hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
+    }
   }
 
   async function removePlanning() {
@@ -210,7 +222,7 @@ export function usePlanningActions() {
     showDialog,
     submitDialog,
     save,
-    takeServerState,
+    saveMerged,
     deletePlanning,
     newPlanning,
     exportPlanning,

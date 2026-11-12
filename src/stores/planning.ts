@@ -1,7 +1,7 @@
 import { computed, reactive, ref } from 'vue'
 import * as api from '@/lib/planningApi'
 import { userName } from './user'
-import { parsePlanning, useVariants } from './variants'
+import { parsePlanning, useVariants, type Variant } from './variants'
 
 const server = reactive<{ status: api.ServerStatus | null }>({ status: null })
 let statusRequested = false
@@ -28,6 +28,15 @@ export type PlanningDialogMode = 'open' | 'create' | 'password'
 export type SaveOutcome =
   | { status: 'saved' | 'unchanged' | 'needs-name' | 'needs-password' }
   | { status: 'conflict'; current: api.RemotePlanning }
+
+/** The three states a save on top of a newer server state merges. */
+export interface MergeInput {
+  base: Variant[]
+  local: Variant[]
+  remote: Variant[]
+  /** The server state the merge is based on; saving checks that it is still the newest. */
+  current: api.RemotePlanning
+}
 
 /** Opening, saving and deleting the planning on the sync server. */
 export function usePlanning() {
@@ -94,15 +103,27 @@ export function usePlanning() {
       rememberSession(await api.openSession(name, password), remember)
     },
 
-    async save(force = false): Promise<SaveOutcome> {
+    /** What a conflict merges: the shared state, the variants here and the newer server state. */
+    mergeInput(current: api.RemotePlanning): MergeInput {
+      return { base: store.savedVariants(), local: store.state.variants, remote: parsePlanning(current.data), current }
+    },
+
+    /** Takes the merged variants and saves them on top of the server state they were merged with. */
+    async saveMerged(variants: Variant[], current: api.RemotePlanning): Promise<SaveOutcome> {
+      store.applyMerged(variants)
+      return this.save({ baseVersion: current.version })
+    },
+
+    /** Saves on top of the loaded version, or of `baseVersion` after a merge. */
+    async save({ baseVersion }: { baseVersion?: number } = {}): Promise<SaveOutcome> {
       const { name, version } = store.state.planning
       if (!name || version === null) return { status: 'needs-name' }
-      if (!force && !store.unsaved.value) return { status: 'unchanged' }
+      if (baseVersion === undefined && !store.unsaved.value) return { status: 'unchanged' }
       const token = currentSession.value?.token
       if (!token) return { status: 'needs-password' }
       const snapshot = store.snapshot()
       try {
-        const saved = await api.savePlanning(token, store.planningData(), version, userName.value, force)
+        const saved = await api.savePlanning(token, store.planningData(), baseVersion ?? version, userName.value)
         store.markSaved(name, saved.version, saved.savedAt, snapshot)
         return { status: 'saved' }
       } catch (error) {
