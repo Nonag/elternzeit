@@ -34,7 +34,7 @@ const PAYMENT_HINT =
   'Weihnachts- und Urlaubsgeld, Boni oder Prämien trägst du brutto im Monat der Auszahlung ein. Auf der Gehaltsabrechnung stehen sie als eigene Zeile, oft als „Einmalzahlung“ oder „Sonderzahlung“. Kommt das Geld in monatlichen Raten, zählt es zum normalen Monatsgehalt.\nDas Elterngeld ändert sich durch Einmalzahlungen nicht.'
 
 function addPayment() {
-  parent.value.oneTimePayments.push({ id: createId('payment'), label: 'Bonus', gross: 1000, month: monthKey(result.value.birth) })
+  parent.value.oneTimePayments.push({ id: createId('payment'), label: '', gross: null, month: '' })
 }
 
 function paymentNote(payment: OneTimePaymentResult): string {
@@ -113,14 +113,14 @@ const churchRateOptions = [
     <FieldGroup title="Einmalzahlungen" :hint="PAYMENT_HINT">
       <div v-for="(item, i) in parent.oneTimePayments" :key="item.id" class="grid gap-3 rounded-lg border p-3">
         <div class="flex items-center gap-2">
-          <Input v-model="item.label" class="h-9 flex-1" aria-label="Bezeichnung" />
+          <Input v-model="item.label" class="h-9 flex-1" placeholder="Bezeichnung" aria-label="Bezeichnung" />
           <Button variant="ghost" size="icon" aria-label="Einmalzahlung entfernen" @click="parent.oneTimePayments.splice(i, 1)">
             <Trash2Icon />
           </Button>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <FormField label="Brutto">
-            <NumberInput v-model="item.gross" :min="0" unit="€" :step="100" />
+            <NumberInput v-model="item.gross" nullable :min="0" unit="€" :step="100" />
           </FormField>
           <FormField label="Monat">
             <MonthInput v-model="item.month" :min="paymentMonths.min" :max="paymentMonths.max" />

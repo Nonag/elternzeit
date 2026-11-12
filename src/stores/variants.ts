@@ -147,7 +147,7 @@ export function emptyConfig(): VariantConfig {
     fixedCosts: 0,
     childCosts: [],
     oneTimeCosts: [],
-    childcare: { ...example.childcare, enabled: false },
+    childcare: { ...example.childcare, enabled: false, startMonth: '', hoursPerWeek: null },
     balanceAtBirth: 0,
     minReserve: 0,
   }

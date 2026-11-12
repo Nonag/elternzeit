@@ -10,7 +10,7 @@ const model = defineModel<string>({ required: true })
 const props = defineProps<{ min?: string; max?: string }>()
 
 const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
-const year = ref(Number(model.value?.slice(0, 4)) || new Date().getFullYear())
+const year = ref(Number(model.value?.slice(0, 4)) || Number(props.min?.slice(0, 4)) || new Date().getFullYear())
 watch(model, (value) => {
   if (value) year.value = Number(value.slice(0, 4))
 })

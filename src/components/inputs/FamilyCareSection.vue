@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import DatePicker from '@/components/fields/DatePicker.vue'
 import FormField from '@/components/fields/FormField.vue'
 import NumberInput from '@/components/fields/NumberInput.vue'
-import { addMonths } from '@/engine/dates'
 import { createId } from '@/engine/plan'
 import { useVariants } from '@/stores/variants'
 
@@ -17,15 +16,7 @@ const lifeMonthStarts = computed(() => result.value.months.map((m) => m.start))
 const planEnd = computed(() => result.value.months[result.value.months.length - 1].end)
 
 function addFamilyCare() {
-  const birth = result.value.birth
-  config.value.familyCare.push({
-    id: createId('care'),
-    label: 'Großeltern',
-    from: addMonths(birth, 12).date,
-    to: addMonths(birth, 18).date,
-    daysPerWeek: 2,
-    hoursPerDay: 8,
-  })
+  config.value.familyCare.push({ id: createId('care'), label: 'Großeltern', from: '', to: '', daysPerWeek: null, hoursPerDay: null })
 }
 </script>
 
@@ -51,10 +42,10 @@ function addFamilyCare() {
       </FormField>
       <div class="grid grid-cols-2 gap-3">
         <FormField label="Tage pro Woche">
-          <NumberInput v-model="period.daysPerWeek" :min="0" :max="7" :step="0.5" :decimals="1" />
+          <NumberInput v-model="period.daysPerWeek" nullable :min="0" :max="7" :step="0.5" :decimals="1" />
         </FormField>
         <FormField label="Stunden pro Tag">
-          <NumberInput v-model="period.hoursPerDay" :min="0" :max="12" :step="0.5" :decimals="2" unit="h" />
+          <NumberInput v-model="period.hoursPerDay" nullable :min="0" :max="12" :step="0.5" :decimals="2" unit="h" />
         </FormField>
       </div>
     </div>

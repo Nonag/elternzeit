@@ -423,7 +423,8 @@ export function simulate(config: VariantConfig): SimulationResult {
   // Childcare fees and start
   const childcareFee = new Array<number>(horizon).fill(0)
   let childcareStartIndex: number | null = null
-  if (config.childcare.enabled && config.childcare.startMonth) {
+  const hoursPerWeek = config.childcare.hoursPerWeek
+  if (config.childcare.enabled && config.childcare.startMonth && hoursPerWeek) {
     childcareStartIndex = Math.max(1, lifeMonthForCalendarMonth(birth, config.childcare.startMonth))
     if (childcareStartIndex > horizon) childcareStartIndex = null
     for (let offset = 0; offset < horizon + 2; offset++) {
@@ -437,7 +438,7 @@ export function simulate(config: VariantConfig): SimulationResult {
           : cologneFee(
               annualIncomeByYear[year] ?? annualIncomeByYear[Math.max(...Object.keys(annualIncomeByYear).map(Number))] ?? 0,
               cologneAgeCategory(birth, key),
-              config.childcare.hoursPerWeek,
+              hoursPerWeek,
             )
       const meals = COLOGNE_MEAL_FEES[Math.min(5, Math.max(0, Math.round(config.childcare.mealDaysPerWeek)))]
       childcareFee[index - 1] += fee + meals
@@ -447,7 +448,7 @@ export function simulate(config: VariantConfig): SimulationResult {
   // Household rows
   const initialBalance = round2(
     config.balanceAtBirth -
-      config.oneTimeCosts.filter((c) => c.month <= 0).reduce((sum, c) => sum + c.amount, 0) +
+      config.oneTimeCosts.filter((c) => c.month !== null && c.month <= 0).reduce((sum, c) => sum + (c.amount ?? 0), 0) +
       oneTimePayments.filter((p) => p.lifeMonth === 0).reduce((sum, p) => sum + p.net, 0),
   )
   let balance = initialBalance
@@ -457,9 +458,9 @@ export function simulate(config: VariantConfig): SimulationResult {
     const b = parentMonths.b[i]
     const income = round2(a.total + b.total + childBenefit[i])
     const childCosts = config.childCosts
-      .filter((c) => c.fromMonth <= lm.index && (c.toMonth === null || lm.index <= c.toMonth))
-      .reduce((sum, c) => sum + c.monthly, 0)
-    const oneTimeCosts = config.oneTimeCosts.filter((c) => c.month === lm.index).reduce((sum, c) => sum + c.amount, 0)
+      .filter((c) => c.fromMonth !== null && c.fromMonth <= lm.index && (c.toMonth === null || lm.index <= c.toMonth))
+      .reduce((sum, c) => sum + (c.monthly ?? 0), 0)
+    const oneTimeCosts = config.oneTimeCosts.filter((c) => c.month === lm.index).reduce((sum, c) => sum + (c.amount ?? 0), 0)
     const healthCosts = round2(a.healthCosts + b.healthCosts)
     const expenses = round2(config.fixedCosts + childCosts + childcareFee[i] + healthCosts + oneTimeCosts)
     const balanceChange = round2(income - expenses)
@@ -467,16 +468,17 @@ export function simulate(config: VariantConfig): SimulationResult {
 
     const family = config.familyCare.reduce(
       (sum, period) => {
-        if (!period.from || !period.to) return sum
+        const { daysPerWeek, hoursPerDay } = period
+        if (!period.from || !period.to || !daysPerWeek || !hoursPerDay) return sum
         const share = overlapDays(lm.start, lm.end, period.from, period.to) / lm.days
-        return { days: sum.days + share * period.daysPerWeek, hours: sum.hours + share * period.daysPerWeek * period.hoursPerDay }
+        return { days: sum.days + share * daysPerWeek, hours: sum.hours + share * daysPerWeek * hoursPerDay }
       },
       { days: 0, hours: 0 },
     )
     const settlingIn = childcareStartIndex === lm.index
     const childcareHours =
-      childcareStartIndex !== null && lm.index >= childcareStartIndex
-        ? config.childcare.hoursPerWeek * (settlingIn ? 0.5 : 1)
+      childcareStartIndex !== null && hoursPerWeek && lm.index >= childcareStartIndex
+        ? hoursPerWeek * (settlingIn ? 0.5 : 1)
         : 0
     const care = careCoverage(activeParents.length === 1 ? [a] : [a, b], family, childcareHours, settlingIn)
 

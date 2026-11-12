@@ -37,8 +37,9 @@ export interface ParentConfig {
 export interface OneTimePayment {
   id: string
   label: string
-  gross: number
-  /** Calendar month of the payout ('YYYY-MM'). */
+  /** null until entered; incomplete entries are left out of the calculation. */
+  gross: number | null
+  /** Calendar month of the payout ('YYYY-MM'), '' until picked. */
   month: string
 }
 
@@ -86,17 +87,19 @@ export interface VacationPeriod {
 export interface FamilyCarePeriod {
   id: string
   label: string
+  /** '' until picked; incomplete entries are left out of the calculation. */
   from: IsoDate
   to: IsoDate
-  daysPerWeek: number
-  hoursPerDay: number
+  daysPerWeek: number | null
+  hoursPerDay: number | null
 }
 
 export interface CostItem {
   id: string
   label: string
-  monthly: number
-  fromMonth: number
+  /** null until entered; incomplete entries are left out of the calculation. */
+  monthly: number | null
+  fromMonth: number | null
   /** Last life month (inclusive); null = until the end of the horizon. */
   toMonth: number | null
 }
@@ -104,18 +107,20 @@ export interface CostItem {
 export interface OneTimeCost {
   id: string
   label: string
-  amount: number
-  /** Life month in which the cost occurs; 0 = before birth. */
-  month: number
+  /** null until entered; incomplete entries are left out of the calculation. */
+  amount: number | null
+  /** Life month in which the cost occurs; 0 = before birth, null until picked. */
+  month: number | null
 }
 
 export type ChildcareHours = 25 | 35 | 45
 
 export interface ChildcareConfig {
   enabled: boolean
-  /** First month of childcare ('YYYY-MM'). */
+  /** First month of childcare ('YYYY-MM'), '' until picked. */
   startMonth: string
-  hoursPerWeek: ChildcareHours
+  /** null until picked; without start and hours there is no childcare in the calculation. */
+  hoursPerWeek: ChildcareHours | null
   feeMode: 'cologne' | 'manual'
   manualFee: number
   mealDaysPerWeek: number

@@ -21,6 +21,9 @@ import type { OneTimePaymentResult, ParentMonth } from './result'
 import { annualWageTaxAdjustment, incomeTax } from './tax'
 import type { OneTimePayment, ParentConfig, ParentKey, VariantConfig } from './types'
 
+/** A payment with an amount, as left after validPayments(). */
+type Payment = OneTimePayment & { gross: number }
+
 /*
  * One-time payments from the employer (bonus, premium) are sonstige Bezüge:
  * - wage tax with the annual table (§ 39b Abs. 3 EStG) via the PAP,
@@ -73,7 +76,7 @@ function yearOf(month: string): number {
   return parseIso(monthKeyToIso(month)).year
 }
 
-function byMonth(a: OneTimePayment, b: OneTimePayment): number {
+function byMonth(a: Payment, b: Payment): number {
   return a.month < b.month ? -1 : a.month > b.month ? 1 : 0
 }
 
@@ -114,7 +117,7 @@ function contributionRoom(income: IncomeLookup, year: number, untilMonth: number
 
 /** Employee social contributions on one parent's payments, processed in payout order (§ 23a SGB IV). */
 function assignContributions(
-  payments: OneTimePayment[],
+  payments: Payment[],
   parent: ParentConfig,
   income: IncomeLookup,
   birthMonth: string,
@@ -263,11 +266,11 @@ function deductibleContributions(parent: ParentConfig, annualGross: number, year
 function estimateTaxReturn(
   ctx: PaymentContext,
   key: ParentKey,
-  payment: OneTimePayment,
+  payment: Payment,
   deductible: number,
   withheld: number,
   incomes: Record<ParentKey, IncomeLookup>,
-  payments: Map<ParentKey, OneTimePayment[]>,
+  payments: Map<ParentKey, Payment[]>,
 ): { effect: number; benefits: number } {
   const year = yearOf(payment.month)
   const married = ctx.config.relationship === 'married'
@@ -311,14 +314,14 @@ function estimateTaxReturn(
   return { effect: round2(taxDifference * church - withheld), benefits: round2(scope.reduce((sum, k) => sum + benefitsOf(k), 0)) }
 }
 
-function validPayments(payments: OneTimePayment[] | undefined): OneTimePayment[] {
-  return (payments ?? []).filter((p) => MONTH_PATTERN.test(p.month) && p.gross > 0).sort(byMonth)
+function validPayments(payments: OneTimePayment[] | undefined): Payment[] {
+  return (payments ?? []).filter((p): p is Payment => MONTH_PATTERN.test(p.month) && (p.gross ?? 0) > 0).sort(byMonth)
 }
 
 export function computeOneTimePayments(ctx: PaymentContext): OneTimePaymentResult[] {
   const birthMonth = monthKey(ctx.birth)
   const incomes = {} as Record<ParentKey, IncomeLookup>
-  const payments = new Map<ParentKey, OneTimePayment[]>()
+  const payments = new Map<ParentKey, Payment[]>()
   for (const key of ctx.activeParents) {
     incomes[key] = calendarIncome(ctx, key)
     payments.set(key, validPayments(ctx.config.parents[key].oneTimePayments))

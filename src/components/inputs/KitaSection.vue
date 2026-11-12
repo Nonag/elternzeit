@@ -50,7 +50,7 @@ const childcare = computed(() => config.value.childcare)
           <NumberInput v-model="childcare.mealDaysPerWeek" :min="0" :max="5" unit="Tage/Woche" />
         </FormField>
       </div>
-      <p v-if="!result.childcare.startMonthIndex" class="text-xs text-amber-700 dark:text-amber-400">
+      <p v-if="childcare.startMonth && childcare.hoursPerWeek && !result.childcare.startMonthIndex" class="text-xs text-amber-700 dark:text-amber-400">
         Der Kita-Start liegt nach dem Ende des Planungszeitraums.
       </p>
     </template>

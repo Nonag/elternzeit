@@ -37,7 +37,10 @@ function update(value: unknown) {
       :aria-invalid="tone === 'error' || undefined"
       :class="['h-9 w-full min-w-0 data-[size=default]:h-9', triggerClass, tone && TONE_BORDER[tone]]"
     >
-      <SelectValue :placeholder="placeholder">{{ selectedLabel }}</SelectValue>
+      <SelectValue>
+        <template v-if="selectedLabel !== undefined">{{ selectedLabel }}</template>
+        <span v-else class="text-muted-foreground">{{ placeholder }}</span>
+      </SelectValue>
     </SelectTrigger>
     <SelectContent>
       <SelectGroup>

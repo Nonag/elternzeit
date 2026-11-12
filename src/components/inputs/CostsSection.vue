@@ -18,11 +18,11 @@ const whenOptions = computed(() => [
 ])
 
 function addChildCost() {
-  config.value.childCosts.push({ id: createId('cost'), label: 'Neuer Posten', monthly: 50, fromMonth: 1, toMonth: null })
+  config.value.childCosts.push({ id: createId('cost'), label: '', monthly: null, fromMonth: null, toMonth: null })
 }
 
 function addOneTime() {
-  config.value.oneTimeCosts.push({ id: createId('once'), label: 'Neue Ausgabe', amount: 500, month: 0 })
+  config.value.oneTimeCosts.push({ id: createId('once'), label: '', amount: null, month: null })
 }
 </script>
 
@@ -48,15 +48,15 @@ function addOneTime() {
       </p>
       <div v-for="(item, i) in config.childCosts" :key="item.id" class="grid gap-3 rounded-lg border p-3">
         <div class="flex items-center gap-2">
-          <Input v-model="item.label" class="h-9 flex-1" aria-label="Bezeichnung" />
+          <Input v-model="item.label" class="h-9 flex-1" placeholder="Bezeichnung" aria-label="Bezeichnung" />
           <Button variant="ghost" size="icon" aria-label="Posten entfernen" @click="config.childCosts.splice(i, 1)"><Trash2Icon /></Button>
         </div>
         <div class="grid grid-cols-[1.3fr_1fr_1fr] gap-3">
           <FormField label="pro Monat">
-            <NumberInput v-model="item.monthly" unit="€" :step="10" />
+            <NumberInput v-model="item.monthly" nullable unit="€" :step="10" />
           </FormField>
           <FormField label="ab Monat">
-            <NumberInput v-model="item.fromMonth" :min="1" :max="96" />
+            <NumberInput v-model="item.fromMonth" nullable :min="1" :max="96" />
           </FormField>
           <FormField label="bis Monat">
             <NumberInput v-model="item.toMonth" nullable placeholder="laufend" :min="1" :max="96" />
@@ -70,15 +70,15 @@ function addOneTime() {
       <p class="text-muted-foreground -mt-1 text-xs leading-relaxed">Zum Beispiel Kinderwagen, Babybett, Autositz.</p>
       <div v-for="(item, i) in config.oneTimeCosts" :key="item.id" class="grid gap-3 rounded-lg border p-3">
         <div class="flex items-center gap-2">
-          <Input v-model="item.label" class="h-9 flex-1" aria-label="Bezeichnung" />
+          <Input v-model="item.label" class="h-9 flex-1" placeholder="Bezeichnung" aria-label="Bezeichnung" />
           <Button variant="ghost" size="icon" aria-label="Ausgabe entfernen" @click="config.oneTimeCosts.splice(i, 1)"><Trash2Icon /></Button>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <FormField label="Betrag">
-            <NumberInput v-model="item.amount" unit="€" :step="100" />
+            <NumberInput v-model="item.amount" nullable unit="€" :step="100" />
           </FormField>
           <FormField label="Wann">
-            <SelectField v-model="item.month" :options="whenOptions" />
+            <SelectField v-model="item.month" :options="whenOptions" placeholder="Monat wählen" />
           </FormField>
         </div>
       </div>
