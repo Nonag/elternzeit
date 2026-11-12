@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { confirmDialog } from '@/lib/dialogs'
-import { periodsFromOutline, PLAN_PRESETS, type PlanPreset } from '@/engine/plan'
+import { periodsFromPreset, presetsFor, type PlanPreset } from '@/engine/plan'
 import { num } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
 import IssueMarker from './IssueMarker.vue'
@@ -29,7 +29,7 @@ const hasPlan = computed(() => config.value.periods.a.length + config.value.peri
 
 async function applyPreset(preset: PlanPreset) {
   if (hasPlan.value && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
-  config.value.periods = periodsFromOutline(preset.outline, config.value.relationship ?? 'married')
+  config.value.periods = periodsFromPreset(preset)
   selectedPeriod.value = null
 }
 </script>
@@ -71,7 +71,7 @@ async function applyPreset(preset: PlanPreset) {
           <DropdownMenuContent align="end" class="w-80">
             <DropdownMenuLabel>Plan aus Vorlage erstellen</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem v-for="preset in PLAN_PRESETS" :key="preset.id" class="flex flex-col items-start gap-0.5" @click="applyPreset(preset)">
+            <DropdownMenuItem v-for="preset in presetsFor(config.relationship)" :key="preset.id" class="flex flex-col items-start gap-0.5" @click="applyPreset(preset)">
               <span class="font-medium">{{ preset.label }}{{ hasPlan ? ' …' : '' }}</span>
               <span class="text-muted-foreground text-xs">{{ preset.description }}</span>
             </DropdownMenuItem>

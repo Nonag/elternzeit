@@ -50,7 +50,8 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
 ## What it does
 
 - **Plan** per parent as periods in the plan card (life months; Elternzeit or work; weekly hours and working days;
-  Basis/Plus/Partnerschaftsbonus) plus paid vacation in whole weeks; presets for common models.
+  Basis/Plus/Partnerschaftsbonus) plus paid vacation in whole weeks; presets for common models, separate ones for
+  single parents.
 - **Calculates** real net pay (BMF Programmablaufplan 2026 via `lohnsteuerrechner`, plus the draft 2027/2028
   tariff), Elterngeld-Netto and
   Elterngeld (§§ 2–4 BEEG incl. income averaging, Plus cap, Mutterschaftsgeld offset per day), Kindergeld,

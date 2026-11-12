@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { exampleConfig } from '@/engine/example'
-import { PLAN_PRESETS, periodsFromOutline } from '@/engine/plan'
+import { periodsFromOutline } from '@/engine/plan'
 import type { PlanPeriod } from '@/engine/types'
 import { emptyConfig, missingInputs, parsePlanning } from './variants'
 
@@ -50,7 +50,9 @@ describe('parsePlanning', () => {
   })
 
   it('builds the plan of the first version from its outline', () => {
-    const outline = PLAN_PRESETS[1].outline
+    const parent = (start: number, leaveMonths: number, leaveAllowance: 'basic' | 'plus') =>
+      ({ start, leaveMonths, leaveAllowance, partTimeMonths: 0, partTimeHours: 30, partTimeAllowance: 'plus' }) as const
+    const outline = { a: parent(1, 12, 'basic'), b: parent(1, 4, 'plus'), bonusMonths: 0, bonusStart: null, bonusHours: 30 }
     const [variant] = parsePlanning({ scenarios: [{ config: { planMode: 'quick', quickPlan: outline, blocks: { a: [], b: [] } } }] })
     const expected = periodsFromOutline(outline, 'married')
     expect(withoutIds(variant.config.periods.a)).toEqual(withoutIds(expected.a))

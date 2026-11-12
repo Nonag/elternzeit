@@ -60,7 +60,7 @@ docs/research-notes.md legal research with sources
 | Planung: all variants, exported or saved on the server | `PlanningData`, `usePlanning()` |
 | Variante | `Variant` with `config: VariantConfig`, `useVariants()` |
 | Elternzeit & Elterngeld (card with the periods, "plan card" in code) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline` |
-| Vorlage | `PLAN_PRESETS[].outline` (`PlanOutline`), `periodsFromOutline()` |
+| Vorlage | `PLAN_PRESETS` as periods, `presetsFor()` (two parents or single), `periodsFromPreset()`; `PlanOutline` only migrates first-version data |
 | Basiselterngeld / ElterngeldPlus / Partnerschaftsbonus | `allowance: AllowanceType` = `basic` / `plus` / `bonus` |
 | Art: Elternzeit / Arbeit | `PlanPeriod.kind` = `leave` / `work` |
 | Tage (working days per week) | `PlanPeriod.workDays` |

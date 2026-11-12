@@ -72,7 +72,7 @@ function fullLeaveEnd(plan: ParentPlanOutline): number {
   return plan.leaveMonths > 0 ? Math.max(1, plan.start) + plan.leaveMonths - 1 : 0
 }
 
-/** Builds periods from key figures (used for presets and to migrate old variants). */
+/** Builds periods from the key figures the first version stored ("quickPlan"). */
 export function periodsFromOutline(outline: PlanOutline, relationship: RelationshipStatus): Record<ParentKey, PlanPeriod[]> {
   let a = parentPeriodsFromOutline(outline.a)
   let b = relationship === 'single' ? [] : parentPeriodsFromOutline(outline.b)
@@ -127,74 +127,106 @@ export function expandPeriods(periods: PlanPeriod[], horizon: number, contractHo
   return months
 }
 
+/** A period of a preset in life months, in Elternzeit; hours are the weekly working hours (0 = not working). */
+interface PresetPeriod {
+  from: number
+  to: number
+  allowance: AllowanceType
+  hours: number
+}
+
 export interface PlanPreset {
   id: string
   label: string
   description: string
-  outline: PlanOutline
+  /** Presets for two parents or for a single parent. */
+  parents: 'two' | 'one'
+  periods: { a: PresetPeriod[]; b?: PresetPeriod[] }
 }
 
-const noPartTime = { partTimeMonths: 0, partTimeHours: 30, partTimeAllowance: 'plus' as const }
+const leave = (from: number, to: number, allowance: AllowanceType, hours = 0): PresetPeriod => ({ from, to, allowance, hours })
 
 export const PLAN_PRESETS: PlanPreset[] = [
   {
     id: 'classic',
     label: 'Klassisch 12 + 2',
     description: 'Mutter 12 Monate Basiselterngeld, danach Vater 2 Monate.',
-    outline: {
-      a: { start: 1, leaveMonths: 12, leaveAllowance: 'basic', ...noPartTime },
-      b: { start: 13, leaveMonths: 2, leaveAllowance: 'basic', ...noPartTime },
-      bonusMonths: 0,
-      bonusStart: null,
-      bonusHours: 30,
-    },
+    parents: 'two',
+    periods: { a: [leave(1, 12, 'basic')], b: [leave(13, 14, 'basic')] },
   },
   {
     id: 'start-together',
     label: 'Start zu zweit',
     description: 'Mutter 12 Monate Basiselterngeld, Vater die ersten 4 Monate mit ElterngeldPlus zu Hause.',
-    outline: {
-      a: { start: 1, leaveMonths: 12, leaveAllowance: 'basic', ...noPartTime },
-      b: { start: 1, leaveMonths: 4, leaveAllowance: 'plus', ...noPartTime },
-      bonusMonths: 0,
-      bonusStart: null,
-      bonusHours: 30,
-    },
+    parents: 'two',
+    periods: { a: [leave(1, 12, 'basic')], b: [leave(1, 4, 'plus')] },
+  },
+  {
+    // Parallel Basiselterngeld is allowed in one month only, which the first month uses; hence Plus in month 12.
+    id: 'first-and-twelfth',
+    label: 'Vater im 1. und 12. Monat',
+    description: 'Mutter 12 Monate Basiselterngeld, Vater im 1. Monat Basiselterngeld und im 12. Monat ElterngeldPlus.',
+    parents: 'two',
+    periods: { a: [leave(1, 12, 'basic')], b: [leave(1, 1, 'basic'), leave(12, 12, 'plus')] },
   },
   {
     id: 'equal',
     label: 'Halbe-Halbe 7 + 7',
     description: 'Mutter Monat 1–7, Vater Monat 8–14, jeweils Basiselterngeld.',
-    outline: {
-      a: { start: 1, leaveMonths: 7, leaveAllowance: 'basic', ...noPartTime },
-      b: { start: 8, leaveMonths: 7, leaveAllowance: 'basic', ...noPartTime },
-      bonusMonths: 0,
-      bonusStart: null,
-      bonusHours: 30,
-    },
+    parents: 'two',
+    periods: { a: [leave(1, 7, 'basic')], b: [leave(8, 14, 'basic')] },
   },
   {
     id: 'plus-long',
     label: 'Länger mit Plus',
     description: 'Mutter 22 Monate mit ElterngeldPlus, danach Vater 4 Monate Teilzeit mit Plus.',
-    outline: {
-      a: { start: 1, leaveMonths: 22, leaveAllowance: 'plus', ...noPartTime },
-      b: { start: 23, leaveMonths: 0, leaveAllowance: 'plus', partTimeMonths: 4, partTimeHours: 25, partTimeAllowance: 'plus' },
-      bonusMonths: 0,
-      bonusStart: null,
-      bonusHours: 30,
-    },
+    parents: 'two',
+    periods: { a: [leave(1, 22, 'plus')], b: [leave(23, 26, 'plus', 25)] },
   },
   {
     id: 'partnership',
     label: 'Partnerschaftlich mit Bonus',
     description: 'Mutter Monat 1–10, Vater Monat 11–14, danach beide 4 Monate 30 Stunden mit Partnerschaftsbonus.',
-    outline: {
-      a: { start: 1, leaveMonths: 10, leaveAllowance: 'basic', ...noPartTime },
-      b: { start: 11, leaveMonths: 4, leaveAllowance: 'basic', ...noPartTime },
-      bonusMonths: 4,
-      bonusStart: null,
-      bonusHours: 30,
-    },
+    parents: 'two',
+    periods: { a: [leave(1, 10, 'basic'), leave(15, 18, 'bonus', 30)], b: [leave(11, 14, 'basic'), leave(15, 18, 'bonus', 30)] },
+  },
+  {
+    id: 'single-basic',
+    label: '14 Monate Basiselterngeld',
+    description: 'Mutter 14 Monate Basiselterngeld.',
+    parents: 'one',
+    periods: { a: [leave(1, 14, 'basic')] },
+  },
+  {
+    // The months of the Mutterschutz count as Basiselterngeld, so 24 months of Plus are left after them.
+    id: 'single-plus',
+    label: 'Länger mit Plus',
+    description: 'Mutter 26 Monate mit ElterngeldPlus.',
+    parents: 'one',
+    periods: { a: [leave(1, 26, 'plus')] },
+  },
+  {
+    id: 'single-part-time',
+    label: 'Basis, danach Teilzeit',
+    description: 'Mutter 12 Monate Basiselterngeld, danach 4 Monate Teilzeit mit 25 Stunden und ElterngeldPlus.',
+    parents: 'one',
+    periods: { a: [leave(1, 12, 'basic'), leave(13, 16, 'plus', 25)] },
+  },
+  {
+    id: 'single-bonus',
+    label: 'Mit Partnerschaftsbonus',
+    description: 'Mutter 14 Monate Basiselterngeld, danach 4 Monate 30 Stunden mit Partnerschaftsbonus.',
+    parents: 'one',
+    periods: { a: [leave(1, 14, 'basic'), leave(15, 18, 'bonus', 30)] },
   },
 ]
+
+/** The presets that fit the relationship: single parents get their own. */
+export const presetsFor = (relationship: RelationshipStatus | null) =>
+  PLAN_PRESETS.filter((preset) => preset.parents === (relationship === 'single' ? 'one' : 'two'))
+
+export function periodsFromPreset(preset: PlanPreset): Record<ParentKey, PlanPeriod[]> {
+  const build = (list: PresetPeriod[] = []): PlanPeriod[] =>
+    list.map((p) => ({ id: createId('period'), from: p.from, to: p.to, kind: 'leave', hours: p.hours, workDays: null, allowance: p.allowance }))
+  return { a: build(preset.periods.a), b: build(preset.periods.b) }
+}

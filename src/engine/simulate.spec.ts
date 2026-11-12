@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { exampleConfig } from './example'
 import { computePayroll } from './payroll'
-import { periodsFromOutline, paintPeriod, PLAN_PRESETS } from './plan'
+import { periodsFromOutline, periodsFromPreset, paintPeriod, PLAN_PRESETS } from './plan'
 import { simulate } from './simulate'
 import { incomeTax } from './tax'
 import type { PlanPeriod, VariantConfig } from './types'
@@ -29,9 +29,10 @@ describe('plan periods', () => {
     ])
   })
 
-  it('places the Partnerschaftsbonus of a preset after both full-time leaves', () => {
-    const preset = PLAN_PRESETS.find((p) => p.id === 'partnership')!
-    const plan = periodsFromOutline(preset.outline, 'married')
+  it('places the Partnerschaftsbonus of a first-version outline after both full-time leaves', () => {
+    const parent = (start: number, leaveMonths: number) =>
+      ({ start, leaveMonths, leaveAllowance: 'basic', partTimeMonths: 0, partTimeHours: 30, partTimeAllowance: 'plus' }) as const
+    const plan = periodsFromOutline({ a: parent(1, 10), b: parent(11, 4), bonusMonths: 4, bonusStart: null, bonusHours: 30 }, 'married')
     expect(plan.b.at(-1)).toMatchObject({ from: 15, to: 18, allowance: 'bonus', hours: 30 })
   })
 })
@@ -94,9 +95,16 @@ describe('simulate', () => {
 
   it('validates all presets', () => {
     for (const preset of PLAN_PRESETS) {
-      const result = simulate(variant((c) => (c.periods = periodsFromOutline(preset.outline, 'married'))))
+      const result = simulate(
+        variant((c) => {
+          c.relationship = preset.parents === 'one' ? 'single' : 'married'
+          c.periods = periodsFromPreset(preset)
+        }),
+      )
       const errors = result.issues.filter((i) => i.severity === 'error' && i.category === 'allowance')
       expect(errors, preset.id).toEqual([])
+      // Every preset uses the whole entitlement, except the half month the father leaves in "Vater im 1. und 12. Monat".
+      expect(result.entitlement.used, preset.id).toBe(preset.id === 'first-and-twelfth' ? 13.5 : result.entitlement.available)
     }
   })
 

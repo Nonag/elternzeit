@@ -1,4 +1,4 @@
-import { periodsFromOutline, PLAN_PRESETS } from './plan'
+import { periodsFromPreset, PLAN_PRESETS } from './plan'
 import type { ParentConfig, VariantConfig } from './types'
 
 function exampleParent(name: string, grossMonthly: number): ParentConfig {
@@ -23,7 +23,6 @@ function exampleParent(name: string, grossMonthly: number): ParentConfig {
 }
 
 export function exampleConfig(): VariantConfig {
-  const classic = PLAN_PRESETS[0].outline
   return {
     relationship: 'married',
     dueDate: '2027-01-15',
@@ -33,7 +32,7 @@ export function exampleConfig(): VariantConfig {
     siblingBonus: false,
     churchTaxRate: 0.09,
     horizonMonths: 36,
-    periods: periodsFromOutline(classic, 'married'),
+    periods: periodsFromPreset(PLAN_PRESETS[0]),
     vacation: { a: [], b: [] },
     parents: {
       a: exampleParent('Mutter', 3800),
