@@ -165,6 +165,12 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
       return { name: row.name, token: issueToken(row.id) }
     },
 
+    /** Id of the planning a session belongs to, or null if the token is unknown. */
+    planningId(token: string): number | null {
+      const row = byToken.get(hashToken(token)) as PlanningRow | undefined
+      return row ? row.id : null
+    },
+
     load(token: string): PlanningRecord | null {
       const row = byToken.get(hashToken(token)) as PlanningRow | undefined
       if (!row) return null

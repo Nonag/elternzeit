@@ -50,6 +50,7 @@ export function usePlanning() {
 
   return {
     server,
+    currentSession,
     adopt,
     /** Saving asks for a name (first save) or the password (not remembered). */
     saveNeedsInput: computed(() => !currentSession.value),

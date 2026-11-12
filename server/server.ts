@@ -3,6 +3,15 @@ import { gzipSync } from 'node:zlib'
 import { StoreError, type Store, type StoreErrorCode } from './store.ts'
 
 const MAX_BODY_BYTES = 1_000_000
+/** Browsers report every 15 s, hidden tabs may only manage once a minute. */
+const PRESENCE_TTL_MS = 75_000
+const MAX_PRESENCE_NAME = 40
+const MAX_PRESENCE_CLIENTS = 20
+
+interface PresenceEntry {
+  name: string
+  seen: number
+}
 
 class HttpError extends Error {
   status: number
@@ -66,6 +75,20 @@ export interface AppOptions {
 
 export function createApp(store: Store, { html, unauthorizedDelayMs = 1000 }: AppOptions): Server {
   const gzippedHtml = html ? gzipSync(html) : null
+  /** Who has which planning open, by browser; kept in memory only. */
+  const presence = new Map<number, Map<string, PresenceEntry>>()
+
+  /** Records or removes a browser and returns the other browsers with the planning open. */
+  function reportPresence(planningId: number, client: string, name: string, leave: boolean) {
+    const now = Date.now()
+    const clients = presence.get(planningId) ?? new Map<string, PresenceEntry>()
+    for (const [key, entry] of clients) if (now - entry.seen > PRESENCE_TTL_MS) clients.delete(key)
+    if (leave) clients.delete(client)
+    else if (clients.has(client) || clients.size < MAX_PRESENCE_CLIENTS) clients.set(client, { name: name.trim().slice(0, MAX_PRESENCE_NAME), seen: now })
+    if (clients.size) presence.set(planningId, clients)
+    else presence.delete(planningId)
+    return [...clients].filter(([key]) => key !== client).map(([key, entry]) => ({ client: key, name: entry.name }))
+  }
 
   async function unauthorized(res: ServerResponse) {
     await new Promise((resolve) => setTimeout(resolve, unauthorizedDelayMs))
@@ -135,6 +158,15 @@ export function createApp(store: Store, { html, unauthorizedDelayMs = 1000 }: Ap
         const result = store.save(credentials(req, 'Bearer'), data, Number(baseVersion), force === true)
         if (!result) return unauthorized(res)
         return result.ok ? send(res, 200, { version: result.version, savedAt: result.savedAt }) : send(res, 409, { error: 'conflict', current: result.current })
+      }
+
+      case 'POST /api/planning/presence': {
+        const planningId = store.planningId(credentials(req, 'Bearer'))
+        if (planningId === null) return unauthorized(res)
+        const { client, name, leave } = await readJson(req)
+        const id = text(client).slice(0, 64)
+        if (!id) return send(res, 400, { error: 'invalid-client' })
+        return send(res, 200, { others: reportPresence(planningId, id, text(name), leave === true) })
       }
 
       case 'DELETE /api/planning':

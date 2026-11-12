@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MIN_PASSWORD_LENGTH } from '@/lib/planningApi'
 import type { PlanningDialogMode } from '@/stores/planning'
+import { userName } from '@/stores/presence'
 
 const props = defineProps<{
   mode: PlanningDialogMode
@@ -30,12 +31,12 @@ const props = defineProps<{
 const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ submit: [value: { name: string; password: string; remember: boolean }] }>()
 
-const form = reactive({ name: '', password: '', repeat: '', remember: true })
+const form = reactive({ name: '', password: '', repeat: '', remember: true, userName: '' })
 const inputError = ref<string | null>(null)
 
 watch(open, (isOpen) => {
   if (!isOpen) return
-  Object.assign(form, { name: props.mode === 'create' ? '' : (props.name ?? ''), password: '', repeat: '', remember: true })
+  Object.assign(form, { name: props.mode === 'create' ? '' : (props.name ?? ''), password: '', repeat: '', remember: true, userName: userName.value })
   inputError.value = null
 })
 
@@ -69,7 +70,11 @@ function submit() {
   else if (props.mode === 'create' && form.password.length < MIN_PASSWORD_LENGTH)
     inputError.value = `Das Passwort braucht mindestens ${MIN_PASSWORD_LENGTH} Zeichen.`
   else if (props.mode === 'create' && form.password !== form.repeat) inputError.value = 'Die Passwörter stimmen nicht überein.'
-  else emit('submit', { name: form.name.trim(), password: form.password, remember: form.remember })
+  else if (props.mode !== 'password' && !form.userName.trim()) inputError.value = 'Bitte deinen Namen eingeben.'
+  else {
+    if (props.mode !== 'password') userName.value = form.userName.trim()
+    emit('submit', { name: form.name.trim(), password: form.password, remember: form.remember })
+  }
 }
 </script>
 
@@ -96,6 +101,11 @@ function submit() {
         <div v-if="mode === 'create'" class="grid gap-2">
           <Label for="planning-repeat">Passwort wiederholen</Label>
           <PasswordInput id="planning-repeat" v-model="form.repeat" autocomplete="new-password" />
+        </div>
+        <div v-if="mode !== 'password'" class="grid gap-2">
+          <Label for="planning-user">Dein Name</Label>
+          <Input id="planning-user" v-model="form.userName" autocomplete="nickname" />
+          <p class="text-muted-foreground text-xs">Sehen alle, die die Planung zur gleichen Zeit offen haben.</p>
         </div>
         <Label class="font-normal"><Checkbox v-model="form.remember" /> Passwort auf diesem Gerät merken</Label>
         <p v-if="warning" class="text-sm text-amber-700 dark:text-amber-400">{{ warning }}</p>

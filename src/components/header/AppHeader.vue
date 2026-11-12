@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import EditActions from './EditActions.vue'
 import PlanningMenu from './PlanningMenu.vue'
+import PresenceAvatars from './PresenceAvatars.vue'
 import VariantMenu from './VariantMenu.vue'
 
 const colorMode = useColorMode()
@@ -22,17 +23,19 @@ const isDark = computed(() => colorMode.state.value === 'dark')
         <Separator orientation="vertical" class="mx-1 my-1" />
         <EditActions />
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="ml-auto"
-        :aria-label="isDark ? 'Helles Design' : 'Dunkles Design'"
-        :title="isDark ? 'Helles Design' : 'Dunkles Design'"
-        @click="colorMode = isDark ? 'light' : 'dark'"
-      >
-        <SunIcon v-if="isDark" />
-        <MoonIcon v-else />
-      </Button>
+      <div class="ml-auto flex items-center gap-3">
+        <PresenceAvatars />
+        <Button
+          variant="ghost"
+          size="icon"
+          :aria-label="isDark ? 'Helles Design' : 'Dunkles Design'"
+          :title="isDark ? 'Helles Design' : 'Dunkles Design'"
+          @click="colorMode = isDark ? 'light' : 'dark'"
+        >
+          <SunIcon v-if="isDark" />
+          <MoonIcon v-else />
+        </Button>
+      </div>
     </div>
   </header>
 </template>

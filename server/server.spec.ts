@@ -118,4 +118,20 @@ describe('server', () => {
     expect(deleted.body.deleted).toBe(1)
     expect((await api('GET', '/api/planning', { token: created.body.token })).status).toBe(401)
   })
+
+  it('tells who else has the planning open, one entry per browser', async () => {
+    const created = await api('POST', '/api/planning', { body: { name: 'Familie', password: 'geheim1', data: planning() } })
+    const other = await api('POST', '/api/planning/session', { body: { name: 'Familie', password: 'geheim1' } })
+    const report = (token: string, client: string, name: string, leave = false) =>
+      api('POST', '/api/planning/presence', { token, body: { client, name, leave } })
+    expect((await report(created.body.token, 'browser-a', 'Anna')).body.others).toEqual([])
+    // Two tabs of one browser share the client id and count once.
+    await report(other.body.token, 'browser-b', 'Ben')
+    await report(other.body.token, 'browser-b', 'Ben')
+    expect((await report(created.body.token, 'browser-a', 'Anna')).body.others).toEqual([{ client: 'browser-b', name: 'Ben' }])
+    expect((await report(other.body.token, 'browser-b', 'Ben')).body.others).toEqual([{ client: 'browser-a', name: 'Anna' }])
+    await report(other.body.token, 'browser-b', 'Ben', true)
+    expect((await report(created.body.token, 'browser-a', 'Anna')).body.others).toEqual([])
+    expect((await report('unknown', 'browser-a', 'Anna')).status).toBe(401)
+  })
 })

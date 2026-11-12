@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDownIcon, DownloadIcon, FolderIcon, FolderOpenIcon, FolderPlusIcon, FolderXIcon, SaveAllIcon, SaveIcon, UploadIcon } from '@lucide/vue'
+import { ChevronDownIcon, DownloadIcon, FolderIcon, FolderOpenIcon, FolderPlusIcon, FolderXIcon, SaveAllIcon, SaveIcon, UploadIcon, UserPenIcon } from '@lucide/vue'
 import { useFileDialog } from '@vueuse/core'
 import { computed } from 'vue'
 import ConflictDialog from '@/components/dialogs/ConflictDialog.vue'
@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupText } from '@/components/ui/button-group'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { promptDialog } from '@/lib/dialogs'
+import { userName } from '@/stores/presence'
 import { useVariants } from '@/stores/variants'
 import { usePlanningActions } from './usePlanningActions'
 
@@ -38,6 +40,11 @@ fileDialog.onChange((files) => {
   if (file) void importPlanning(file)
 })
 
+async function changeName() {
+  const name = await promptDialog({ title: 'Dein Name', label: 'Name', value: userName.value, confirmLabel: 'Speichern' })
+  if (name?.trim()) userName.value = name.trim()
+}
+
 // "…" marks every entry that asks for more input. Server entries stay visible and get a reason when disabled.
 const items = computed(() => {
   const offline = serverReady.value ? null : serverHint.value
@@ -56,6 +63,7 @@ const items = computed(() => {
       hint: offline ?? (state.planning.name ? null : 'Die Planung ist noch nicht auf dem Server gespeichert.'),
       destructive: true,
     },
+    { id: 'user', label: 'Dein Name …', icon: UserPenIcon, run: changeName, hint: null },
   ]
 })
 </script>

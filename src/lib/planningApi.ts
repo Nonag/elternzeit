@@ -37,6 +37,8 @@ interface RequestOptions {
   body?: unknown
   token?: string
   adminPassword?: string
+  /** Lets the request finish while the page is closed. */
+  keepalive?: boolean
 }
 
 function basicAuth(password: string): string {
@@ -54,6 +56,7 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     method,
     headers,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    keepalive: options.keepalive,
   })
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>
   if (!response.ok) throw new ApiError(response.status, payload)
@@ -90,6 +93,16 @@ export const savePlanning = (token: string, data: unknown, baseVersion: number, 
   request<{ version: number; savedAt: string }>('PUT', 'planning', { token, body: { data, baseVersion, force } })
 
 export const deletePlanning = (token: string) => request<object>('DELETE', 'planning', { token })
+
+/** Another browser with the same planning open. */
+export interface PresenceEntry {
+  client: string
+  name: string
+}
+
+/** Tells the server this browser has the planning open (or left it) and returns the other browsers. */
+export const reportPresence = (token: string, client: string, name: string, leave = false) =>
+  request<{ others: PresenceEntry[] }>('POST', 'planning/presence', { token, body: { client, name, leave }, keepalive: leave })
 
 /** Server session of this browser; kept in localStorage if the password is remembered on this device. */
 export interface Session {
