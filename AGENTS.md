@@ -60,7 +60,7 @@ docs/research-notes.md legal research with sources
 |---|---|
 | Planung: all variants, exported or saved on the server | `PlanningData`, `usePlanning()` |
 | Variante | `Variant` with `config: VariantConfig`, `useVariants()` |
-| Elternzeit & Elterngeld (card with the periods, "plan card" in code) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline` |
+| Elternzeit & Elterngeld (card with the periods, "plan card" in code) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline`; editing "von"/"bis" never changes other periods, months that overlap or a new empty period wait in `PeriodEditor` until the range is free |
 | Vorlage | `PLAN_PRESETS` as periods, `presetsFor()` (two parents or single), `periodsFromPreset()`; `PlanOutline` only migrates first-version data |
 | Lücken schließen | `closeGaps()`: Partnerschaftsbonus hours; part-time in Elternzeit (up to 32 h) for the parent who earns less, else both, with the Partnerschaftsbonus where it fits; last vacation or Elternzeit for the Kita start |
 | Basiselterngeld / ElterngeldPlus / Partnerschaftsbonus | `allowance: AllowanceType` = `basic` / `plus` / `bonus` |
