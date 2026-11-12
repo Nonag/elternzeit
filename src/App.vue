@@ -111,7 +111,8 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
     </div>
     <ConfirmDialog />
     <PromptDialog />
-    <Toaster :theme="isDark ? 'dark' : 'light'" />
+    <!-- Every toast can be closed; the ones about other people and errors stay until then (duration: Infinity). -->
+    <Toaster :theme="isDark ? 'dark' : 'light'" close-button :duration="5000" />
     <AdminSetupDialog />
   </TooltipProvider>
 </template>

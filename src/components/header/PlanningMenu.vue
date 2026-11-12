@@ -9,7 +9,7 @@ import { ButtonGroup, ButtonGroupText } from '@/components/ui/button-group'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { promptDialog } from '@/lib/dialogs'
-import { userName } from '@/stores/presence'
+import { userName } from '@/stores/user'
 import { useVariants } from '@/stores/variants'
 import { usePlanningActions } from './usePlanningActions'
 

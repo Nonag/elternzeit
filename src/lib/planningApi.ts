@@ -13,6 +13,7 @@ export interface RemotePlanning {
   data: unknown
   version: number
   savedAt: string
+  savedBy: string | null
 }
 
 export interface AdminPlanning {
@@ -81,16 +82,16 @@ export const listPlannings = (adminPassword: string) =>
 export const deletePlannings = (adminPassword: string, ids: number[]) =>
   request<{ deleted: number }>('POST', 'admin/plannings/delete', { adminPassword, body: { ids } })
 
-export const createPlanning = (name: string, password: string, data: unknown) =>
-  request<{ name: string; token: string; version: number; savedAt: string }>('POST', 'planning', { body: { name, password, data } })
+export const createPlanning = (name: string, password: string, data: unknown, savedBy: string) =>
+  request<{ name: string; token: string; version: number; savedAt: string }>('POST', 'planning', { body: { name, password, data, savedBy } })
 
 export const openSession = (name: string, password: string) =>
   request<{ name: string; token: string }>('POST', 'planning/session', { body: { name, password } })
 
 export const loadPlanning = (token: string) => request<RemotePlanning>('GET', 'planning', { token })
 
-export const savePlanning = (token: string, data: unknown, baseVersion: number, force = false) =>
-  request<{ version: number; savedAt: string }>('PUT', 'planning', { token, body: { data, baseVersion, force } })
+export const savePlanning = (token: string, data: unknown, baseVersion: number, savedBy: string, force = false) =>
+  request<{ version: number; savedAt: string }>('PUT', 'planning', { token, body: { data, baseVersion, force, savedBy } })
 
 export const deletePlanning = (token: string) => request<object>('DELETE', 'planning', { token })
 
@@ -101,8 +102,16 @@ export interface PresenceEntry {
 }
 
 /** Tells the server this browser has the planning open (or left it) and returns the other browsers. */
+export interface PresenceReport {
+  others: PresenceEntry[]
+  /** Saved state on the server, to notice saves from elsewhere. */
+  version: number
+  savedAt: string
+  savedBy: string | null
+}
+
 export const reportPresence = (token: string, client: string, name: string, leave = false) =>
-  request<{ others: PresenceEntry[] }>('POST', 'planning/presence', { token, body: { client, name, leave }, keepalive: leave })
+  request<PresenceReport>('POST', 'planning/presence', { token, body: { client, name, leave }, keepalive: leave })
 
 /** Server session of this browser; kept in localStorage if the password is remembered on this device. */
 export interface Session {

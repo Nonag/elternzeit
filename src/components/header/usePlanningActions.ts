@@ -2,9 +2,11 @@ import { computed, reactive, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { formatTimestamp } from '@/engine/format'
 import { confirmDialog, messageDialog } from '@/lib/dialogs'
+import { PERSISTENT } from '@/lib/toasts'
 import { ApiError, type RemotePlanning } from '@/lib/planningApi'
 import { describeDifferences } from '@/lib/planningDiff'
 import { usePlanning, type PlanningDialogMode } from '@/stores/planning'
+import { usePresence } from '@/stores/presence'
 import { parsePlanning, useVariants, type Variant } from '@/stores/variants'
 
 const ERROR_TEXT: Record<string, string> = {
@@ -31,6 +33,7 @@ export function usePlanningActions() {
   const store = useVariants()
   const planning = usePlanning()
   const { state, unsaved, isBlank } = store
+  const { newerOnServer } = usePresence()
 
   // Server functions stay visible everywhere and are only disabled without a server.
   const serverReady = computed(() => planning.server.status?.available === true)
@@ -45,11 +48,22 @@ export function usePlanningActions() {
   /** Work that is not on the server: changes since the last save, or a new planning with any input. */
   const hasChanges = computed(() => (state.planning.name ? unsaved.value : !isBlank.value))
 
+  /** A newer state on the server and nothing to save here: the save button loads it instead. */
+  const loadsNewer = computed(() => !!newerOnServer.value && !hasChanges.value)
+
   // The save button is the only sign of changes: it can be clicked while there is something to save.
-  const saveLabel = computed(() => (planning.saveNeedsInput.value ? 'Planung speichern …' : 'Planung speichern'))
+  const saveLabel = computed(() => {
+    if (loadsNewer.value) return 'Neuen Stand laden'
+    return planning.saveNeedsInput.value ? 'Planung speichern …' : 'Planung speichern'
+  })
   const saveHint = computed(() => {
     if (!serverReady.value) return serverHint.value
-    return hasChanges.value ? null : 'Keine Änderungen'
+    return hasChanges.value || loadsNewer.value ? null : 'Keine Änderungen'
+  })
+  /** Who saved the newer state on the server, and when. */
+  const newerText = computed(() => {
+    const newer = newerOnServer.value
+    return newer ? `${newer.savedBy || 'Jemand'} hat am ${formatTimestamp(newer.savedAt)} einen neueren Stand gespeichert` : null
   })
 
   const dialogWarning = computed(() =>
@@ -81,7 +95,19 @@ export function usePlanningActions() {
     if (mode === 'password') await (passwordPurpose.value === 'delete' ? removePlanning() : save())
   }
 
+  async function loadNewer() {
+    try {
+      if ((await planning.reload()) === 'needs-password') {
+        passwordPurpose.value = 'save'
+        showDialog('password')
+      } else toast.success('Neuen Stand geladen')
+    } catch (error) {
+      toast.error('Laden hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
+    }
+  }
+
   async function save(force = false) {
+    if (loadsNewer.value && !force) return loadNewer()
     try {
       const outcome = await planning.save(force)
       if (outcome.status === 'saved') toast.success('Gespeichert')
@@ -94,7 +120,7 @@ export function usePlanningActions() {
         Object.assign(conflict, { open: true, current: outcome.current, differences })
       }
     } catch (error) {
-      await messageDialog('Speichern hat nicht geklappt', errorText(error))
+      toast.error('Speichern hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
     }
   }
 
@@ -109,7 +135,7 @@ export function usePlanningActions() {
         showDialog('password')
       }
     } catch (error) {
-      await messageDialog('Löschen hat nicht geklappt', errorText(error))
+      toast.error('Löschen hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
     }
   }
 
@@ -179,6 +205,8 @@ export function usePlanningActions() {
     hasChanges,
     saveLabel,
     saveHint,
+    newerText,
+    loadsNewer,
     showDialog,
     submitDialog,
     save,

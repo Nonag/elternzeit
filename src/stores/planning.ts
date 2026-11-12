@@ -1,5 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import * as api from '@/lib/planningApi'
+import { userName } from './user'
 import { parsePlanning, useVariants } from './variants'
 
 const server = reactive<{ status: api.ServerStatus | null }>({ status: null })
@@ -64,10 +65,26 @@ export function usePlanning() {
 
     async create(name: string, password: string, remember: boolean) {
       const snapshot = store.snapshot()
-      const created = await api.createPlanning(name, password, store.planningData())
+      const created = await api.createPlanning(name, password, store.planningData(), userName.value)
       rememberSession({ name: created.name, token: created.token }, remember)
       store.markSaved(created.name, created.version, created.savedAt, snapshot)
       void refreshServerStatus()
+    },
+
+    /** Loads the newest saved state of the open planning, replacing the variants here. */
+    async reload(): Promise<'loaded' | 'needs-password'> {
+      const token = currentSession.value?.token
+      if (!token) return 'needs-password'
+      try {
+        adopt(await api.loadPlanning(token))
+        return 'loaded'
+      } catch (error) {
+        if (error instanceof api.ApiError && error.status === 401) {
+          forgetSession()
+          return 'needs-password'
+        }
+        throw error
+      }
     },
 
     /** Asks the server for a new session of the open planning, e.g. when the password was not remembered. */
@@ -85,7 +102,7 @@ export function usePlanning() {
       if (!token) return { status: 'needs-password' }
       const snapshot = store.snapshot()
       try {
-        const saved = await api.savePlanning(token, store.planningData(), version, force)
+        const saved = await api.savePlanning(token, store.planningData(), version, userName.value, force)
         store.markSaved(name, saved.version, saved.savedAt, snapshot)
         return { status: 'saved' }
       } catch (error) {

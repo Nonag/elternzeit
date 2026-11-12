@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MIN_PASSWORD_LENGTH } from '@/lib/planningApi'
 import type { PlanningDialogMode } from '@/stores/planning'
-import { userName } from '@/stores/presence'
+import { userName } from '@/stores/user'
 
 const props = defineProps<{
   mode: PlanningDialogMode

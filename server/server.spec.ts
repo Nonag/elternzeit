@@ -130,6 +130,9 @@ describe('server', () => {
     await report(other.body.token, 'browser-b', 'Ben')
     expect((await report(created.body.token, 'browser-a', 'Anna')).body.others).toEqual([{ client: 'browser-b', name: 'Ben' }])
     expect((await report(other.body.token, 'browser-b', 'Ben')).body.others).toEqual([{ client: 'browser-a', name: 'Anna' }])
+    // The answer also tells the saved version and who saved it.
+    await api('PUT', '/api/planning', { token: other.body.token, body: { data: planning('Neu'), baseVersion: 1, savedBy: 'Ben' } })
+    expect((await report(created.body.token, 'browser-a', 'Anna')).body).toMatchObject({ version: 2, savedBy: 'Ben' })
     await report(other.body.token, 'browser-b', 'Ben', true)
     expect((await report(created.body.token, 'browser-a', 'Anna')).body.others).toEqual([])
     expect((await report('unknown', 'browser-a', 'Anna')).status).toBe(401)

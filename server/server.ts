@@ -137,8 +137,8 @@ export function createApp(store: Store, { html, unauthorizedDelayMs = 1000 }: Ap
       }
 
       case 'POST /api/planning': {
-        const { name, password, data } = await readJson(req)
-        const created = store.create(text(name), text(password), data)
+        const { name, password, data, savedBy } = await readJson(req)
+        const created = store.create(text(name), text(password), data, text(savedBy))
         return send(res, 201, { name: created.name, token: created.token, version: created.version, savedAt: created.savedAt })
       }
 
@@ -154,19 +154,20 @@ export function createApp(store: Store, { html, unauthorizedDelayMs = 1000 }: Ap
       }
 
       case 'PUT /api/planning': {
-        const { data, baseVersion, force } = await readJson(req)
-        const result = store.save(credentials(req, 'Bearer'), data, Number(baseVersion), force === true)
+        const { data, baseVersion, force, savedBy } = await readJson(req)
+        const result = store.save(credentials(req, 'Bearer'), data, Number(baseVersion), force === true, text(savedBy))
         if (!result) return unauthorized(res)
         return result.ok ? send(res, 200, { version: result.version, savedAt: result.savedAt }) : send(res, 409, { error: 'conflict', current: result.current })
       }
 
       case 'POST /api/planning/presence': {
-        const planningId = store.planningId(credentials(req, 'Bearer'))
-        if (planningId === null) return unauthorized(res)
+        const head = store.head(credentials(req, 'Bearer'))
+        if (!head) return unauthorized(res)
         const { client, name, leave } = await readJson(req)
         const id = text(client).slice(0, 64)
         if (!id) return send(res, 400, { error: 'invalid-client' })
-        return send(res, 200, { others: reportPresence(planningId, id, text(name), leave === true) })
+        const others = reportPresence(head.id, id, text(name), leave === true)
+        return send(res, 200, { others, version: head.version, savedAt: head.savedAt, savedBy: head.savedBy })
       }
 
       case 'DELETE /api/planning':

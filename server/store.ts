@@ -8,6 +8,7 @@ const MIN_ADMIN_PASSWORD_LENGTH = 8
 const MAX_VARIANTS = 50
 /** Remembered sessions kept per planning; older ones are dropped. */
 const TOKENS_PER_PLANNING = 20
+const MAX_SAVED_BY_LENGTH = 40
 
 export type StoreErrorCode =
   | 'invalid-name'
@@ -30,6 +31,16 @@ export interface PlanningRecord {
   data: unknown
   version: number
   savedAt: string
+  /** Name of the person who saved last, if they gave one. */
+  savedBy: string | null
+}
+
+/** What the presence check needs to know about the saved state. */
+export interface PlanningHead {
+  id: number
+  version: number
+  savedAt: string
+  savedBy: string | null
 }
 
 export interface PlanningInfo {
@@ -51,6 +62,7 @@ interface PlanningRow {
   created_at: string
   opened_at: string | null
   saved_at: string
+  saved_by: string | null
 }
 
 function hashPassword(password: string): string {
@@ -76,8 +88,10 @@ function serializeData(data: unknown): string {
 }
 
 function record(row: PlanningRow): PlanningRecord {
-  return { name: row.name, data: JSON.parse(row.data), version: row.version, savedAt: row.saved_at }
+  return { name: row.name, data: JSON.parse(row.data), version: row.version, savedAt: row.saved_at, savedBy: row.saved_by }
 }
+
+const savedByName = (name: string) => name.trim().slice(0, MAX_SAVED_BY_LENGTH) || null
 
 export type Store = ReturnType<typeof openStore>
 
@@ -103,6 +117,9 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
       created_at TEXT NOT NULL
     );
   `)
+  // Added after the first release; older databases get the column here.
+  const columns = db.prepare('PRAGMA table_info(plannings)').all() as { name: string }[]
+  if (!columns.some((c) => c.name === 'saved_by')) db.exec('ALTER TABLE plannings ADD COLUMN saved_by TEXT')
   const now = () => new Date().toISOString()
 
   const byName = db.prepare('SELECT * FROM plannings WHERE name = ?')
@@ -144,7 +161,7 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
 
     count,
 
-    create(name: string, password: string, data: unknown): PlanningRecord & { token: string } {
+    create(name: string, password: string, data: unknown, savedBy = ''): PlanningRecord & { token: string } {
       const trimmed = name.trim()
       if (!trimmed || trimmed.length > MAX_NAME_LENGTH) throw new StoreError('invalid-name')
       if (password.length < MIN_PASSWORD_LENGTH) throw new StoreError('password-too-short')
@@ -153,9 +170,9 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
       if (count() >= maxPlannings) throw new StoreError('limit-reached')
       const timestamp = now()
       const { lastInsertRowid } = db
-        .prepare('INSERT INTO plannings (name, password_hash, data, version, created_at, opened_at, saved_at) VALUES (?, ?, ?, 1, ?, ?, ?)')
-        .run(trimmed, hashPassword(password), serialized, timestamp, timestamp, timestamp)
-      return { name: trimmed, data, version: 1, savedAt: timestamp, token: issueToken(Number(lastInsertRowid)) }
+        .prepare('INSERT INTO plannings (name, password_hash, data, version, created_at, opened_at, saved_at, saved_by) VALUES (?, ?, ?, 1, ?, ?, ?, ?)')
+        .run(trimmed, hashPassword(password), serialized, timestamp, timestamp, timestamp, savedByName(savedBy))
+      return { name: trimmed, data, version: 1, savedAt: timestamp, savedBy: savedByName(savedBy), token: issueToken(Number(lastInsertRowid)) }
     },
 
     /** Checks name and password and returns a session token, or null. */
@@ -165,10 +182,10 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
       return { name: row.name, token: issueToken(row.id) }
     },
 
-    /** Id of the planning a session belongs to, or null if the token is unknown. */
-    planningId(token: string): number | null {
+    /** Id and saved state of the planning a session belongs to, or null if the token is unknown. */
+    head(token: string): PlanningHead | null {
       const row = byToken.get(hashToken(token)) as PlanningRow | undefined
-      return row ? row.id : null
+      return row ? { id: row.id, version: row.version, savedAt: row.saved_at, savedBy: row.saved_by } : null
     },
 
     load(token: string): PlanningRecord | null {
@@ -179,13 +196,19 @@ export function openStore(file: string, { maxPlannings = MAX_PLANNINGS } = {}) {
     },
 
     /** Saves only on top of the version the client loaded, unless `force` is set. Null if the token is unknown. */
-    save(token: string, data: unknown, baseVersion: number, force: boolean): SaveResult | null {
+    save(token: string, data: unknown, baseVersion: number, force: boolean, savedBy = ''): SaveResult | null {
       const row = byToken.get(hashToken(token)) as PlanningRow | undefined
       if (!row) return null
       const serialized = serializeData(data)
       if (!force && row.version !== baseVersion) return { ok: false, current: record(row) }
       const savedAt = now()
-      db.prepare('UPDATE plannings SET data = ?, version = ?, saved_at = ? WHERE id = ?').run(serialized, row.version + 1, savedAt, row.id)
+      db.prepare('UPDATE plannings SET data = ?, version = ?, saved_at = ?, saved_by = ? WHERE id = ?').run(
+        serialized,
+        row.version + 1,
+        savedAt,
+        savedByName(savedBy),
+        row.id,
+      )
       return { ok: true, version: row.version + 1, savedAt }
     },
 

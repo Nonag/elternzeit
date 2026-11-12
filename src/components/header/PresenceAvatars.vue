@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { watch } from 'vue'
+import { toast } from 'vue-sonner'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { PERSISTENT } from '@/lib/toasts'
 import { usePresence } from '@/stores/presence'
 
-const { others } = usePresence()
+const { others, reportedFor } = usePresence()
 
 const COLORS = ['bg-sky-600', 'bg-emerald-600', 'bg-amber-600', 'bg-rose-600', 'bg-violet-600', 'bg-teal-600', 'bg-orange-600', 'bg-fuchsia-600']
 
@@ -20,7 +23,19 @@ function initials(name: string): string {
   return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].slice(0, 2)).toUpperCase()
 }
 
-const label = (name: string) => `${name || 'Ohne Namen'} hat die Planung auch offen`
+const displayName = (name: string) => name || 'Jemand'
+const label = (name: string) => `${displayName(name)} hat die Planung auch offen`
+
+// Someone opening the planning stays as a toast until closed; leaving replaces it and closes after 5 seconds.
+watch([others, reportedFor], ([now, planning], [before, previousPlanning]) => {
+  if (!planning || planning !== previousPlanning) return
+  for (const other of now) {
+    if (!before.some((b) => b.client === other.client)) toast(`${displayName(other.name)} hat die Planung geöffnet`, { id: `presence-${other.client}`, ...PERSISTENT })
+  }
+  for (const other of before) {
+    if (!now.some((n) => n.client === other.client)) toast(`${displayName(other.name)} hat die Planung geschlossen`, { id: `presence-${other.client}`, duration: 5000 })
+  }
+})
 </script>
 
 <template>
