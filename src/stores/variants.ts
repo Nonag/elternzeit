@@ -39,6 +39,14 @@ export interface PlanningData {
 }
 
 const STORAGE_KEY = 'elternzeit-planer:v1'
+const HISTORY_KEY = 'elternzeit-planer:history'
+
+/** Undo history of the tab, as JSON snapshots of the variants. */
+interface StoredHistory {
+  last: string
+  undo: string[]
+  redo: string[]
+}
 
 /** Config fields of older versions and their current names. */
 const RENAMED_FIELDS: Record<string, keyof VariantConfig> = {
@@ -199,8 +207,8 @@ function migratePlanning(stored: Partial<PlanningMeta> | undefined): PlanningMet
 
 const state = reactive<StoreState>(loadState())
 
-// The browser copy is written shortly after the last change, and at once when the page is left, so a reload or
-// closing the tab never loses input.
+// The browser copy is written shortly after the last change, and at once when the page is left (see below), so a
+// reload or closing the tab never loses input.
 let saveTimer: ReturnType<typeof setTimeout> | undefined
 function persist() {
   clearTimeout(saveTimer)
@@ -215,7 +223,6 @@ watch(
   },
   { deep: true },
 )
-useEventListener('pagehide', () => saveTimer !== undefined && persist())
 
 const current = computed(() => state.variants.find((v) => v.id === state.currentId) ?? state.variants[0])
 /** Changes since the planning was last opened or saved on the server. */
@@ -226,9 +233,10 @@ const missing = computed(() => missingInputs(config.value))
 const result = computed(() => simulate(calculable(config.value, today)))
 const deadlines = computed(() => computeDeadlines(calculable(config.value, today), result.value, today))
 
-// Undo and redo over all variants, since the page or the planning was loaded. Changes in quick succession
-// (typing) become one step.
+// Undo and redo over all variants, since the planning was loaded in this tab. Changes in quick succession (typing)
+// become one step.
 const history = useManualRefHistory(toRef(state, 'variants'), { capacity: 100, dump: JSON.stringify, parse: JSON.parse })
+const record = (snapshot: string) => ({ snapshot, timestamp: Date.now() })
 
 /** Takes the changes as a step. Changing something back by hand counts as undo (or redo), not as a new step. */
 function commitChanges() {
@@ -244,6 +252,52 @@ function commitChanges() {
   } else history.commit()
 }
 watchDebounced(() => state.variants, commitChanges, { deep: true, debounce: 400 })
+
+// The history lives in the session storage of the tab: it survives a reload, but not closing the tab.
+function saveHistory() {
+  const { last, undoStack, redoStack } = history
+  const stored: StoredHistory = { last: last.value.snapshot, undo: undoStack.value.map((r) => r.snapshot), redo: redoStack.value.map((r) => r.snapshot) }
+  try {
+    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(stored))
+  } catch {
+    // No session storage or not enough room: the history stays in this page only.
+  }
+}
+
+function restoreHistory() {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(HISTORY_KEY) ?? 'null') as StoredHistory | null
+    if (!stored || stableStringify(JSON.parse(stored.last)) !== stableStringify(state.variants)) return
+    history.last.value = record(JSON.stringify(state.variants))
+    history.undoStack.value = stored.undo.map(record)
+    history.redoStack.value = stored.redo.map(record)
+  } catch {
+    // Nothing usable stored.
+  }
+}
+restoreHistory()
+watchDebounced(() => [history.last.value, history.undoStack.value.length, history.redoStack.value.length], saveHistory, { debounce: 300 })
+
+useEventListener('pagehide', () => {
+  commitChanges()
+  saveHistory()
+  if (saveTimer !== undefined) persist()
+})
+
+/** Without undo steps but with changes since the last save, undo goes back to the saved planning. */
+const undoRestoresSaved = computed(() => !history.canUndo.value && state.planning.snapshot !== null && unsaved.value)
+
+/** Goes back to the planning as last opened or saved on the server; redo brings the changes back. */
+function restoreSaved(): boolean {
+  if (!undoRestoresSaved.value || !state.planning.snapshot) return false
+  const saved = migrateVariants(JSON.parse(state.planning.snapshot) as unknown[])
+  if (!saved.length) return false
+  history.redoStack.value.unshift(history.last.value)
+  state.variants = saved
+  if (!saved.some((v) => v.id === state.currentId)) state.currentId = saved[0].id
+  history.last.value = record(JSON.stringify(state.variants))
+  return true
+}
 
 /** Shows the variant that an undo or redo changed; returns it if that meant switching to another variant. */
 function showChanged(before: Variant[]): Variant | null {
@@ -278,19 +332,21 @@ export function useVariants() {
     deadlines,
     today,
     loads,
-    canUndo: history.canUndo,
+    canUndo: computed(() => history.canUndo.value || undoRestoresSaved.value),
     canRedo: history.canRedo,
-    /** Both return the variant they switched to, if any. */
-    undo(): Variant | null {
+    undoRestoresSaved,
+    /** Undo and redo say which variant they switched to, if any; undo also whether it went back to the saved planning. */
+    undo(): { switched: Variant | null; saved: boolean } {
       commitChanges()
       const before = state.variants
+      if (restoreSaved()) return { switched: null, saved: true }
       history.undo()
-      return showChanged(before)
+      return { switched: showChanged(before), saved: false }
     },
-    redo(): Variant | null {
+    redo(): { switched: Variant | null } {
       const before = state.variants
       history.redo()
-      return showChanged(before)
+      return { switched: showChanged(before) }
     },
     /** A single variant without any input, as in a new planning. */
     isBlank: computed(() => state.variants.length === 1 && stableStringify(state.variants[0].config) === stableStringify(emptyConfig())),

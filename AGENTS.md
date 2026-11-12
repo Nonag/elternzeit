@@ -68,7 +68,7 @@ docs/research-notes.md legal research with sources
 | Mutter / Vater (renamable) | parents `a` / `b`; `a` has the Mutterschutz |
 | Lebensmonat | `lifeMonth()`, 1-based month index |
 | Neue Planung, Noch keine Berechnung | starts with `emptyConfig()`; `missingInputs()` lists what is still needed |
-| Rückgängig / Wiederholen | `useVariants().undo()` / `redo()`, history since the page or planning was loaded |
+| Rückgängig / Wiederholen | `useVariants().undo()` / `redo()`; history per tab in sessionStorage (kept on reload, new with a tab or planning); without steps, undo goes back to the last save |
 | Fixkosten pro Monat / Kontostand zur Geburt / Mindestreserve | `fixedCosts` / `balanceAtBirth` / `minReserve` |
 | Kita | `childcare` |
 | Familie & Freunde | `familyCare` (`FamilyCarePeriod`) |

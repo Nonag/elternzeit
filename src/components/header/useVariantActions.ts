@@ -37,11 +37,12 @@ export function useVariantActions() {
       announce(`„${name}“ gelöscht`, `Zu „${current.value.name}“ gewechselt.`)
     },
     undo() {
-      const switched = store.undo()
-      if (switched) announce(`Zu „${switched.name}“ gewechselt`, 'Die Änderung dort wurde rückgängig gemacht.')
+      const { switched, saved } = store.undo()
+      if (saved) announce('Letzter Speicherstand wiederhergestellt')
+      else if (switched) announce(`Zu „${switched.name}“ gewechselt`, 'Die Änderung dort wurde rückgängig gemacht.')
     },
     redo() {
-      const switched = store.redo()
+      const { switched } = store.redo()
       if (switched) announce(`Zu „${switched.name}“ gewechselt`, 'Die Änderung dort wurde wiederholt.')
     },
   }

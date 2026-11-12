@@ -8,7 +8,7 @@ import { useVariants } from '@/stores/variants'
 import { usePlanningActions } from './usePlanningActions'
 import { useVariantActions } from './useVariantActions'
 
-const { canUndo, canRedo } = useVariants()
+const { canUndo, canRedo, undoRestoresSaved } = useVariants()
 const { save, saveLabel, saveHint } = usePlanningActions()
 const { undo, redo } = useVariantActions()
 
@@ -16,7 +16,14 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Strg+'
 
 const buttons = computed(() => [
   { id: 'save', label: saveLabel.value, tooltip: saveHint.value ?? `${saveLabel.value} (${shortcut}S)`, icon: SaveIcon, disabled: !!saveHint.value, run: () => save() },
-  { id: 'undo', label: 'Rückgängig', tooltip: `Rückgängig (${shortcut}Z)`, icon: Undo2Icon, disabled: !canUndo.value, run: undo },
+  {
+    id: 'undo',
+    label: undoRestoresSaved.value ? 'Zum letzten Speicherstand' : 'Rückgängig',
+    tooltip: `${undoRestoresSaved.value ? 'Zum letzten Speicherstand' : 'Rückgängig'} (${shortcut}Z)`,
+    icon: Undo2Icon,
+    disabled: !canUndo.value,
+    run: undo,
+  },
   { id: 'redo', label: 'Wiederholen', tooltip: `Wiederholen (${shortcut}⇧Z)`, icon: Redo2Icon, disabled: !canRedo.value, run: redo },
 ])
 
