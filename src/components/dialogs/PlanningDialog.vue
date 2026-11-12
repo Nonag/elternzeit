@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import PasswordInput from '@/components/fields/PasswordInput.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -86,16 +87,15 @@ function submit() {
         </div>
         <div class="grid gap-2">
           <Label for="planning-password">Passwort</Label>
-          <Input
+          <PasswordInput
             id="planning-password"
             v-model="form.password"
-            type="password"
             :autocomplete="mode === 'create' ? 'new-password' : 'current-password'"
           />
         </div>
         <div v-if="mode === 'create'" class="grid gap-2">
           <Label for="planning-repeat">Passwort wiederholen</Label>
-          <Input id="planning-repeat" v-model="form.repeat" type="password" autocomplete="new-password" />
+          <PasswordInput id="planning-repeat" v-model="form.repeat" autocomplete="new-password" />
         </div>
         <Label class="font-normal"><Checkbox v-model="form.remember" /> Passwort auf diesem Gerät merken</Label>
         <p v-if="warning" class="text-sm text-amber-700 dark:text-amber-400">{{ warning }}</p>

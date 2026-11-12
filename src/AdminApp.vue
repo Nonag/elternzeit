@@ -3,10 +3,10 @@ import { ArrowLeftIcon, Trash2Icon } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import AdminSetupDialog from '@/components/dialogs/AdminSetupDialog.vue'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
+import PasswordInput from '@/components/fields/PasswordInput.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -102,7 +102,7 @@ onMounted(() => {
             <form class="grid gap-4" @submit.prevent="load">
               <div class="grid gap-2">
                 <Label for="admin-login">Admin-Passwort</Label>
-                <Input id="admin-login" v-model="password" type="password" autocomplete="current-password" />
+                <PasswordInput id="admin-login" v-model="password" autocomplete="current-password" />
               </div>
               <p v-if="error" class="text-destructive text-sm">{{ error }}</p>
               <Button type="submit" :disabled="busy || !password">Anmelden</Button>

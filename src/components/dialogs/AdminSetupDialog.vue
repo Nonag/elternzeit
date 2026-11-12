@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
+import PasswordInput from '@/components/fields/PasswordInput.vue'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ApiError, MIN_ADMIN_PASSWORD_LENGTH, setupAdmin } from '@/lib/planningApi'
 import { refreshServerStatus, usePlanning } from '@/stores/planning'
@@ -49,11 +49,11 @@ async function submit() {
         </DialogHeader>
         <div class="grid gap-2">
           <Label for="admin-password">Admin-Passwort</Label>
-          <Input id="admin-password" v-model="form.password" type="password" autocomplete="new-password" />
+          <PasswordInput id="admin-password" v-model="form.password" autocomplete="new-password" />
         </div>
         <div class="grid gap-2">
           <Label for="admin-repeat">Wiederholen</Label>
-          <Input id="admin-repeat" v-model="form.repeat" type="password" autocomplete="new-password" />
+          <PasswordInput id="admin-repeat" v-model="form.repeat" autocomplete="new-password" />
         </div>
         <p v-if="error" class="text-destructive text-sm">{{ error }}</p>
         <DialogFooter>
