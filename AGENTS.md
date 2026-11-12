@@ -91,8 +91,8 @@ docs/research-notes.md legal research with sources
 - **"…"** ends every entry that asks for more input, confirmations included. "Planung speichern …" only when saving
   will ask for a name or the password.
 - **Plannings** are opened and saved, never "angemeldet". Remembering is the checkbox "Passwort auf diesem Gerät merken".
-- **Toasts:** every toast can be closed and closes after 5 seconds; news about other people and errors stay until closed
-  (`PERSISTENT` in `lib/toasts.ts`).
+- **Toasts:** only via `notify()` in `lib/toasts.ts`, rendered by `dialogs/AppToast.vue` in the layout of the shadcn
+  toast with a close button. They close after 5 seconds; news about other people and errors are `persistent`.
 - **Components:** use shadcn-vue (`npx shadcn-vue@latest add <name>`) and what reka-ui, @vueuse/core or
   @tanstack/vue-table offer before building your own. Dialogs only via `src/lib/dialogs.ts` (`confirmDialog`,
   `promptDialog`, `messageDialog`), never `window.alert`, `confirm` or `prompt`.

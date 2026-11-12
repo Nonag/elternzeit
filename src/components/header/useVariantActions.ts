@@ -1,10 +1,10 @@
-import { toast } from 'vue-sonner'
 import { confirmDialog, promptDialog } from '@/lib/dialogs'
+import { notify } from '@/lib/toasts'
 import { useVariants } from '@/stores/variants'
 
 /** Every switch to another variant gets a toast; with the same id, a quick next switch replaces it. */
 function announce(title: string, description?: string) {
-  toast(title, { id: 'variant', description })
+  notify(title, { id: 'variant', description })
 }
 
 /** Switching, adding and removing variants, and undo and redo, which may switch variants as well. */

@@ -111,8 +111,8 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
     </div>
     <ConfirmDialog />
     <PromptDialog />
-    <!-- Every toast can be closed; the ones about other people and errors stay until then (duration: Infinity). -->
-    <Toaster :theme="isDark ? 'dark' : 'light'" close-button :duration="5000" />
+    <!-- Toasts are shown with notify() from lib/toasts.ts; all get the width Sonner gives its own toasts. -->
+    <Toaster :theme="isDark ? 'dark' : 'light'" :toast-options="{ class: 'w-(--width)' }" />
     <AdminSetupDialog />
   </TooltipProvider>
 </template>

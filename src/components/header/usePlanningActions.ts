@@ -1,8 +1,7 @@
 import { computed, reactive, ref } from 'vue'
-import { toast } from 'vue-sonner'
 import { formatTimestamp } from '@/engine/format'
 import { confirmDialog, messageDialog } from '@/lib/dialogs'
-import { PERSISTENT } from '@/lib/toasts'
+import { notify } from '@/lib/toasts'
 import { ApiError } from '@/lib/planningApi'
 import { usePlanning, type MergeInput, type PlanningDialogMode, type SaveOutcome } from '@/stores/planning'
 import { usePresence } from '@/stores/presence'
@@ -83,8 +82,8 @@ export function usePlanningActions() {
       else await planning.authenticate(value.password, value.remember)
       dialog.open = false
       const { name, savedAt } = state.planning
-      if (mode === 'open') toast.success(`„${name}“ geöffnet`, { description: savedAt ? `Gespeichert am ${formatTimestamp(savedAt)}` : undefined })
-      if (mode === 'create') toast.success(`„${name}“ gespeichert`)
+      if (mode === 'open') notify(`„${name}“ geöffnet`, { type: 'success', description: savedAt ? `Gespeichert am ${formatTimestamp(savedAt)}` : undefined })
+      if (mode === 'create') notify(`„${name}“ gespeichert`, { type: 'success' })
     } catch (error) {
       dialog.error = errorText(error)
       return
@@ -99,14 +98,14 @@ export function usePlanningActions() {
       if ((await planning.reload()) === 'needs-password') {
         passwordPurpose.value = 'save'
         showDialog('password')
-      } else toast.success('Neuen Stand geladen')
+      } else notify('Neuen Stand geladen', { type: 'success' })
     } catch (error) {
-      toast.error('Laden hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
+      notify('Laden hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
   function handle(outcome: SaveOutcome, previous?: MergeInput) {
-    if (outcome.status === 'saved') toast.success('Gespeichert')
+    if (outcome.status === 'saved') notify('Gespeichert', { type: 'success' })
     else if (outcome.status === 'needs-name') showDialog('create')
     else if (outcome.status === 'needs-password') {
       passwordPurpose.value = 'save'
@@ -124,7 +123,7 @@ export function usePlanningActions() {
     try {
       handle(await planning.save())
     } catch (error) {
-      toast.error('Speichern hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
+      notify('Speichern hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
@@ -136,7 +135,7 @@ export function usePlanningActions() {
     try {
       handle(await planning.saveMerged(variants, input.current), input)
     } catch (error) {
-      toast.error('Speichern hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
+      notify('Speichern hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
@@ -147,7 +146,7 @@ export function usePlanningActions() {
         showDialog('password')
       }
     } catch (error) {
-      toast.error('Löschen hat nicht geklappt', { description: errorText(error), ...PERSISTENT })
+      notify('Löschen hat nicht geklappt', { type: 'error', description: errorText(error), persistent: true })
     }
   }
 
@@ -204,7 +203,7 @@ export function usePlanningActions() {
     })
     if (!confirmed) return
     store.replaceVariants(variants)
-    toast.success('Planung importiert')
+    notify('Planung importiert', { type: 'success' })
   }
 
   return {

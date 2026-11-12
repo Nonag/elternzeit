@@ -2,10 +2,9 @@
 import { DownloadIcon, Redo2Icon, SaveIcon, Undo2Icon } from '@lucide/vue'
 import { onKeyStroke } from '@vueuse/core'
 import { computed, watch } from 'vue'
-import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { PERSISTENT } from '@/lib/toasts'
+import { dismissToast, notify } from '@/lib/toasts'
 import { useVariants } from '@/stores/variants'
 import { usePlanningActions } from './usePlanningActions'
 import { useVariantActions } from './useVariantActions'
@@ -40,10 +39,10 @@ const buttons = computed(() => [
 // The usual shortcuts; in text fields the browser's own undo stays.
 // A newer state from elsewhere stays as a toast until it is closed, loaded or saved over.
 watch([newerText, loadsNewer], ([text]) => {
-  if (!text) return void toast.dismiss('newer')
-  toast(text, {
+  if (!text) return void dismissToast('newer')
+  notify(text, {
     id: 'newer',
-    ...PERSISTENT,
+    persistent: true,
     action: { label: loadsNewer.value ? 'Laden' : 'Speichern …', onClick: () => void save() },
   })
 })
