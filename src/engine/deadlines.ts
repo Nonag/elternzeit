@@ -52,7 +52,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     earliest: addDays(config.dueDate, -49),
     title: 'Mutterschaftsgeld bei der Krankenkasse beantragen',
     detail:
-      'Dafür braucht es eine Bescheinigung von Ärztin oder Hebamme über den errechneten Termin (frühestens 7 Wochen vorher ausgestellt). Den Zuschuss des Arbeitgebers gibt es automatisch. Privat versichert: Antrag beim Bundesamt für Soziale Sicherung (einmalig 210 €).',
+      'Dafür ist eine Bescheinigung von Ärztin oder Hebamme über den errechneten Termin nötig (frühestens 7 Wochen vorher ausgestellt). Den Zuschuss des Arbeitgebers gibt es automatisch. Privat versichert: Antrag beim Bundesamt für Soziale Sicherung (einmalig 210 €).',
     category: 'benefits',
     parent: 'a',
   })
@@ -61,7 +61,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     items.push({
       id: 'tax-class-allowance',
       date: lastDayOfMonth(addMonthsToKey(monthKey(maternity.start), -7)),
-      title: `Letzte Chance für einen Steuerklassenwechsel mit Wirkung aufs Elterngeld (${mother})`,
+      title: `Spätester Steuerklassenwechsel mit Wirkung auf das Elterngeld (${mother})`,
       detail:
         'Das Elterngeld richtet sich nach der Steuerklasse, die in den 12 Monaten vor dem Mutterschutz überwiegend galt. Ein Wechsel wirkt ab dem Folgemonat und muss mindestens 6 dieser Monate gelten. Spätere Wechsel ändern nur das monatliche Netto.',
       category: 'tax',
@@ -70,7 +70,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     items.push({
       id: 'tax-class-allowance-b',
       date: lastDayOfMonth(addMonthsToKey(birthMonth, -7)),
-      title: `Letzte Chance für einen Steuerklassenwechsel mit Wirkung aufs Elterngeld (${result.parents.b.name})`,
+      title: `Spätester Steuerklassenwechsel mit Wirkung auf das Elterngeld (${result.parents.b.name})`,
       detail: 'Hier zählen die 12 Kalendermonate vor dem Geburtsmonat; die neue Klasse muss mindestens 6 davon gelten.',
       category: 'tax',
       parent: 'b',
@@ -83,7 +83,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
       date: addDays(config.dueDate, -1),
       title: 'Vaterschaft anerkennen und gemeinsames Sorgerecht erklären',
       detail:
-        'Bei unverheirateten Eltern schon vor der Geburt beim Jugendamt möglich und kostenlos – Termin früh vereinbaren. Ohne Erklärung hat die Mutter das Sorgerecht allein, und der Vater braucht für seine Elternzeit ihre Zustimmung.',
+        'Bei unverheirateten Eltern schon vor der Geburt beim Jugendamt möglich und kostenlos. Termin früh vereinbaren. Ohne Erklärung hat die Mutter das Sorgerecht allein, und der Vater braucht für seine Elternzeit ihre Zustimmung.',
       category: 'family',
     })
   }
@@ -100,7 +100,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     id: 'birth-registration',
     date: addDays(birth, 7),
     title: 'Geburt beim Standesamt melden und Geburtsurkunden holen',
-    detail: 'Meist übernimmt die Klinik die Meldung. Mehrere Urkunden anfordern – unter anderem für Elterngeld, Kindergeld und Krankenkasse.',
+    detail: 'Meist übernimmt die Klinik die Meldung. Mehrere Urkunden anfordern, unter anderem für Elterngeld, Kindergeld und Krankenkasse.',
     category: 'family',
   })
   items.push({
@@ -115,7 +115,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     id: 'care-surcharge',
     date: lastDayOfMonth(addMonthsToKey(birthMonth, 3)),
     title: 'Geburtsurkunde beim Arbeitgeber vorlegen',
-    detail: 'Dann entfällt der Zuschlag zur Pflegeversicherung für Kinderlose rückwirkend ab dem Geburtsmonat – oft klappt das inzwischen automatisch.',
+    detail: 'Dann entfällt der Zuschlag zur Pflegeversicherung für Kinderlose rückwirkend ab dem Geburtsmonat. Oft passiert das inzwischen automatisch.',
     category: 'insurance',
   })
 
@@ -126,7 +126,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
       id: 'allowance-application',
       date: lastMonth.end,
       title: 'Elterngeld beantragen',
-      detail: `Elterngeld wird nur drei Monate rückwirkend gezahlt – deshalb früh beantragen, spätestens bis zu diesem Datum. In Köln bei der Elterngeldstelle der Stadt oder online über das Familienportal NRW. Beide Eltern unterschreiben; den Plan kann man später noch ändern.`,
+      detail: `Elterngeld wird nur drei Monate rückwirkend gezahlt. Deshalb früh beantragen, spätestens bis zu diesem Datum. In Köln bei der Elterngeldstelle der Stadt oder online über das Familienportal NRW. Beide Eltern unterschreiben; den Plan kann man später noch ändern.`,
       category: 'allowance',
     })
   }
@@ -163,10 +163,10 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
         detail:
           `Zeitraum ${formatDateRange(start, lastRow.end)}. Spätestens ${weeks} Wochen vorher schriftlich anmelden, eine E-Mail reicht. ` +
           (i === 0
-            ? `Dabei verbindlich alle Elternzeiten der nächsten zwei Jahre angeben (${within}) – spätere Änderungen gehen nur mit Zustimmung des Arbeitgebers. `
+            ? `Dabei verbindlich alle Elternzeiten der nächsten zwei Jahre angeben (${within}). Spätere Änderungen sind nur mit Zustimmung des Arbeitgebers möglich. `
             : '') +
           `Ab der Anmeldung (frühestens ${weeks === 7 ? 8 : 14} Wochen vor Beginn) gilt Kündigungsschutz.` +
-          (partTime.length ? ' Die geplante Teilzeit gleich mit beantragen – lehnt der Arbeitgeber nicht innerhalb von 4 Wochen schriftlich ab, gilt sie als genehmigt.' : ''),
+          (partTime.length ? ' Die geplante Teilzeit gleich mit beantragen. Lehnt der Arbeitgeber nicht innerhalb von 4 Wochen schriftlich ab, gilt sie als genehmigt.' : ''),
         category: 'leave',
         parent: key,
       })
@@ -178,7 +178,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
         id: `bonus-proof-${key}`,
         date: addDays(bonus[bonus.length - 1].end, 60),
         title: `Partnerschaftsbonus: Arbeitszeit nachweisen (${name})`,
-        detail: 'Nach den Bonus-Monaten will die Elterngeldstelle eine Bescheinigung des Arbeitgebers über die Wochenstunden sehen. Stimmen sie nicht, muss der Bonus zurückgezahlt werden.',
+        detail: 'Nach den Bonus-Monaten verlangt die Elterngeldstelle eine Bescheinigung des Arbeitgebers über die Wochenstunden. Stimmen sie nicht, muss der Bonus zurückgezahlt werden.',
         category: 'allowance',
         parent: key,
       })
@@ -192,7 +192,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
         date: addDays(regularPartTime.start, -91),
         title: `Teilzeit nach der Elternzeit beantragen (${name})`,
         detail:
-          'Spätestens drei Monate vorher schriftlich beantragen – als dauerhafte Teilzeit oder als befristete „Brückenteilzeit“ (1 bis 5 Jahre, nur in Betrieben mit mehr als 45 Beschäftigten). Alternative: bis zum 3. Geburtstag in Elternzeit bleiben und dort in Teilzeit arbeiten.',
+          'Spätestens drei Monate vorher schriftlich beantragen, als dauerhafte Teilzeit oder als befristete „Brückenteilzeit“ (1 bis 5 Jahre, nur in Betrieben mit mehr als 45 Beschäftigten). Alternative: bis zum 3. Geburtstag in Elternzeit bleiben und dort in Teilzeit arbeiten.',
         category: 'leave',
         parent: key,
       })
@@ -206,7 +206,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
       date: addDays(birth, 14),
       title: 'Kita-Platz suchen (Köln: Portal „Little Bird“)',
       detail:
-        'Anfragen gehen erst nach der Geburt. Städtische Kitas vergeben nach Anmeldedatum – deshalb gleich anmelden, bis zu sechs Kitas sind möglich. Zusagen kommen frühestens acht Monate vor dem Start und müssen innerhalb von zwei Wochen angenommen werden.',
+        'Anfragen sind erst nach der Geburt möglich. Städtische Kitas vergeben nach Anmeldedatum, deshalb gleich anmelden. Bis zu sechs Kitas sind möglich. Zusagen kommen frühestens acht Monate vor dem Start und müssen innerhalb von zwei Wochen angenommen werden.',
       category: 'childcare',
     })
     items.push({
@@ -231,7 +231,7 @@ export function computeDeadlines(config: VariantConfig, result: SimulationResult
     date: `${Number(birth.slice(0, 4)) + 1}-07-31`,
     title: `Steuererklärung für ${birth.slice(0, 4)} abgeben`,
     detail:
-      'Pflicht, weil ihr Elterngeld oder Mutterschaftsgeld bekommen habt. Beides ist steuerfrei, erhöht aber den Steuersatz auf das übrige Einkommen – Geld für eine mögliche Nachzahlung zurücklegen. Kita-Kosten und Kinderfreibetrag werden dabei automatisch berücksichtigt.',
+      'Pflicht, weil Elterngeld oder Mutterschaftsgeld bezogen wurde. Beides ist steuerfrei, erhöht aber den Steuersatz auf das übrige Einkommen. Geld für eine mögliche Nachzahlung zurücklegen. Kita-Kosten und Kinderfreibetrag werden dabei automatisch berücksichtigt.',
     category: 'tax',
   })
   items.push({

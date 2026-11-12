@@ -21,7 +21,7 @@ function vacationPeriods(key: ParentKey) {
       <p class="text-muted-foreground text-xs leading-relaxed">
         Für jeden vollen Kalendermonat Elternzeit darf der Arbeitgeber den Jahresurlaub um ein Zwölftel kürzen. Nicht gekürzt
         wird, wenn man in der Elternzeit Teilzeit arbeitet, und auch nicht für den Mutterschutz. Resturlaub von vor der
-        Elternzeit verfällt nicht – er kann danach noch im selben oder im nächsten Jahr genommen werden. Wer in Teilzeit an
+        Elternzeit verfällt nicht. Er kann danach noch im selben oder im nächsten Jahr genommen werden. Wer in Teilzeit an
         weniger Tagen pro Woche arbeitet, hat entsprechend weniger, aber gleich lange Urlaubstage. Geplanter Urlaub zählt
         für das Kalenderjahr, in dem er liegt.
       </p>
@@ -61,8 +61,8 @@ function vacationPeriods(key: ParentKey) {
         </table>
         <div v-if="result.vacation[key].ranges.length" class="text-muted-foreground grid gap-0.5 text-xs">
           <span v-for="range in result.vacation[key].ranges" :key="range.start">
-            Elternzeit {{ formatDateRange(range.start, range.end) }}: {{ range.lifeMonths }} Monate,
-            davon {{ range.fullCalendarMonths }} volle Kalendermonate
+            Elternzeit {{ formatDateRange(range.start, range.end) }}: {{ count(range.lifeMonths, 'Monat', 'Monate') }},
+            davon {{ count(range.fullCalendarMonths, 'voller Kalendermonat', 'volle Kalendermonate') }}
           </span>
           <span v-if="result.vacation[key].savedByAlignment > 0" class="text-emerald-700 dark:text-emerald-400">
             Weil die Elternzeit nicht am Monatsersten beginnt, werden {{ num(result.vacation[key].savedByAlignment) }} Tage

@@ -107,21 +107,21 @@ Arbeit: andere Wochenstunden ohne Elternzeit."
             Tage
             <InfoTip
               text="Arbeitstage pro Woche. Wer an weniger Tagen arbeitet, hat entsprechend weniger Urlaubstage.
-Betreuung braucht es nur an Tagen, an denen ihr beide arbeitet. Gerechnet wird so, als legt ihr eure Arbeitstage möglichst nicht auf dieselben Tage."
+Betreuung ist nur an Tagen nötig, an denen beide Eltern arbeiten. Gerechnet wird so, als lägen ihre Arbeitstage möglichst nicht auf denselben Tagen."
             />
           </span>
           <span class="flex items-center gap-1">
             Elterngeld
             <InfoTip
               text="Basiselterngeld: voller Betrag, bis zum 14. Lebensmonat.
-ElterngeldPlus: halber Betrag, doppelt so lange – gut bei Teilzeit.
+ElterngeldPlus: halber Betrag, doppelt so lange, gut bei Teilzeit.
 Partnerschaftsbonus: zusätzliche Plus-Monate, wenn beide gleichzeitig 24–32 Stunden arbeiten."
             />
           </span>
           <span />
         </div>
         <p v-if="!periodsOf(key).length" class="text-muted-foreground px-1 py-2 text-xs">
-          Noch keine Zeiträume – {{ result.parents[key].name }} arbeitet durchgehend wie bisher.
+          Noch keine Zeiträume. {{ result.parents[key].name }} arbeitet durchgehend wie bisher.
         </p>
         <div
           v-for="period in periodsOf(key)"

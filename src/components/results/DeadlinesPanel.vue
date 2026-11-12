@@ -55,8 +55,8 @@ function toggle(deadline: Deadline, done: boolean) {
   <div class="grid gap-3">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="text-muted-foreground text-xs">
-        Berechnet aus {{ result.birth === result.dueDate ? 'dem errechneten Termin' : 'dem Geburtsdatum' }} und eurem Plan – Stand heute
-        ({{ formatDate(today) }}). Abhaken wird in der Variante gespeichert.
+        Berechnet aus {{ result.birth === result.dueDate ? 'dem errechneten Termin' : 'dem Geburtsdatum' }} und dem Plan, Stand
+        {{ formatDate(today) }}. Erledigte Fristen werden in der Variante gespeichert.
       </p>
       <label class="flex items-center gap-1.5 text-xs">
         <Checkbox v-model="hidePast" /> Erledigtes und Vergangenes ausblenden

@@ -46,7 +46,7 @@ function onRelationshipChange(value: RelationshipStatus | null) {
       <SwitchField
         v-model="config.siblingBonus"
         label="Geschwisterbonus"
-        hint="Lebt schon ein Kind unter 3 Jahren (oder zwei unter 6) bei euch, gibt es 10 % mehr Elterngeld, mindestens 75 €."
+        hint="Lebt schon ein Kind unter 3 Jahren (oder zwei unter 6) im Haushalt, gibt es 10 % mehr Elterngeld, mindestens 75 €."
       />
     </FieldGroup>
 

@@ -196,7 +196,7 @@ export const EXPECTED_CHANGES: ExpectedChange[] = [
   {
     title: 'Einkommensteuerreform 2027',
     detail:
-      'Kindergeld 267 € (2027) und 272 € (2028), Arbeitnehmer-Pauschbetrag 1.430 €, höherer Grundfreibetrag und neuer Steuertarif – wirkt auf das Netto ab 2027.',
+      'Kindergeld 267 € (2027) und 272 € (2028), Arbeitnehmer-Pauschbetrag 1.430 €, höherer Grundfreibetrag und neuer Steuertarif. Das Netto ändert sich dadurch ab 2027.',
     status: 'Gesetzentwurf im Bundestag',
   },
   {
@@ -206,7 +206,7 @@ export const EXPECTED_CHANGES: ExpectedChange[] = [
   },
   {
     title: 'Pflegereform',
-    detail: 'Kinderlosenzuschlag 0,9 % (betrifft euch nach der Geburt nicht mehr), Beitragsgrenze wie bei der Krankenversicherung.',
+    detail: 'Kinderlosenzuschlag 0,9 % (entfällt nach der Geburt), Beitragsgrenze wie bei der Krankenversicherung.',
     status: 'Gesetzentwurf',
   },
 ]

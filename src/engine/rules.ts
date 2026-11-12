@@ -39,7 +39,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
           parent: key,
           months: rangeOf(period),
           title: `${name(key)}: Wochenstunden fehlen (${range})`,
-          detail: 'Bitte eintragen, wie viele Stunden pro Woche in diesem Zeitraum gearbeitet wird – 0, wenn gar nicht.',
+          detail: 'Bitte eintragen, wie viele Stunden pro Woche in diesem Zeitraum gearbeitet wird, oder 0, wenn gar nicht.',
         })
       } else if (period.kind === 'work' && period.hours === 0) {
         add({
@@ -49,7 +49,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
           parent: key,
           months: rangeOf(period),
           title: `${name(key)}: 0 Stunden ohne Elternzeit (${range})`,
-          detail: 'Wer nicht in Elternzeit ist, arbeitet. Für eine Auszeit mit Kind bitte Elternzeit einschalten.',
+          detail: 'Wer nicht in Elternzeit ist, arbeitet. Für eine Auszeit mit Kind bitte bei „Art“ Elternzeit wählen.',
         })
       } else if (period.hours > 0) {
         const workDays = period.workDays ?? config.parents[key].workDaysPerWeek
@@ -221,7 +221,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
         parent: key,
         months: underMin,
         title: `${name(key)}: unter ${PL.partTimeMinHours} Stunden kein Anspruch auf Teilzeit`,
-        detail: `Weniger als ${PL.partTimeMinHours} Wochenstunden muss der Arbeitgeber nicht genehmigen – nur nach Absprache. Betroffen: ${formatMonthList(underMin)}.`,
+        detail: `Weniger als ${PL.partTimeMinHours} Wochenstunden muss der Arbeitgeber nicht genehmigen, möglich ist das nur nach Absprache. Betroffen: ${formatMonthList(underMin)}.`,
       })
     }
     const episodes: { months: number[]; hours: number }[] = []
@@ -284,7 +284,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
         detail:
           `Gleichzeitig Basiselterngeld dürfen beide Eltern nur in einem einzigen Monat beziehen, und nur im ersten Lebensjahr. Geplant: ${formatMonthList(parallel)}.` +
           (maternityOverlap
-            ? ` Achtung: Die ersten Monate von ${name('a')} zählen wegen des Mutterschutzes automatisch als Basiselterngeld.`
+            ? ` Die ersten Monate von ${name('a')} zählen wegen des Mutterschutzes automatisch als Basiselterngeld.`
             : '') +
           ' Mit ElterngeldPlus statt Basiselterngeld gilt diese Grenze nicht.',
       })
@@ -312,7 +312,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
       category: 'allowance',
       title: `Zu viele Elterngeld-Monate verplant (${num(entitlement.used)} von ${entitlement.available})`,
       detail:
-        'Zusammen gibt es 14 Monate Basiselterngeld, wenn beide Elterngeld beziehen – sonst 12. ElterngeldPlus zählt halb, der Partnerschaftsbonus kommt obendrauf.',
+        'Zusammen gibt es 14 Monate Basiselterngeld, wenn beide Elterngeld beziehen, sonst 12. ElterngeldPlus zählt halb, der Partnerschaftsbonus kommt hinzu.',
     })
   }
 
@@ -351,7 +351,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
       severity: 'warning',
       category: 'allowance',
       title: 'Einkommen nahe an der Elterngeld-Grenze',
-      detail: `Ab ${euro(PA.incomeLimit)} zu versteuerndem Einkommen im Jahr vor der Geburt gibt es kein Elterngeld. Geschätzt: ${euro(ctx.estimatedTaxableIncome)} – maßgeblich ist der Steuerbescheid.`,
+      detail: `Ab ${euro(PA.incomeLimit)} zu versteuerndem Einkommen im Jahr vor der Geburt gibt es kein Elterngeld. Geschätzt: ${euro(ctx.estimatedTaxableIncome)}. Maßgeblich ist der Steuerbescheid.`,
     })
   }
 
@@ -363,7 +363,7 @@ export function evaluateRules(ctx: RuleContext): Issue[] {
       severity: 'warning',
       category: 'finance',
       months: belowReserve,
-      title: negative ? 'Konto rutscht ins Minus' : 'Kontostand unter der Mindestreserve',
+      title: negative ? 'Kontostand im Minus' : 'Kontostand unter der Mindestreserve',
       detail: `Betroffen: ${formatMonthList(belowReserve)} (Mindestreserve ${euro(config.minReserve)}).`,
     })
   }

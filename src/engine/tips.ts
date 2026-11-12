@@ -36,8 +36,8 @@ export function evaluateTips(
           parent: key,
           months: basicWithWork.map((m) => m.index),
           impact: gain,
-          title: `${name}: in Teilzeit lieber ElterngeldPlus`,
-          detail: `Mit Teilzeitjob wird Basiselterngeld stark gekürzt (hier ${euro(basic)} im Monat), ElterngeldPlus kaum (${euro(plus)}) – und es läuft doppelt so lange. Zusammen bis zu ${euro(gain)} mehr.`,
+          title: `${name}: bei Teilzeit ElterngeldPlus statt Basiselterngeld`,
+          detail: `Mit Teilzeitjob wird Basiselterngeld stark gekürzt (hier ${euro(basic)} im Monat), ElterngeldPlus kaum (${euro(plus)}), und es läuft doppelt so lange. Zusammen bis zu ${euro(gain)} mehr.`,
         })
       }
     }
@@ -103,7 +103,7 @@ export function evaluateTips(
           parent: key,
           impact: -cost,
           title: `${name}: privater Krankenversicherungsbeitrag ohne Zuschuss`,
-          detail: `Ohne Gehalt zahlt der Arbeitgeber nichts dazu – im Plan sind das zusammen ${euro(cost)}. Bei der Versicherung nach einem günstigeren Tarif für diese Zeit fragen.`,
+          detail: `Ohne Gehalt zahlt der Arbeitgeber nichts dazu. Im Plan sind das zusammen ${euro(cost)}. Bei der Versicherung nach einem günstigeren Tarif für diese Zeit fragen.`,
         })
       }
     }
@@ -118,7 +118,7 @@ export function evaluateTips(
       category: 'allowance',
       impact: free * best,
       title: `Ungenutztes Elterngeld: bis zu ${euro(free * best)}`,
-      detail: `Es sind noch ${num(free)} Monate Basiselterngeld frei – oder doppelt so viele Monate ElterngeldPlus, das lohnt sich auch neben einer Teilzeitstelle.`,
+      detail: `Es sind noch ${num(free)} Monate Basiselterngeld frei oder doppelt so viele Monate ElterngeldPlus. ElterngeldPlus lässt sich auch neben einer Teilzeitstelle beziehen.`,
     })
   }
 
@@ -142,7 +142,7 @@ export function evaluateTips(
       category: 'allowance',
       impact: potential,
       title: `Partnerschaftsbonus ungenutzt: bis zu ${euro(potential)}`,
-      detail: `Arbeitet ihr beide 2 bis 4 Monate gleichzeitig ${PA.bonusMinHours} bis ${PA.bonusMaxHours} Stunden pro Woche, gibt es für jeden zusätzlich ElterngeldPlus. Geschätzt für 4 Monate mit je ${hours} Stunden.`,
+      detail: `Arbeiten beide Eltern 2 bis 4 Monate gleichzeitig ${PA.bonusMinHours} bis ${PA.bonusMaxHours} Stunden pro Woche, gibt es für jeden zusätzlich ElterngeldPlus. Geschätzt für 4 Monate mit je ${hours} Stunden.`,
     })
   }
 
@@ -177,7 +177,7 @@ export function evaluateTips(
           parent: key,
           months: leaveMonths.map((m) => m.index),
           title: `${parents[key].name}: Steuerklasse III, solange ${parents[other].name} kein Gehalt hat`,
-          detail: `Etwa ${euro(gain)} mehr Netto pro Monat (${formatMonthList(leaveMonths.map((m) => m.index))}). Übers Jahr ändert sich die Steuer nicht – zu wenig gezahlte Steuer wird mit der Steuererklärung nachgezahlt.`,
+          detail: `Etwa ${euro(gain)} mehr Netto pro Monat (${formatMonthList(leaveMonths.map((m) => m.index))}). Übers Jahr ändert sich die Steuer nicht: Zu wenig gezahlte Steuer wird mit der Steuererklärung nachgezahlt.`,
         })
       }
     }
@@ -218,7 +218,7 @@ export function evaluateTips(
       severity: 'success',
       category: 'finance',
       title: `Kein Kinderlosenzuschlag mehr: +${euro(surchargeGain)} Netto pro Monat`,
-      detail: 'Mit dem ersten Kind entfällt für beide der Pflege-Zuschlag für Kinderlose – ab dem Geburtsmonat, wenn der Arbeitgeber die Geburtsurkunde bekommt.',
+      detail: 'Mit dem ersten Kind entfällt für beide der Pflege-Zuschlag für Kinderlose. Das gilt ab dem Geburtsmonat, sobald der Arbeitgeber die Geburtsurkunde hat.',
     })
   }
 
@@ -233,8 +233,8 @@ export function evaluateTips(
         category: 'finance',
         parent: payment.parent,
         impact: payment.betterMonth.saving,
-        title: `${name}: ${payment.label} lieber im ${better}`,
-        detail: `Kommt die Zahlung im ${better} statt im ${month}, spart das etwa ${euro(payment.betterMonth.saving)} Sozialabgaben. Auf Einmalzahlungen fallen Sozialabgaben nur an, soweit im selben Jahr schon Gehalt geflossen ist; Zahlungen im Januar bis März können zum Vorjahr zählen. Fragt beim Arbeitgeber nach, er spart seinen Anteil ebenfalls.`,
+        title: `${name}: ${payment.label} im ${better} statt im ${month}`,
+        detail: `Kommt die Zahlung im ${better} statt im ${month}, spart das etwa ${euro(payment.betterMonth.saving)} Sozialabgaben. Auf Einmalzahlungen fallen Sozialabgaben nur an, soweit im selben Jahr schon Gehalt geflossen ist; Zahlungen im Januar bis März können zum Vorjahr zählen. Beim Arbeitgeber nachfragen: Er spart seinen Anteil ebenfalls.`,
       })
     }
 
@@ -247,7 +247,7 @@ export function evaluateTips(
         category: 'finance',
         parent: payment.parent,
         impact: backPayment ? -estimate : estimate,
-        title: `${name}: ${payment.label} – grob ${euro(estimate)} Steuer-${backPayment ? 'Nachzahlung' : 'Erstattung'} möglich`,
+        title: `${name}: ${payment.label} – etwa ${euro(estimate)} Steuer${backPayment ? 'nachzahlung' : 'erstattung'} möglich`,
         detail:
           (payment.tax < 1
             ? `Bei der Auszahlung im ${month} wird keine Lohnsteuer einbehalten. `

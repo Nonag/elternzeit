@@ -53,7 +53,7 @@ async function applyPreset(preset: PlanPreset) {
           Partnerschaftsbonus <strong class="text-foreground">{{ result.parents.a.counts.bonus }}/4</strong>
           <IssueMarker
             :issues="counters.bonus"
-            text="Bis zu 4 zusätzliche Monate ElterngeldPlus für jeden Elternteil – wenn ihr beide 2 bis 4 Monate am Stück gleichzeitig 24 bis 32 Stunden pro Woche arbeitet."
+            text="Bis zu 4 zusätzliche Monate ElterngeldPlus für jeden Elternteil, wenn beide Eltern 2 bis 4 Monate am Stück gleichzeitig 24 bis 32 Stunden pro Woche arbeiten."
           />
         </span>
         <span class="flex items-center gap-1">

@@ -31,7 +31,7 @@ const paymentMonths = computed(() => ({
 }))
 
 const PAYMENT_HINT =
-  'Weihnachts- und Urlaubsgeld, Boni oder Prämien trägst du brutto im Monat der Auszahlung ein. Auf der Gehaltsabrechnung stehen sie als eigene Zeile, oft als „Einmalzahlung“ oder „Sonderzahlung“. Kommt das Geld in monatlichen Raten, zählt es zum normalen Monatsgehalt.\nDas Elterngeld ändert sich durch Einmalzahlungen nicht.'
+  'Weihnachts- und Urlaubsgeld, Boni oder Prämien brutto im Monat der Auszahlung eintragen. Auf der Gehaltsabrechnung stehen sie als eigene Zeile, oft als „Einmalzahlung“ oder „Sonderzahlung“. Kommt das Geld in monatlichen Raten, zählt es zum normalen Monatsgehalt.\nDas Elterngeld ändert sich durch Einmalzahlungen nicht.'
 
 function addPayment() {
   parent.value.oneTimePayments.push({ id: createId('payment'), label: '', gross: null, month: '' })
@@ -100,7 +100,7 @@ const churchRateOptions = [
       <div class="grid grid-cols-2 gap-4">
         <FormField
           label="Brutto pro Monat"
-          hint="Auf der Gehaltsabrechnung meist „Steuerbrutto“ – aus einem Monat ohne Weihnachts- oder Urlaubsgeld. Beispiel: 4.200 € Bruttogehalt, davon 200 € für die Betriebsrente → 4.000 €."
+          hint="Auf der Gehaltsabrechnung meist „Steuerbrutto“, aus einem Monat ohne Weihnachts- oder Urlaubsgeld. Beispiel: 4.200 € Bruttogehalt, davon 200 € für die Betriebsrente → 4.000 €."
         >
           <NumberInput v-model="parent.grossMonthly" unit="€" :step="100" />
         </FormField>

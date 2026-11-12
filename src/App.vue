@@ -69,7 +69,7 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
           <Card>
             <CardHeader>
               <CardTitle>Haushaltseinkommen</CardTitle>
-              <CardDescription>Einnahmen pro Monat nach Quelle. Gestrichelt: euer gemeinsames Netto vor der Geburt. Rot: Ausgaben.</CardDescription>
+              <CardDescription>Einnahmen pro Monat nach Quelle. Gestrichelt: das gemeinsame Netto vor der Geburt. Rot: Ausgaben.</CardDescription>
             </CardHeader>
             <CardContent><IncomeChart /></CardContent>
           </Card>

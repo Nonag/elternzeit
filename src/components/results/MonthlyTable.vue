@@ -369,8 +369,8 @@ function exportCsv() {
       </table>
     </div>
     <p class="text-muted-foreground text-xs leading-relaxed">
-      Eine Zeile entspricht einem Lebensmonat. „vor Geburt“ ist euer gemeinsames Netto vor der Geburt, „Differenz“ die
-      Einnahmen des Monats minus dieses Netto.
+      Eine Zeile pro Lebensmonat. „vor Geburt“ ist das gemeinsame Netto vor der Geburt, „Differenz“ die Einnahmen des
+      Monats minus dieses Netto.
     </p>
   </div>
 </template>

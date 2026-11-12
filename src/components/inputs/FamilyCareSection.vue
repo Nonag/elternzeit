@@ -23,7 +23,7 @@ function addFamilyCare() {
 <template>
   <div class="grid gap-5">
     <p class="text-muted-foreground text-xs leading-relaxed">
-      Zeiten, in denen Großeltern oder Freunde das Kind betreuen, während ihr beide arbeitet.
+      Zeiten, in denen Großeltern oder Freunde das Kind betreuen, während beide Eltern arbeiten.
     </p>
     <div v-for="(period, i) in config.familyCare" :key="period.id" class="grid gap-3 rounded-lg border p-3">
       <div class="flex items-center gap-2">

@@ -19,7 +19,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
 <template>
   <div class="grid gap-5">
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <FormField label="Kindererziehungszeiten für" hint="Für die ersten drei Lebensjahre bekommt ein Elternteil zusätzliche Rentenpunkte, etwa einen pro Jahr – ohne Antrag die Mutter. Eine andere Aufteilung geht per gemeinsamer Erklärung, höchstens zwei Monate rückwirkend.">
+      <FormField label="Kindererziehungszeiten für" hint="Für die ersten drei Lebensjahre bekommt ein Elternteil zusätzliche Rentenpunkte, etwa einen pro Jahr. Ohne Antrag ist das die Mutter. Eine andere Aufteilung geht per gemeinsamer Erklärung, höchstens zwei Monate rückwirkend.">
         <ChoiceToggle v-model="config.childRaisingCreditTo" :options="parentOptions" />
       </FormField>
       <FormField label="Rendite Ersparnisse p. a.">
@@ -69,7 +69,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
       <p class="text-muted-foreground text-xs leading-relaxed">
         Ein Rentenpunkt bringt heute {{ euro(longTerm.pensionValue, true) }} Rente im Monat. Wer ein Jahr lang das
         Durchschnittsgehalt verdient, bekommt einen Punkt; Elterngeld zählt nicht. Fehlende Punkte lassen sich mit
-        freiwilligen Beiträgen nachkaufen – etwa {{ euro(longTerm.costPerPoint) }} pro Punkt, allerdings nur für Monate, in
+        freiwilligen Beiträgen nachkaufen, etwa {{ euro(longTerm.costPerPoint) }} pro Punkt, allerdings nur für Monate, in
         denen man sonst nicht rentenversichert ist.
       </p>
     </div>
@@ -90,7 +90,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
         </span>
       </div>
       <div class="grid content-start gap-1 rounded-lg border p-3">
-        <span class="text-muted-foreground text-xs">Ausgleich, wenn ihr die Einbußen 50 : 50 teilt</span>
+        <span class="text-muted-foreground text-xs">Ausgleich bei Teilung der Einbußen 50 : 50</span>
         <template v-if="longTerm.compensation">
           <span class="text-sm">
             {{ name(longTerm.compensation.from) }} gleicht {{ name(longTerm.compensation.to) }} aus:
@@ -103,7 +103,7 @@ const name = (key: ParentKey) => result.value.parents[key].name
           </span>
           <span class="text-muted-foreground text-xs leading-relaxed">
             {{ config.relationship === 'married'
-              ? 'Verheiratet: Bei einer Scheidung werden Vermögen und Rentenansprüche ohnehin geteilt – ein Ausgleich schon während der Ehe stärkt trotzdem die eigene Absicherung.'
+              ? 'Verheiratet: Bei einer Scheidung werden Vermögen und Rentenansprüche ohnehin geteilt. Ein Ausgleich schon während der Ehe stärkt trotzdem die eigene Absicherung.'
               : 'Unverheiratet: Es gibt keinen gesetzlichen Ausgleich. Am besten schriftlich vereinbaren, wer wem wie viel ausgleicht.' }}
           </span>
         </template>

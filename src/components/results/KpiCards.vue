@@ -38,7 +38,7 @@ const allowanceSplit = computed(() =>
         <div class="text-muted-foreground flex items-center gap-1.5 text-xs">
           <TrendingDownIcon class="size-3.5 shrink-0" />
           <span class="truncate">Einkommen vs. vorher</span>
-          <InfoTip text="Alle Einnahmen (Gehalt, Elterngeld, Mutterschaftsgeld, Kindergeld) minus euer gemeinsames Netto vor der Geburt." />
+          <InfoTip text="Alle Einnahmen (Gehalt, Elterngeld, Mutterschaftsgeld, Kindergeld) minus das gemeinsame Netto vor der Geburt." />
         </div>
         <div class="text-2xl font-semibold tabular-nums" :class="totals.delta < 0 ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400'">
           {{ signedEuro(totals.delta) }}
