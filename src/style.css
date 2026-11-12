@@ -177,3 +177,8 @@
 .plan-stripes {
     background-image: repeating-linear-gradient(135deg, transparent 0 6px, oklch(1 0 0 / 0.35) 6px 12px);
 }
+
+/* Toasts (lib/toasts.ts): Sonner hides the content of the toasts behind the front one only for its own toasts. */
+[data-sonner-toast][data-expanded='false'][data-front='false'] > * {
+    opacity: 0;
+}

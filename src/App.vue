@@ -111,8 +111,12 @@ const dueDeadlines = computed(() => deadlines.value.filter((d) => d.status === '
     </div>
     <ConfirmDialog />
     <PromptDialog />
-    <!-- Toasts are shown with notify() from lib/toasts.ts; all get the width Sonner gives its own toasts. -->
-    <Toaster :theme="isDark ? 'dark' : 'light'" :toast-options="{ class: 'w-(--width)' }" />
+    <!-- Toasts are shown with notify() from lib/toasts.ts. The card is the list item, whose height Sonner sets while
+         stacking, so a long toast behind a short one does not stick out. -->
+    <Toaster
+      :theme="isDark ? 'dark' : 'light'"
+      :toast-options="{ class: 'w-(--width) overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-lg' }"
+    />
     <AdminSetupDialog />
   </TooltipProvider>
 </template>

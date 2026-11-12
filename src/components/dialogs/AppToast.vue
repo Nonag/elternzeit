@@ -3,7 +3,8 @@ import { CircleCheckIcon, OctagonXIcon, XIcon } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import type { ToastAction } from '@/lib/toasts'
 
-// Layout of the shadcn toast: icon, text, action and close button in one row. Sonner only stacks and times it.
+// Layout of the shadcn toast: icon, text, action and close button in one row. The card itself (background, border,
+// shadow) is the list item of Sonner, see App.vue.
 const props = defineProps<{
   title: string
   description?: string
@@ -21,7 +22,7 @@ function runAction() {
 </script>
 
 <template>
-  <div data-slot="toast" class="bg-popover text-popover-foreground flex w-full items-center gap-3 rounded-2xl border p-4 shadow-lg">
+  <div data-slot="toast" class="flex w-full items-center gap-3 p-4">
     <CircleCheckIcon v-if="type === 'success'" class="size-4 shrink-0" aria-hidden="true" />
     <OctagonXIcon v-else-if="type === 'error'" class="text-destructive size-4 shrink-0" aria-hidden="true" />
     <div class="flex min-w-0 flex-1 flex-col gap-1">

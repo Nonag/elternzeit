@@ -94,8 +94,8 @@ docs/research-notes.md legal research with sources
   will ask for a name or the password.
 - **Plannings** are opened and saved, never "angemeldet". Remembering is the checkbox "Passwort auf diesem Gerät merken".
 - **Toasts:** only via `notify()` in `lib/toasts.ts`, rendered by `dialogs/AppToast.vue` in the layout of the shadcn
-  toast with a close button. They close after 5 seconds; news about other people, errors and the result of
-  "Lücken schließen" are `persistent`.
+  toast with a close button. They close after 5 seconds, or 10 with more text than the title; news about other
+  people, errors and the result of "Lücken schließen" are `persistent`.
 - **Components:** use shadcn-vue (`npx shadcn-vue@latest add <name>`) and what reka-ui, @vueuse/core or
   @tanstack/vue-table offer before building your own. Dialogs only via `src/lib/dialogs.ts` (`confirmDialog`,
   `promptDialog`, `messageDialog`), never `window.alert`, `confirm` or `prompt`.
