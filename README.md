@@ -51,7 +51,9 @@ Without `CONFIG_ROOT` the data folder is `./elternzeit` next to the compose file
 
 - **Plan** per parent as periods in the plan card (life months; Elternzeit or work; weekly hours and working days;
   Basis/Plus/Partnerschaftsbonus) plus paid vacation in whole weeks; presets for common models, separate ones for
-  single parents.
+  single parents. "Lücken schließen" adjusts the plan to the Kita and family care: Partnerschaftsbonus hours,
+  part-time in Elternzeit (the parent who earns less, else both, with the Partnerschaftsbonus where it fits) and
+  vacation or Elternzeit for the Kita start.
 - **Calculates** real net pay (BMF Programmablaufplan 2026 via `lohnsteuerrechner`, plus the draft 2027/2028
   tariff), Elterngeld-Netto and
   Elterngeld (§§ 2–4 BEEG incl. income averaging, Plus cap, Mutterschaftsgeld offset per day), Kindergeld,

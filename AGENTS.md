@@ -38,6 +38,7 @@ src/
     payroll.ts, tax.ts gross → net (PAP 2026 via lohnsteuerrechner plus the draft 2027 tariff)
     parentalAllowance.ts, maternity.ts, oneTimePayments.ts, childcare.ts, vacation.ts, pension.ts
     plan.ts            plan periods and presets (PLAN_PRESETS)
+    gaps.ts            closeGaps(): "Lücken schließen", proposals checked with simulate()
     rules.ts, tips.ts  rule checks and tips; deadlines.ts: Fristen
     dates.ts           ISO dates, weeks and Lebensmonate, date formatting
     format.ts          German numbers and texts (euro, num, count, formatMonthList …) for the engine and the UI
@@ -61,6 +62,7 @@ docs/research-notes.md legal research with sources
 | Variante | `Variant` with `config: VariantConfig`, `useVariants()` |
 | Elternzeit & Elterngeld (card with the periods, "plan card" in code) | `config.periods`: `PlanPeriod[]` per parent, `PeriodEditor`, `PlanTimeline` |
 | Vorlage | `PLAN_PRESETS` as periods, `presetsFor()` (two parents or single), `periodsFromPreset()`; `PlanOutline` only migrates first-version data |
+| Lücken schließen | `closeGaps()`: Partnerschaftsbonus hours; part-time in Elternzeit (up to 32 h) for the parent who earns less, else both, with the Partnerschaftsbonus where it fits; last vacation or Elternzeit for the Kita start |
 | Basiselterngeld / ElterngeldPlus / Partnerschaftsbonus | `allowance: AllowanceType` = `basic` / `plus` / `bonus` |
 | Art: Elternzeit / Arbeit | `PlanPeriod.kind` = `leave` / `work` |
 | Tage (working days per week) | `PlanPeriod.workDays` |
@@ -92,7 +94,8 @@ docs/research-notes.md legal research with sources
   will ask for a name or the password.
 - **Plannings** are opened and saved, never "angemeldet". Remembering is the checkbox "Passwort auf diesem Gerät merken".
 - **Toasts:** only via `notify()` in `lib/toasts.ts`, rendered by `dialogs/AppToast.vue` in the layout of the shadcn
-  toast with a close button. They close after 5 seconds; news about other people and errors are `persistent`.
+  toast with a close button. They close after 5 seconds; news about other people, errors and the result of
+  "Lücken schließen" are `persistent`.
 - **Components:** use shadcn-vue (`npx shadcn-vue@latest add <name>`) and what reka-ui, @vueuse/core or
   @tanstack/vue-table offer before building your own. Dialogs only via `src/lib/dialogs.ts` (`confirmDialog`,
   `promptDialog`, `messageDialog`), never `window.alert`, `confirm` or `prompt`.

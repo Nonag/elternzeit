@@ -26,7 +26,7 @@ function runAction() {
     <OctagonXIcon v-else-if="type === 'error'" class="text-destructive size-4 shrink-0" aria-hidden="true" />
     <div class="flex min-w-0 flex-1 flex-col gap-1">
       <p class="text-sm font-medium">{{ title }}</p>
-      <p v-if="description" class="text-muted-foreground text-sm">{{ description }}</p>
+      <p v-if="description" class="text-muted-foreground text-sm whitespace-pre-line">{{ description }}</p>
     </div>
     <Button v-if="action" variant="outline" size="sm" class="shrink-0" @click="runAction">{{ action.label }}</Button>
     <Button

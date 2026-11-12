@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WandSparklesIcon } from '@lucide/vue'
+import { PuzzleIcon, WandSparklesIcon } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { confirmDialog } from '@/lib/dialogs'
+import { notify } from '@/lib/toasts'
+import { closeGaps, hasCareGaps, unclosedText } from '@/engine/gaps'
 import { periodsFromPreset, presetsFor, type PlanPreset } from '@/engine/plan'
 import { num } from '@/engine/format'
 import { useVariants } from '@/stores/variants'
@@ -31,6 +34,29 @@ async function applyPreset(preset: PlanPreset) {
   if (hasPlan.value && !(await confirmDialog({ title: 'Plan ersetzen?', description: `Der aktuelle Plan wird durch „${preset.label}“ ersetzt.`, confirmLabel: 'Ersetzen' }))) return
   config.value.periods = periodsFromPreset(preset)
   selectedPeriod.value = null
+  if (hasCareGaps(result.value)) {
+    notify(`„${preset.label}“ übernommen`, { description: 'Der Plan hat Lücken in der Betreuung.' })
+  }
+}
+
+const gapsOpen = computed(() => hasCareGaps(result.value))
+
+/**
+ * Adjusts the plan so that the care gaps close, as one undo step. The toast lists what changed and stays until it is
+ * closed, since it is long.
+ */
+function fillGaps() {
+  const proposal = closeGaps(config.value)
+  const unclosed = proposal.remaining.length ? unclosedText(proposal.remaining) : null
+  if (!proposal.changes.length) {
+    notify('Keine Änderung', { description: unclosed ?? undefined, persistent: true })
+    return
+  }
+  config.value.periods = proposal.periods
+  config.value.vacation = proposal.vacation
+  selectedPeriod.value = null
+  const lines = unclosed ? [...proposal.changes, unclosed] : proposal.changes
+  notify(unclosed ? 'Lücken verkleinert' : 'Lücken geschlossen', { type: 'success', description: lines.join('\n'), persistent: true })
 }
 </script>
 
@@ -63,7 +89,16 @@ async function applyPreset(preset: PlanPreset) {
           <IssueMarker :issues="counters.leave" />
         </span>
       </div>
-      <CardAction>
+      <CardAction class="flex gap-2">
+        <!-- The span keeps the tooltip working on the disabled button. -->
+        <Tooltip :disabled="gapsOpen">
+          <TooltipTrigger as-child>
+            <span>
+              <Button variant="outline" :disabled="!gapsOpen" @click="fillGaps"><PuzzleIcon /> Lücken schließen</Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Keine Lücken</TooltipContent>
+        </Tooltip>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button variant="outline"><WandSparklesIcon /> Vorlage</Button>
