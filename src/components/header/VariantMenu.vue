@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ChevronDownIcon, CopyIcon, FileIcon, FilePlusIcon, PencilIcon, Trash2Icon } from '@lucide/vue'
 import { SelectTrigger as SelectTriggerPrimitive } from 'reka-ui'
+import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -10,6 +11,10 @@ import { useVariantActions } from './useVariantActions'
 
 const { state, current } = useVariants()
 const actions = useVariantActions()
+
+const sortedVariants = computed(() =>
+  [...state.variants].sort((x, y) => x.name.localeCompare(y.name, 'de', { numeric: true, sensitivity: 'base' })),
+)
 </script>
 
 <template>
@@ -25,7 +30,7 @@ const actions = useVariantActions()
       <SelectContent position="popper" align="start">
         <SelectGroup>
           <SelectLabel>Varianten</SelectLabel>
-          <SelectItem v-for="variant in state.variants" :key="variant.id" :value="variant.id">{{ variant.name }}</SelectItem>
+          <SelectItem v-for="variant in sortedVariants" :key="variant.id" :value="variant.id">{{ variant.name }}</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
