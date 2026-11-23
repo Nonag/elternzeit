@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BabyIcon, HandCoinsIcon, SchoolIcon, UserIcon, UsersIcon } from '@lucide/vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import CostsSection from './CostsSection.vue'
 import FamilySection from './FamilySection.vue'
@@ -9,12 +9,17 @@ import ParentSection from './ParentSection.vue'
 import FamilyCareSection from './FamilyCareSection.vue'
 import { useVariants } from '@/stores/variants'
 
-const { config } = useVariants()
+const { config, isBlank, loads } = useVariants()
 const parentKeys = computed(() => (config.value.relationship === 'single' ? (['a'] as const) : (['a', 'b'] as const)))
+
+// A loaded planning starts with all sections closed; a new one opens the first section to start with.
+const startSection = () => (isBlank.value ? 'family' : undefined)
+const openSection = ref(startSection())
+watch(loads, () => (openSection.value = startSection()))
 </script>
 
 <template>
-  <Accordion type="single" collapsible default-value="family" class="w-full">
+  <Accordion v-model="openSection" type="single" collapsible class="w-full">
     <AccordionItem value="family">
       <AccordionTrigger class="px-5 py-4 hover:no-underline">
         <span class="flex items-center gap-2.5"><BabyIcon class="size-4" /> Familie &amp; Termine</span>
